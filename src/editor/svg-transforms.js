@@ -128,15 +128,15 @@ export function createLayerMarkup(rawMarkup, tag, textContent = 'New text') {
   const newId = `node-new-${Date.now()}`
   const node = doc.createElementNS('http://www.w3.org/2000/svg', tag)
   const attributes = {
-    rect: { x: centerX - 100, y: centerY - 60, width: 200, height: 120, rx: 16, fill: '#C8FF4F' },
-    circle: { cx: centerX, cy: centerY, r: 72, fill: '#FF8B5C' },
-    ellipse: { cx: centerX, cy: centerY, rx: 110, ry: 72, fill: '#5B75FF' },
-    line: { x1: centerX - 140, y1: centerY, x2: centerX + 140, y2: centerY, stroke: '#C8FF4F', 'stroke-width': 12, 'stroke-linecap': 'round' },
-    polyline: { points: `${centerX - 150},${centerY + 70} ${centerX - 50},${centerY - 80} ${centerX + 45},${centerY + 45} ${centerX + 150},${centerY - 65}`, fill: 'none', stroke: '#FF8B5C', 'stroke-width': 12, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' },
-    polygon: { points: `${centerX},${centerY - 110} ${centerX + 110},${centerY + 90} ${centerX - 110},${centerY + 90}`, fill: '#5B75FF' },
-    path: { d: `M ${centerX - 125} ${centerY + 70} C ${centerX - 80} ${centerY - 115}, ${centerX + 80} ${centerY - 115}, ${centerX + 125} ${centerY + 70}`, fill: 'none', stroke: '#FF8B5C', 'stroke-width': 16, 'stroke-linecap': 'round' },
-    text: { x: centerX, y: centerY, 'text-anchor': 'middle', 'font-family': 'Manrope, Arial, sans-serif', 'font-size': 48, 'font-weight': 700, fill: '#15203A' },
-  }[tag] || { fill: '#C8FF4F' }
+    rect: { x: centerX - 100, y: centerY - 60, width: 200, height: 120, rx: 16, fill: '#F2A93B' },
+    circle: { cx: centerX, cy: centerY, r: 72, fill: '#E8603F' },
+    ellipse: { cx: centerX, cy: centerY, rx: 110, ry: 72, fill: '#8FA3C8' },
+    line: { x1: centerX - 140, y1: centerY, x2: centerX + 140, y2: centerY, stroke: '#F2A93B', 'stroke-width': 12, 'stroke-linecap': 'round' },
+    polyline: { points: `${centerX - 150},${centerY + 70} ${centerX - 50},${centerY - 80} ${centerX + 45},${centerY + 45} ${centerX + 150},${centerY - 65}`, fill: 'none', stroke: '#E8603F', 'stroke-width': 12, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' },
+    polygon: { points: `${centerX},${centerY - 110} ${centerX + 110},${centerY + 90} ${centerX - 110},${centerY + 90}`, fill: '#8FA3C8' },
+    path: { d: `M ${centerX - 125} ${centerY + 70} C ${centerX - 80} ${centerY - 115}, ${centerX + 80} ${centerY - 115}, ${centerX + 125} ${centerY + 70}`, fill: 'none', stroke: '#E8603F', 'stroke-width': 16, 'stroke-linecap': 'round' },
+    text: { x: centerX, y: centerY, 'text-anchor': 'middle', 'font-family': 'Archivo, Arial, sans-serif', 'font-size': 48, 'font-weight': 700, fill: '#23211D' },
+  }[tag] || { fill: '#F2A93B' }
   Object.entries(attributes).forEach(([attribute, value]) => node.setAttribute(attribute, String(value)))
   node.setAttribute('data-editor-id', newId)
   if (tag === 'text') node.textContent = textContent

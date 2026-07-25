@@ -34,7 +34,7 @@ export default function CanvasPanel(props) {
   const selectSourceItem = (item) => selectLayerIds(getElementAndDescendantIds(elements, item.id), item.id)
   const textAnchor = selected?.node?.getAttribute('text-anchor') || 'start'
   const textInlineStyle = {
-    color: selected?.node?.getAttribute('fill') || '#15203A',
+    color: selected?.node?.getAttribute('fill') || '#23211D',
     fontFamily: selected?.node?.getAttribute('font-family') || 'Arial, sans-serif',
     fontSize: `${Math.max(12, selectionBox?.height || 16)}px`,
     fontStyle: selected?.node?.getAttribute('font-style') || 'normal',
