@@ -17,10 +17,10 @@ const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480
     <rect width="720" height="480" rx="24" fill="#F4F1EA" />
   </g>
   <g id="logo-mark" data-name="Logo mark">
-    <circle cx="360" cy="194" r="92" fill="#FF8B5C" />
-    <path d="M300 222c30-104 180-108 182-5 1 55-44 87-101 87-54 0-88-29-81-82Z" fill="#5B75FF" />
+    <circle cx="360" cy="194" r="92" fill="#F2A93B" />
+    <path d="M300 222c30-104 180-108 182-5 1 55-44 87-101 87-54 0-88-29-81-82Z" fill="#23211D" />
   </g>
-  <text id="wordmark" data-name="Wordmark" x="360" y="370" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="54" letter-spacing="5" fill="#15203A">VECTOR</text>
+  <text id="wordmark" data-name="Wordmark" x="360" y="370" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="54" letter-spacing="5" fill="#1A1815">VECTOR</text>
 </svg>`
 
 const STORAGE_KEY = 'vector-forge:document'
@@ -102,23 +102,23 @@ function App() {
     {
       title: copy.shortcutsGeneral,
       items: [
-        ['⌘Z', copy.shortcutUndo],
-        ['⌘⇧Z', copy.shortcutRedo],
-        ['⌘S', copy.shortcutExport],
-        ['⌘A', copy.shortcutSelectAll],
-        ['⌘C', copy.shortcutCopy],
-        ['⌘V', copy.shortcutPaste],
+        ['⌘ Z', copy.shortcutUndo],
+        ['⌘ ⇧ Z', copy.shortcutRedo],
+        ['⌘ S', copy.shortcutExport],
+        ['⌘ A', copy.shortcutSelectAll],
+        ['⌘ C', copy.shortcutCopy],
+        ['⌘ V', copy.shortcutPaste],
         ['⌫', copy.shortcutDelete],
-        ['⌘\\', copy.shortcutPanels],
+        ['⌘ \\', copy.shortcutPanels],
         ['?', copy.shortcutHelp],
       ],
     },
     {
       title: copy.shortcutsCanvas,
       items: [
-        ['⌘=', copy.shortcutZoomIn],
-        ['⌘-', copy.shortcutZoomOut],
-        ['⌘0', copy.shortcutZoomFit],
+        ['⌘ =', copy.shortcutZoomIn],
+        ['⌘ -', copy.shortcutZoomOut],
+        ['⌘ 0', copy.shortcutZoomFit],
         [copy.shortcutKeyDrag, copy.shortcutPan],
         [copy.shortcutKeyScroll, copy.shortcutZoom],
         [copy.shortcutKeyDoubleClick, copy.shortcutEditText],
@@ -799,7 +799,7 @@ function App() {
   }, [renamingLayerId])
 
   const fill = getDraftedAttribute('fill', getColor(selectedAttrs?.getAttribute('fill'), '#5B75FF'))
-  const stroke = getDraftedAttribute('stroke', getColor(selectedAttrs?.getAttribute('stroke'), '#15203A'))
+  const stroke = getDraftedAttribute('stroke', getColor(selectedAttrs?.getAttribute('stroke'), '#23211D'))
   const opacity = Number(getDraftedAttribute('opacity', '1'))
   const strokeWidth = Number(getDraftedAttribute('stroke-width', '0'))
   const rectWidthValue = getDraftedAttribute('width', selectedAttrs?.getAttribute('width') || '200')
@@ -819,7 +819,7 @@ function App() {
   return (
     <main className="app-shell" onDragEnter={handleFileDragEnter} onDragOver={handleFileDragOver} onDragLeave={handleFileDragLeave} onDrop={handleDrop}>
       <header className="topbar">
-        <div className="brand"><span className="brand-mark"><span /></span><span>VECTOR FORGE</span><a className="brand-github-link" href="https://github.com/wangruofeng/vector-forge" target="_blank" rel="noreferrer" title={copy.githubRepository} aria-label={copy.githubRepository}><Icon name="github" size={17} /></a></div>
+        <div className="brand"><svg className="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M19 17 C25 34, 29 43, 32 45.5 C35 43, 43 30, 45 17" fill="none" stroke="#F2A93B" strokeWidth="7" strokeLinecap="round" /></svg><span>VECTOR FORGE</span><a className="brand-github-link" href="https://github.com/wangruofeng/vector-forge" target="_blank" rel="noreferrer" title={copy.githubRepository} aria-label={copy.githubRepository}><Icon name="github" size={17} /></a></div>
         <div className="topbar-actions">
           <button className="icon-button" title={`${copy.undo} (⌘Z)`} aria-keyshortcuts="Meta+Z" onClick={undo} disabled={!history.past.length}><Icon name="undo" /></button>
           <button className="icon-button" title={`${copy.redo} (⌘⇧Z)`} aria-keyshortcuts="Meta+Shift+Z" onClick={redo} disabled={!history.future.length}><Icon name="redo" /></button>
