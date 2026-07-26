@@ -12,7 +12,7 @@
   "categories": ["graphics", "design", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "/favicon.svg?v=cfb37f60",
       "type": "image/svg+xml",
       "sizes": "any",
       "purpose": "any"
