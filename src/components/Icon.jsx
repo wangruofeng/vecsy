@@ -11,6 +11,7 @@ export default function Icon({ name, size = 16 }) {
     grid: <><rect x="2.5" y="2.5" width="4.6" height="4.6" rx="1" /><rect x="8.9" y="2.5" width="4.6" height="4.6" rx="1" /><rect x="2.5" y="8.9" width="4.6" height="4.6" rx="1" /><rect x="8.9" y="8.9" width="4.6" height="4.6" rx="1" /></>,
     plus: <><path d="M8 3v10M3 8h10" /></>,
     code: <><path d="m5 4-3 4 3 4M11 4l3 4-3 4M9 2.5 7 13.5" /></>,
+    merge: <><path d="M3 4h2.5c2 0 2.5 2 2.5 4v4" /><path d="M3 12h2.5c2 0 2.5-2 2.5-4V4" /><path d="m9.5 5 2-2 2 2M9.5 11l2 2 2-2" /></>,
     sidebar: <><rect x="2.5" y="3" width="11" height="10" rx="1.5" /><path d="M6.5 3v10" /></>,
     x: <><path d="m4 4 8 8M12 4l-8 8" /></>,
     check: <path d="m3 8 3 3 5-6" />,

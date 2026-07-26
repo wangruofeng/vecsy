@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { clampScale, getNodeRect, getSvgPoint, getSvgPointerDelta, getTopLevelSelectedIds, pointerCenter, pointerDistance } from '../editor/svg-geometry.js'
-import { bakeRectTranslateScaleTransform, getEditableTextContent, resizeBackgroundLayer, translateElements, updateElementAttributes, updateElementTransform } from '../editor/svg-transforms.js'
+import { clampScale, getElementPointerDelta, getNodeRect, getSvgPoint, getTopLevelSelectedIds, pointerCenter, pointerDistance } from '../editor/svg-geometry.js'
+import { bakeRectTranslateScaleTransform, getEditableTextContent, resizeBackgroundLayer, translateElementsById, updateElementAttributes, updateElementTransform } from '../editor/svg-transforms.js'
 
 function getProportionalScale(scaleX, scaleY) {
   return Math.abs(scaleX - 1) >= Math.abs(scaleY - 1) ? scaleX : scaleY
@@ -256,8 +256,14 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     if (elementDrag && elementDrag.pointerId === event.pointerId) {
       const screenDistance = Math.hypot(event.clientX - elementDrag.startX, event.clientY - elementDrag.startY)
       if (screenDistance <= 2) return
-      const delta = getSvgPointerDelta(svgRef.current, { x: elementDrag.startX, y: elementDrag.startY }, { x: event.clientX, y: event.clientY })
-      const nextMarkup = translateElements(elementDrag.baseMarkup, elementDrag.targetIds, delta)
+      const start = { x: elementDrag.startX, y: elementDrag.startY }
+      const current = { x: event.clientX, y: event.clientY }
+      const moves = elementDrag.targetIds.map((id) => {
+        const node = svgRef.current?.querySelector(`[data-editor-id="${id}"]`)
+        const delta = getElementPointerDelta(svgRef.current, node, start, current)
+        return { id, dx: delta.x, dy: delta.y }
+      })
+      const nextMarkup = translateElementsById(elementDrag.baseMarkup, moves)
       elementDrag.previewMarkup = nextMarkup
       elementDrag.moved = true
       updateTransientMarkup(nextMarkup)

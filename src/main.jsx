@@ -11,7 +11,7 @@ import useEditorDocument from './hooks/useEditorDocument.js'
 import useCanvasInteraction from './hooks/useCanvasInteraction.js'
 import { getAncestorGroupIds, getColor, getSvgColorTokens, getVisibleLayerItems, isElementHidden, setElementVisibility } from './editor/svg-parser.js'
 import { getSvgDimensions, getTopLevelSelectedIds } from './editor/svg-geometry.js'
-import { copyLayerMarkup, createCollectionSvgLayerMarkup, createImageLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, getPolygonSides, getTextGradientConfig, highlightSvgSource, insertClonedLayer, minifySvg, removeLayers, reorderSiblingElements, replaceSvgColorToken, sanitizeForExport, syncTextLineLayout, translateElements, translateElementsById, updateElementAttributes, updatePolygonSides as updatePolygonSidesMarkup, updateTextGradient, withExplicitSize } from './editor/svg-transforms.js'
+import { compactSvgTranslateTransforms, copyLayerMarkup, createCollectionSvgLayerMarkup, createImageLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, getPolygonSides, getTextGradientConfig, highlightSvgSource, insertClonedLayer, minifySvg, removeLayers, reorderSiblingElements, replaceSvgColorToken, sanitizeForExport, syncTextLineLayout, translateElements, translateElementsById, updateElementAttributes, updatePolygonSides as updatePolygonSidesMarkup, updateTextGradient, withExplicitSize } from './editor/svg-transforms.js'
 
 const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480">
   <g id="background" data-name="Background">
@@ -769,6 +769,18 @@ function App() {
     }
   }
 
+  const simplifySource = () => {
+    try {
+      const simplified = formatSvgMarkup(compactSvgTranslateTransforms(sourceDraft))
+      commitDocument(simplified, { nextSelectedId: selectedId })
+      setSourceDraft(simplified)
+      setSourceDisplayMode('tree')
+      showToast(copy.toastSimplified)
+    } catch {
+      showToast(copy.invalidSvg, 'error')
+    }
+  }
+
   const loadDemo = () => loadSvg(SAMPLE_SVG, 'demo.svg')
 
   const hasDraggedFiles = (event) => Array.from(event.dataTransfer?.types || []).includes('Files')
@@ -1054,6 +1066,7 @@ function App() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           formatSource={formatSource}
+          simplifySource={simplifySource}
           sourceDisplayMode={sourceDisplayMode}
           setSourceDisplayMode={setSourceDisplayMode}
           expandedGroups={expandedGroups}

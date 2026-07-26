@@ -29,6 +29,22 @@ export function getSvgPointerDelta(svgWrap, start, current) {
   return { x: currentPoint.x - startPoint.x, y: currentPoint.y - startPoint.y }
 }
 
+export function getElementPointerDelta(svgWrap, node, start, current) {
+  const svg = svgWrap?.querySelector('svg')
+  const parentMatrix = node?.parentElement?.getScreenCTM?.()
+  if (!svg?.createSVGPoint || !parentMatrix?.inverse) return getSvgPointerDelta(svgWrap, start, current)
+  const inverse = parentMatrix.inverse()
+  const toParentPoint = ({ x, y }) => {
+    const point = svg.createSVGPoint()
+    point.x = x
+    point.y = y
+    return point.matrixTransform(inverse)
+  }
+  const startPoint = toParentPoint(start)
+  const currentPoint = toParentPoint(current)
+  return { x: currentPoint.x - startPoint.x, y: currentPoint.y - startPoint.y }
+}
+
 // Measure an SVG node's rendered bounds, including portions outside the viewport.
 export function getNodeRect(node) {
   const rect = node?.getBoundingClientRect?.()

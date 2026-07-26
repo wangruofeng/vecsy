@@ -289,6 +289,72 @@ export function formatSvgMarkup(rawMarkup) {
   return lines.join('\n')
 }
 
+function formatTransformNumber(value) {
+  const formatted = Number(value.toFixed(12)).toString()
+  return formatted === '-0' ? '0' : formatted
+}
+
+function compactTranslateRuns(transform) {
+  const functionPattern = /([A-Za-z]+)\s*\(([^)]*)\)/g
+  const numberPattern = /[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/g
+  const functions = []
+  let match
+  let cursor = 0
+  while ((match = functionPattern.exec(transform))) {
+    if (!/^[\s,]*$/.test(transform.slice(cursor, match.index))) return transform
+    functions.push({ name: match[1], arguments: match[2] })
+    cursor = functionPattern.lastIndex
+  }
+  if (!functions.length || !/^[\s,]*$/.test(transform.slice(cursor))) return transform
+
+  let changed = false
+  const compacted = []
+  for (let index = 0; index < functions.length;) {
+    const current = functions[index]
+    if (current.name !== 'translate') {
+      compacted.push(`${current.name}(${current.arguments})`)
+      index += 1
+      continue
+    }
+
+    const run = []
+    while (functions[index]?.name === 'translate') {
+      const values = functions[index].arguments.match(numberPattern)?.map(Number) || []
+      const remainder = functions[index].arguments.replace(numberPattern, '').replace(/[\s,]/g, '')
+      if (remainder || values.length < 1 || values.length > 2 || values.some((value) => !Number.isFinite(value))) break
+      run.push(values)
+      index += 1
+    }
+    if (!run.length) {
+      compacted.push(`${current.name}(${current.arguments})`)
+      index += 1
+      continue
+    }
+    if (run.length === 1) {
+      compacted.push(`translate(${current.arguments})`)
+      continue
+    }
+    const [x, y] = run.reduce(([sumX, sumY], values) => [sumX + values[0], sumY + (values[1] || 0)], [0, 0])
+    compacted.push(`translate(${formatTransformNumber(x)} ${formatTransformNumber(y)})`)
+    changed = true
+  }
+  return changed ? compacted.join(' ') : transform
+}
+
+export function compactSvgTranslateTransforms(rawMarkup) {
+  const doc = new DOMParser().parseFromString(rawMarkup.trim(), 'image/svg+xml')
+  if (doc.querySelector('parsererror') || doc.documentElement?.tagName?.toLowerCase() !== 'svg') throw new Error('Invalid SVG source.')
+  let changed = false
+  doc.querySelectorAll('[transform]').forEach((node) => {
+    const transform = node.getAttribute('transform') || ''
+    const compacted = compactTranslateRuns(transform)
+    if (compacted === transform) return
+    node.setAttribute('transform', compacted)
+    changed = true
+  })
+  return changed ? new XMLSerializer().serializeToString(doc.documentElement) : rawMarkup
+}
+
 export function highlightSvgSource(source) {
   const escapeHtml = (value) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
   const highlightTag = (rawTag) => {
