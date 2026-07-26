@@ -32,7 +32,7 @@ export function getSvgPointerDelta(svgWrap, start, current) {
 // Measure an SVG node's rendered bounds, including portions outside the viewport.
 export function getNodeRect(node) {
   const rect = node?.getBoundingClientRect?.()
-  if (!rect || rect.width <= 0 || rect.height <= 0) return null
+  if (!rect || (!rect.width && !rect.height)) return null
   return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height }
 }
 

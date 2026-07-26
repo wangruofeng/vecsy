@@ -191,24 +191,133 @@ export function createLayerMarkup(rawMarkup, tag, textContent = 'New text') {
   const centerX = bounds.x + bounds.width / 2
   const centerY = bounds.y + bounds.height / 2
   const newId = `node-new-${Date.now()}`
-  const node = doc.createElementNS('http://www.w3.org/2000/svg', tag)
+  const node = doc.createElementNS('http://www.w3.org/2000/svg', tag === 'heart' || tag === 'star' ? 'path' : tag)
   const attributes = {
     rect: { x: centerX - 100, y: centerY - 60, width: 200, height: 120, rx: 16, fill: '#F2A93B' },
     circle: { cx: centerX, cy: centerY, r: 72, fill: '#E8603F' },
     ellipse: { cx: centerX, cy: centerY, rx: 110, ry: 72, fill: '#8FA3C8' },
     line: { x1: centerX - 140, y1: centerY, x2: centerX + 140, y2: centerY, stroke: '#F2A93B', 'stroke-width': 12, 'stroke-linecap': 'round' },
     polyline: { points: `${centerX - 150},${centerY + 70} ${centerX - 50},${centerY - 80} ${centerX + 45},${centerY + 45} ${centerX + 150},${centerY - 65}`, fill: 'none', stroke: '#E8603F', 'stroke-width': 12, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' },
-    polygon: { points: `${centerX},${centerY - 110} ${centerX + 110},${centerY + 90} ${centerX - 110},${centerY + 90}`, fill: '#8FA3C8' },
+    polygon: { points: createRegularPolygonPoints(centerX, centerY, 110, 3), fill: '#8FA3C8' },
+    heart: { d: `M ${centerX} ${centerY + 104} C ${centerX - 146} ${centerY + 16}, ${centerX - 94} ${centerY - 112}, ${centerX} ${centerY - 36} C ${centerX + 94} ${centerY - 112}, ${centerX + 146} ${centerY + 16}, ${centerX} ${centerY + 104} Z`, fill: '#E8603F' },
+    star: { d: createStarPath(centerX, centerY, 112, 48), fill: '#F2A93B' },
     path: { d: `M ${centerX - 125} ${centerY + 70} C ${centerX - 80} ${centerY - 115}, ${centerX + 80} ${centerY - 115}, ${centerX + 125} ${centerY + 70}`, fill: 'none', stroke: '#E8603F', 'stroke-width': 16, 'stroke-linecap': 'round' },
     text: { x: centerX, y: centerY, 'text-anchor': 'middle', 'font-family': 'Archivo, Arial, sans-serif', 'font-size': 48, 'font-weight': 700, fill: '#23211D' },
   }[tag] || { fill: '#F2A93B' }
   Object.entries(attributes).forEach(([attribute, value]) => node.setAttribute(attribute, String(value)))
   node.setAttribute('data-editor-id', newId)
+  if (tag === 'heart') node.setAttribute('data-name', 'Heart')
+  if (tag === 'star') node.setAttribute('data-name', 'Star')
   if (tag === 'text') node.textContent = textContent
   root.appendChild(doc.createTextNode('\n  '))
   root.appendChild(node)
   root.appendChild(doc.createTextNode('\n'))
   return { markup: new XMLSerializer().serializeToString(root), id: newId }
+}
+
+export function createCollectionSvgLayerMarkup(rawMarkup, { name, svgMarkup }) {
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const sourceDoc = new DOMParser().parseFromString(svgMarkup, 'image/svg+xml')
+  const sourceRoot = sourceDoc.documentElement
+  if (sourceDoc.querySelector('parsererror') || sourceRoot?.tagName !== 'svg') throw new Error('Invalid SVG collection item.')
+  const root = doc.documentElement
+  const bounds = getSvgDimensions(doc)
+  const viewBox = (sourceRoot.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number)
+  const sourceWidth = viewBox.length === 4 && viewBox.every(Number.isFinite) ? viewBox[2] : Number(sourceRoot.getAttribute('width')) || 24
+  const sourceHeight = viewBox.length === 4 && viewBox.every(Number.isFinite) ? viewBox[3] : Number(sourceRoot.getAttribute('height')) || 24
+  const size = Math.min(bounds.width, bounds.height) * 0.32
+  const scale = size / Math.max(sourceWidth, sourceHeight)
+  const newId = `node-new-${Date.now()}`
+  const node = doc.createElementNS('http://www.w3.org/2000/svg', 'g')
+  const x = bounds.x + (bounds.width - sourceWidth * scale) / 2 - (viewBox[0] || 0) * scale
+  const y = bounds.y + (bounds.height - sourceHeight * scale) / 2 - (viewBox[1] || 0) * scale
+  node.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${scale.toFixed(4)})`)
+  node.setAttribute('fill', '#23211D')
+  node.setAttribute('data-editor-id', newId)
+  node.setAttribute('data-editor-collection-icon', '')
+  node.setAttribute('data-name', name)
+  Array.from(sourceRoot.children).forEach((child) => {
+    if (['script', 'foreignObject'].includes(child.tagName)) return
+    const imported = doc.importNode(child, true)
+    imported.querySelectorAll?.('[fill]').forEach((element) => {
+      if (element.getAttribute('fill') !== 'none') element.removeAttribute('fill')
+    })
+    if (imported.hasAttribute('fill') && imported.getAttribute('fill') !== 'none') imported.removeAttribute('fill')
+    node.appendChild(imported)
+  })
+  root.appendChild(doc.createTextNode('\n  '))
+  root.appendChild(node)
+  root.appendChild(doc.createTextNode('\n'))
+  return { markup: new XMLSerializer().serializeToString(root), id: newId }
+}
+
+export function createImageLayerMarkup(rawMarkup, { name, href, width, height }) {
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const root = doc.documentElement
+  const bounds = getSvgDimensions(doc)
+  const sourceWidth = Math.max(1, Number(width) || 1)
+  const sourceHeight = Math.max(1, Number(height) || 1)
+  const size = Math.min(bounds.width, bounds.height) * 0.32
+  const scale = Math.min(size / sourceWidth, size / sourceHeight)
+  const imageWidth = sourceWidth * scale
+  const imageHeight = sourceHeight * scale
+  const node = doc.createElementNS('http://www.w3.org/2000/svg', 'image')
+  const newId = `node-new-${Date.now()}`
+  node.setAttribute('x', (bounds.x + (bounds.width - imageWidth) / 2).toFixed(2))
+  node.setAttribute('y', (bounds.y + (bounds.height - imageHeight) / 2).toFixed(2))
+  node.setAttribute('width', imageWidth.toFixed(2))
+  node.setAttribute('height', imageHeight.toFixed(2))
+  node.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+  node.setAttribute('href', href)
+  node.setAttribute('data-editor-id', newId)
+  node.setAttribute('data-name', name)
+  root.appendChild(doc.createTextNode('\n  '))
+  root.appendChild(node)
+  root.appendChild(doc.createTextNode('\n'))
+  return { markup: new XMLSerializer().serializeToString(root), id: newId }
+}
+
+function parsePolygonPoints(pointsValue) {
+  const values = String(pointsValue || '').match(/[-+]?(?:\d*\.\d+|\d+)(?:e[-+]?\d+)?/gi)?.map(Number) || []
+  const points = []
+  for (let index = 0; index + 1 < values.length; index += 2) points.push({ x: values[index], y: values[index + 1] })
+  return points
+}
+
+function createRegularPolygonPoints(centerX, centerY, radius, sides, startAngle = -Math.PI / 2) {
+  return Array.from({ length: sides }, (_, index) => {
+    const angle = startAngle + index * Math.PI * 2 / sides
+    return `${(centerX + Math.cos(angle) * radius).toFixed(2)},${(centerY + Math.sin(angle) * radius).toFixed(2)}`
+  }).join(' ')
+}
+
+function createStarPath(centerX, centerY, outerRadius, innerRadius) {
+  return Array.from({ length: 10 }, (_, index) => {
+    const angle = -Math.PI / 2 + index * Math.PI / 5
+    const radius = index % 2 ? innerRadius : outerRadius
+    const x = (centerX + Math.cos(angle) * radius).toFixed(2)
+    const y = (centerY + Math.sin(angle) * radius).toFixed(2)
+    return `${index ? 'L' : 'M'} ${x} ${y}`
+  }).join(' ') + ' Z'
+}
+
+export function getPolygonSides(pointsValue) {
+  return parsePolygonPoints(pointsValue).length
+}
+
+export function updatePolygonSides(rawMarkup, targetId, sides) {
+  const count = Math.max(3, Math.round(Number(sides) || 3))
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const node = doc.querySelector(`[data-editor-id="${targetId}"]`)
+  if (!node || node.tagName !== 'polygon') return rawMarkup
+  const points = parsePolygonPoints(node.getAttribute('points'))
+  if (points.length < 3) return rawMarkup
+  const centerX = points.reduce((total, point) => total + point.x, 0) / points.length
+  const centerY = points.reduce((total, point) => total + point.y, 0) / points.length
+  const radius = points.reduce((total, point) => total + Math.hypot(point.x - centerX, point.y - centerY), 0) / points.length
+  const startAngle = Math.atan2(points[0].y - centerY, points[0].x - centerX)
+  node.setAttribute('points', createRegularPolygonPoints(centerX, centerY, radius, count, startAngle))
+  return new XMLSerializer().serializeToString(doc.documentElement)
 }
 
 export function copyLayerMarkup(rawMarkup, targetId) {
@@ -255,6 +364,25 @@ export function removeLayer(rawMarkup, targetId) {
   return { markup: new XMLSerializer().serializeToString(doc.documentElement), nextSelectedId }
 }
 
+export function removeLayers(rawMarkup, targetIds) {
+  if (!targetIds.length) return { markup: rawMarkup, nextSelectedId: '' }
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const selectedIds = new Set(targetIds)
+  const nodes = targetIds.map((targetId) => doc.querySelector(`[data-editor-id="${targetId}"]`)).filter((node) => node && node !== doc.documentElement)
+  const topLevelNodes = nodes.filter((node) => {
+    let parent = node.parentElement
+    while (parent) {
+      if (selectedIds.has(parent.getAttribute('data-editor-id'))) return false
+      parent = parent.parentElement
+    }
+    return true
+  })
+  if (!topLevelNodes.length) return { markup: rawMarkup, nextSelectedId: '' }
+  topLevelNodes.forEach((node) => node.remove())
+  const nextSelectedId = doc.querySelector('[data-editor-id]')?.getAttribute('data-editor-id') || ''
+  return { markup: new XMLSerializer().serializeToString(doc.documentElement), nextSelectedId }
+}
+
 export function reorderSiblingElements(rawMarkup, draggedId, targetId) {
   const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
   const dragged = doc.querySelector(`[data-editor-id="${draggedId}"]`)
@@ -267,6 +395,11 @@ export function reorderSiblingElements(rawMarkup, draggedId, targetId) {
 export function sanitizeForExport(rawMarkup) {
   const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
   doc.querySelectorAll('[data-editor-id]').forEach((node) => node.removeAttribute('data-editor-id'))
+  doc.querySelectorAll('[data-editor-collection-icon]').forEach((node) => node.removeAttribute('data-editor-collection-icon'))
+  doc.querySelectorAll('[data-editor-original-width], [data-editor-original-height]').forEach((node) => {
+    node.removeAttribute('data-editor-original-width')
+    node.removeAttribute('data-editor-original-height')
+  })
   return new XMLSerializer().serializeToString(doc.documentElement)
 }
 

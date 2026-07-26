@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import Icon from './Icon.jsx'
 import { getTagDisplayName } from '../app/copy.js'
 
@@ -17,8 +18,32 @@ function NumericField({ id, label, value, min, step, suffix, onPreview, onCommit
   return <div className="text-property-field"><label htmlFor={id}>{label}</label><div className="numeric-field"><input id={id} type="number" min={min} step={step} value={value} onChange={(event) => onPreview(event.target.value)} onBlur={onCommit} onKeyDown={onKeyDown} /><span className="numeric-stepper"><button type="button" aria-label={`${label} +`} onMouseDown={(event) => event.preventDefault()} onClick={() => adjust(1)}><Icon name="chevron" size={10} /></button><button type="button" aria-label={`${label} -`} onMouseDown={(event) => event.preventDefault()} onClick={() => adjust(-1)}><Icon name="chevron" size={10} /></button></span>{suffix && <span className="numeric-suffix">{suffix}</span>}</div></div>
 }
 
+function PolygonSidesField({ label, value, onCommit }) {
+  const [draft, setDraft] = useState(value)
+  useEffect(() => setDraft(value), [value])
+  const commit = () => {
+    const next = String(Math.max(3, Math.round(Number(draft) || 3)))
+    setDraft(next)
+    if (next !== value) onCommit(next)
+  }
+  const adjust = (direction) => {
+    const next = String(Math.max(3, Math.round(Number(draft) || 3) + direction))
+    setDraft(next)
+    onCommit(next)
+  }
+  return <div className="text-property-field"><label htmlFor="polygon-sides-input">{label}</label><div className="numeric-field"><input id="polygon-sides-input" type="number" min="3" step="1" value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); event.currentTarget.blur() } }} /><span className="numeric-stepper"><button type="button" aria-label={`${label} +`} onMouseDown={(event) => event.preventDefault()} onClick={() => adjust(1)}><Icon name="chevron" size={10} /></button><button type="button" aria-label={`${label} -`} onMouseDown={(event) => event.preventDefault()} onClick={() => adjust(-1)}><Icon name="chevron" size={10} /></button></span></div></div>
+}
+
+const RECT_ASPECT_RATIOS = [
+  ['2.35:1', 2.35], ['16:9', 16 / 9], ['4:3', 4 / 3], ['3:2', 3 / 2], ['1:1', 1], ['9:16', 9 / 16], ['3:4', 3 / 4], ['2:3', 2 / 3],
+]
+
+function RectAspectRatioField({ copy, onChange }) {
+  return <div className="text-property-field rect-aspect-ratio-field"><label>{copy.aspectRatio}</label><div className="aspect-ratio-options"><button type="button" onClick={() => onChange(null)}>{copy.aspectRatioOriginal}</button>{RECT_ASPECT_RATIOS.map(([label, ratio]) => <button type="button" key={label} onClick={() => onChange(ratio)}>{label}</button>)}</div></div>
+}
+
 export default function InspectorPanel(props) {
-  const { copy, language, isInspectorOpen, setIsInspectorOpen, selected, selectedDisplayName, textFieldDraft, setTextFieldDraft, commitTextField, startTextEdit, textFontSize, textLetterSpacing, textFontFamily, previewAttributeDebounced, commitPreviewAttributes, handleTextAttributeKeyDown, rectWidthValue, rectHeightValue, fill, stroke, opacity, strokeWidth, cornerRadiusMax, cornerRadius, previewRectRadius, elements } = props
+  const { copy, language, isInspectorOpen, setIsInspectorOpen, selected, selectedDisplayName, textFieldDraft, setTextFieldDraft, commitTextField, startTextEdit, textFontSize, textLetterSpacing, textFontFamily, previewAttributeDebounced, commitPreviewAttributes, handleTextAttributeKeyDown, rectWidthValue, rectHeightValue, updateRectAspectRatio, polygonSides, updatePolygonSides, fill, stroke, opacity, strokeWidth, cornerRadiusMax, cornerRadius, previewRectRadius, elements } = props
   return (
         <aside className={`inspector-panel panel ${isInspectorOpen ? '' : 'is-collapsed'}`}>
           <div className="panel-header inspector-header"><div className="panel-title"><span>{copy.inspector}</span></div><button className="mini-button inspector-toggle" type="button" title={isInspectorOpen ? copy.collapseInspector : copy.expandInspector} aria-label={isInspectorOpen ? copy.collapseInspector : copy.expandInspector} aria-expanded={isInspectorOpen} onClick={() => setIsInspectorOpen((current) => !current)}><Icon name="sidebar" size={14} /></button></div>
@@ -33,7 +58,8 @@ export default function InspectorPanel(props) {
                 </div>
                 <div className="text-property-field"><label htmlFor="text-font-family-input">{copy.fontFamily}</label><input id="text-font-family-input" className="text-property-input" value={textFontFamily || copy.fontFamilyDefault} readOnly aria-readonly="true" /></div>
               </>}
-              {selected.tag === 'rect' && <div className="text-property-grid"><NumericField id="rect-width-input" label={copy.width} value={rectWidthValue} min={0} step={1} suffix="px" onPreview={(value) => previewAttributeDebounced('width', value)} onCommit={commitPreviewAttributes} /><NumericField id="rect-height-input" label={copy.height} value={rectHeightValue} min={0} step={1} suffix="px" onPreview={(value) => previewAttributeDebounced('height', value)} onCommit={commitPreviewAttributes} /></div>}
+              {selected.tag === 'rect' && <><div className="text-property-grid"><NumericField id="rect-width-input" label={copy.width} value={rectWidthValue} min={0} step={1} suffix="px" onPreview={(value) => previewAttributeDebounced('width', value)} onCommit={commitPreviewAttributes} /><NumericField id="rect-height-input" label={copy.height} value={rectHeightValue} min={0} step={1} suffix="px" onPreview={(value) => previewAttributeDebounced('height', value)} onCommit={commitPreviewAttributes} /></div><RectAspectRatioField copy={copy} onChange={updateRectAspectRatio} /></>}
+              {selected.tag === 'polygon' && <PolygonSidesField label={copy.polygonSides} value={String(polygonSides)} onCommit={updatePolygonSides} />}
               <ColorField label={copy.fill} value={fill} onPreview={(value) => previewAttributeDebounced('fill', value)} onCommit={commitPreviewAttributes} />
               <ColorField label={copy.stroke} value={stroke} onPreview={(value) => previewAttributeDebounced('stroke', value)} onCommit={commitPreviewAttributes} />
               <div className="field-row"><label>{copy.opacity}</label><div className="range-wrap"><input type="range" min="0" max="1" step="0.01" value={opacity} style={{ '--range-progress': `${opacity * 100}%` }} onChange={(event) => previewAttributeDebounced('opacity', event.target.value)} onPointerUp={commitPreviewAttributes} onBlur={commitPreviewAttributes} /><span>{Math.round(opacity * 100)}%</span></div></div>

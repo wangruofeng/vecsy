@@ -6,6 +6,7 @@ export default function Icon({ name, size = 16 }) {
     redo: <><path d="m10 5 3 3-3 3" /><path d="M13 8H7a4 4 0 0 0-4 4v1" /></>,
     eye: <><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8Z" /><circle cx="8" cy="8" r="1.9" /></>,
     layers: <><path d="m8 2 6 3-6 3-6-3 6-3Z" /><path d="m2 8 6 3 6-3M2 11l6 3 6-3" /></>,
+    image: <><rect x="2.25" y="3" width="11.5" height="10" rx="1.5" /><circle cx="5.5" cy="6.25" r="1" /><path d="m3.5 11 3.1-3 2.15 2 1.55-1.5 2.2 2.5" /></>,
     chevron: <path d="m5 6 3 3 3-3" />,
     plus: <><path d="M8 3v10M3 8h10" /></>,
     code: <><path d="m5 4-3 4 3 4M11 4l3 4-3 4M9 2.5 7 13.5" /></>,

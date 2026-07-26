@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { clampScale, getNodeRect, getSvgPoint, getSvgPointerDelta, getTopLevelSelectedIds, pointerCenter, pointerDistance } from '../editor/svg-geometry.js'
 import { bakeRectTranslateScaleTransform, getEditableTextContent, resizeBackgroundLayer, translateElements, updateElementAttributes, updateElementTransform } from '../editor/svg-transforms.js'
 
+function getProportionalScale(scaleX, scaleY) {
+  return Math.abs(scaleX - 1) >= Math.abs(scaleY - 1) ? scaleX : scaleY
+}
+
 export default function useCanvasInteraction({ activeTab, selectedId, selectedIds, selected, elements, svgMarkup, currentSnapshot, commitDocument, selectLayerIds }) {
   const [svgPosition, setSvgPosition] = useState({ x: 0, y: 0 })
   const [svgScale, setSvgScale] = useState(1)
@@ -11,6 +15,8 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
   const [isPinchingSvg, setIsPinchingSvg] = useState(false)
   const [selectionBox, setSelectionBox] = useState(null)
   const [multiSelectionBoxes, setMultiSelectionBoxes] = useState([])
+  const [lineEndpoints, setLineEndpoints] = useState(null)
+  const [canvasLayoutVersion, setCanvasLayoutVersion] = useState(0)
   const [hoveredLayerId, setHoveredLayerId] = useState('')
   const [transientMarkup, setTransientMarkup] = useState('')
   const canvasRef = useRef(null)
@@ -24,6 +30,14 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
   const previewFrameRef = useRef(0)
   const suppressCanvasClickRef = useRef(false)
   const lastTextTapRef = useRef({ id: '', time: 0 })
+
+  useEffect(() => {
+    const stage = canvasRef.current
+    if (!stage || typeof ResizeObserver === 'undefined') return undefined
+    const observer = new ResizeObserver(() => setCanvasLayoutVersion((version) => version + 1))
+    observer.observe(stage)
+    return () => observer.disconnect()
+  }, [])
 
   const updateTransientMarkup = (markup) => {
     transientMarkupRef.current = markup
@@ -45,6 +59,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     if (activeTab !== 'preview' || !selectedId) {
       setSelectionBox(null)
       setMultiSelectionBoxes([])
+      setLineEndpoints(null)
       return undefined
     }
     const frame = requestAnimationFrame(() => {
@@ -53,19 +68,47 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
       if (!stage || !wrap) {
         setSelectionBox(null)
         setMultiSelectionBoxes([])
+        setLineEndpoints(null)
         return
       }
       const stageRect = stage.getBoundingClientRect()
+      const getLineEndpoints = (node) => {
+        const svg = wrap.querySelector('svg')
+        const matrix = node?.getScreenCTM?.()
+        if (!svg?.createSVGPoint || !matrix) return null
+        const toStagePoint = (x, y) => {
+          const point = svg.createSVGPoint()
+          point.x = Number(node.getAttribute(x)) || 0
+          point.y = Number(node.getAttribute(y)) || 0
+          const screenPoint = point.matrixTransform(matrix)
+          return { left: screenPoint.x - stageRect.left, top: screenPoint.y - stageRect.top }
+        }
+        const start = toStagePoint('x1', 'y1')
+        const end = toStagePoint('x2', 'y2')
+        const dx = end.left - start.left
+        const dy = end.top - start.top
+        return { start, end, length: Math.hypot(dx, dy), angle: Math.atan2(dy, dx) * 180 / Math.PI }
+      }
       const toBox = (id) => {
         const node = wrap.querySelector(`[data-editor-id="${id}"]`)
+        if (node?.tagName === 'line') {
+          const endpoints = getLineEndpoints(node)
+          if (!endpoints) return null
+          const padding = 8
+          const left = Math.min(endpoints.start.left, endpoints.end.left) - padding
+          const top = Math.min(endpoints.start.top, endpoints.end.top) - padding
+          return { id, left, top, width: Math.max(1, Math.abs(endpoints.end.left - endpoints.start.left)) + padding * 2, height: Math.max(1, Math.abs(endpoints.end.top - endpoints.start.top)) + padding * 2 }
+        }
         const rect = node ? getNodeRect(node) : null
         return rect ? { id, left: rect.left - stageRect.left, top: rect.top - stageRect.top, width: rect.width, height: rect.height } : null
       }
       setSelectionBox(toBox(selectedId))
       setMultiSelectionBoxes(selectedIds.filter((id) => id !== selectedId).map(toBox).filter(Boolean))
+      const selectedNode = wrap.querySelector(`[data-editor-id="${selectedId}"]`)
+      setLineEndpoints(selectedNode?.tagName === 'line' ? getLineEndpoints(selectedNode) : null)
     })
     return () => cancelAnimationFrame(frame)
-  }, [activeTab, selectedId, selectedIds, svgMarkup, transientMarkup, svgPosition.x, svgPosition.y, svgScale])
+  }, [activeTab, selectedId, selectedIds, svgMarkup, transientMarkup, svgPosition.x, svgPosition.y, svgScale, canvasLayoutVersion])
 
   const zoomBy = (factor) => setSvgScale((current) => clampScale(current * factor))
 
@@ -96,11 +139,13 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     return { minX, minY, maxX, maxY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 }
   }
 
-  const getEventElementTarget = (event) => event.target?.closest?.('[data-editor-id]') || document.elementFromPoint(event.clientX, event.clientY)?.closest?.('[data-editor-id]')
+  const getEditableTarget = (target) => target?.closest?.('[data-editor-collection-icon]') || target?.closest?.('[data-editor-id]')
+
+  const getEventElementTarget = (event) => getEditableTarget(event.target) || getEditableTarget(document.elementFromPoint(event.clientX, event.clientY))
 
   const selectElementAtPoint = (clientX, clientY, fallbackTarget, additive = false) => {
     const pointTarget = document.elementFromPoint(clientX, clientY)
-    const target = pointTarget?.closest?.('[data-editor-id]') || fallbackTarget?.closest?.('[data-editor-id]')
+    const target = getEditableTarget(pointTarget) || getEditableTarget(fallbackTarget)
     const targetId = target?.getAttribute('data-editor-id')
     if (!targetId) return ''
     if (additive) {
@@ -192,7 +237,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
   }
 
   const handleCanvasPointerMove = (event) => {
-    const hoveredId = event.target?.closest?.('[data-editor-id]')?.getAttribute('data-editor-id') || ''
+    const hoveredId = getEventElementTarget(event)?.getAttribute('data-editor-id') || ''
     setHoveredLayerId((current) => current === hoveredId ? current : hoveredId)
     if (activePointersRef.current.has(event.pointerId)) activePointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
 
@@ -279,11 +324,9 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     const bakedRect = selected.tag === 'rect' && !hasTransformedAncestor ? bakeRectTranslateScaleTransform(svgMarkup, selected.id) : null
     const pointerId = event.pointerId ?? 'mouse'
     if (event.pointerId != null && event.currentTarget.setPointerCapture) event.currentTarget.setPointerCapture(event.pointerId)
-    const lineX1 = Number(target.getAttribute('x1')) || 0
-    const lineX2 = Number(target.getAttribute('x2')) || 0
     resizeRef.current = {
       pointerId, targetId: selected.id, handle, kind: selected.tag === 'line' ? 'line' : backgroundRect ? 'background' : bakedRect ? 'rect' : 'shape',
-      lineEndpoint: selected.tag === 'line' ? (handle === 'line-start' ? (lineX1 <= lineX2 ? 'x1' : 'x2') : (lineX1 <= lineX2 ? 'x2' : 'x1')) : '',
+      lineEndpoint: selected.tag === 'line' ? (handle === 'line-start' ? 'x1' : 'x2') : '',
       rect: bakedRect?.rect || null,
       background: backgroundRect ? {
         topLeft: getSvgPoint(svgRef.current, baseBox.left, baseBox.top),
@@ -316,10 +359,19 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     if (resize.kind === 'background') {
       const pointer = getSvgPoint(svgRef.current, event.clientX, event.clientY)
       const { topLeft, bottomRight, minWidth, minHeight } = resize.background
-      const minX = resize.handle === 'top-left' ? Math.min(pointer.x, bottomRight.x - minWidth) : topLeft.x
-      const minY = resize.handle === 'top-left' ? Math.min(pointer.y, bottomRight.y - minHeight) : topLeft.y
-      const maxX = resize.handle === 'top-left' ? bottomRight.x : Math.max(pointer.x, topLeft.x + minWidth)
-      const maxY = resize.handle === 'top-left' ? bottomRight.y : Math.max(pointer.y, topLeft.y + minHeight)
+      const baseWidth = bottomRight.x - topLeft.x
+      const baseHeight = bottomRight.y - topLeft.y
+      let width = resize.handle === 'top-left' ? bottomRight.x - Math.min(pointer.x, bottomRight.x - minWidth) : Math.max(pointer.x, topLeft.x + minWidth) - topLeft.x
+      let height = resize.handle === 'top-left' ? bottomRight.y - Math.min(pointer.y, bottomRight.y - minHeight) : Math.max(pointer.y, topLeft.y + minHeight) - topLeft.y
+      if (event.shiftKey && baseWidth && baseHeight) {
+        const scale = getProportionalScale(width / baseWidth, height / baseHeight)
+        width = Math.max(minWidth, baseWidth * scale)
+        height = Math.max(minHeight, baseHeight * scale)
+      }
+      const minX = resize.handle === 'top-left' ? bottomRight.x - width : topLeft.x
+      const minY = resize.handle === 'top-left' ? bottomRight.y - height : topLeft.y
+      const maxX = minX + width
+      const maxY = minY + height
       const nextMarkup = resizeBackgroundLayer(resize.baseMarkup, resize.targetId, { minX, minY, width: maxX - minX, height: maxY - minY })
       resize.previewMarkup = nextMarkup
       resize.moved = true
@@ -331,8 +383,13 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     const anchor = resize.handle === 'top-left' ? { x: baseBox.right, y: baseBox.bottom } : { x: baseBox.left, y: baseBox.top }
     const width = resize.handle === 'top-left' ? anchor.x - Math.min(event.clientX, anchor.x - minSize) : Math.max(event.clientX, anchor.x + minSize) - anchor.x
     const height = resize.handle === 'top-left' ? anchor.y - Math.min(event.clientY, anchor.y - minSize) : Math.max(event.clientY, anchor.y + minSize) - anchor.y
-    const scaleX = width / baseBox.width
-    const scaleY = height / baseBox.height
+    let scaleX = width / baseBox.width
+    let scaleY = height / baseBox.height
+    if (event.shiftKey) {
+      const scale = getProportionalScale(scaleX, scaleY)
+      scaleX = scale
+      scaleY = scale
+    }
     if (resize.kind === 'rect' && resize.rect.width && resize.rect.height) {
       const nextWidth = resize.rect.width * scaleX
       const nextHeight = resize.rect.height * scaleY
@@ -393,7 +450,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
   return {
     canvasRef, svgRef, svgPosition, setSvgPosition, svgScale, setSvgScale,
     isDraggingSvg, isDraggingElement, isResizingElement, isPinchingSvg,
-    selectionBox, setSelectionBox, multiSelectionBoxes, hoveredLayerId, setHoveredLayerId,
+    selectionBox, setSelectionBox, multiSelectionBoxes, lineEndpoints, hoveredLayerId, setHoveredLayerId,
     transientMarkup, updateTransientMarkup, clearTransientMarkup, zoomBy, fitToScreen, getElementSvgBounds,
     handleCanvasClick, handleSvgDoubleClick, handleCanvasPointerDown, handleCanvasPointerMove, handleCanvasPointerUp,
     handleResizePointerDown, handleResizePointerMove, handleResizePointerUp, suppressCanvasClickRef,

@@ -1,17 +1,17 @@
 export const COPY = {
   en: {
     languageSwitch: '中文', githubRepository: 'View source on GitHub', saved: 'All changes saved', unsaved: 'Changes not exported', open: 'Import SVG', export: 'Export SVG',
-    layers: 'Layers', addLayer: 'Add layer', addElement: 'Add element', loadDemo: 'Load demo SVG', textContent: 'Text content', editText: 'Edit text content', fontSize: 'Font size', letterSpacing: 'Character spacing', fontFamily: 'Font family', fontFamilyDefault: 'SVG default', fontFamilyPlaceholder: 'e.g. Arial, sans-serif',
+    layers: 'Layers', addLayer: 'Add layer', addElement: 'Add element', fromImage: 'Add from image', fromSvgCollection: 'Add from SVG collection', svgCollectionTitle: 'SVG collection', svgCollectionThemes: 'SVG themes', svgCollectionCompanyLogos: 'Company logos', svgCollectionItems: 'icons', svgCollectionSource: 'View source', svgCollectionAdd: 'Add', loadDemo: 'Load demo SVG', textContent: 'Text content', editText: 'Edit text content', fontSize: 'Font size', letterSpacing: 'Character spacing', fontFamily: 'Font family', fontFamilyDefault: 'SVG default', fontFamilyPlaceholder: 'e.g. Arial, sans-serif',
     preview: 'Preview', source: 'Source', format: 'Format', editSource: 'Edit source', sourceTree: 'SVG source tree', collapsedContent: 'Collapsed content', resetView: 'Reset view and center', collapseLayers: 'Collapse layers', expandLayers: 'Expand layers', collapseInspector: 'Collapse properties', expandInspector: 'Expand properties', dropHint: 'Drop an SVG anywhere to begin', inspector: 'Inspector', appearance: 'Appearance',
-    fill: 'Fill', stroke: 'Stroke', opacity: 'Opacity', strokeWidth: 'Stroke width', cornerRadius: 'Corner radius', width: 'Width', height: 'Height', elementDetails: 'Element details', layer: 'Layer', visibility: 'Visibility',
+    fill: 'Fill', stroke: 'Stroke', opacity: 'Opacity', strokeWidth: 'Stroke width', cornerRadius: 'Corner radius', polygonSides: 'Sides', width: 'Width', height: 'Height', aspectRatio: 'Aspect ratio', aspectRatioOriginal: 'Original', elementDetails: 'Element details', layer: 'Layer', visibility: 'Visibility',
     visible: 'Visible', livePreview: 'Live preview', statusReady: 'elements • SVG ready', changesInstant: 'Changes apply instantly', exportShort: 'Export', selected: 'Selected', resizeLineStart: 'Adjust line start', resizeLineEnd: 'Adjust line end',
     elementSuffix: 'element', show: 'Show', hide: 'Hide', noSelection: 'Select a layer to edit its properties.', invalidSvg: 'This file does not contain a valid SVG.',
     undo: 'Undo', redo: 'Redo', close: 'Close',
-    toastExported: 'SVG exported', toastImported: 'Imported', toastCopy: 'Layer copied', toastPaste: 'Layer pasted', toastDelete: 'Layer deleted — press ⌘Z to undo', toastFormatted: 'Source formatted', toastInvalidFile: 'Please drop or choose an SVG file.',
+    toastExported: 'SVG exported', toastImported: 'Imported', toastCopy: 'Layer copied', toastPaste: 'Layer pasted', toastDelete: 'Layer deleted — press ⌘Z to undo', toastFormatted: 'Source formatted', toastInvalidFile: 'Please drop or choose an SVG file.', toastInvalidImageFile: 'Please choose a supported image file.', toastCollectionImportFailed: 'Could not import this SVG collection item.',
     dropOverlayTitle: 'Drop to import SVG',
     zoomIn: 'Zoom in', zoomOut: 'Zoom out', zoomFit: 'Fit to screen',
-    shortcutsTitle: 'Keyboard shortcuts', shortcutsGeneral: 'General', shortcutsCanvas: 'Canvas', shortcutsHint: 'Press ? to toggle this panel',
-    shortcutUndo: 'Undo', shortcutRedo: 'Redo', shortcutExport: 'Export SVG', shortcutSelectAll: 'Select all layers', shortcutCopy: 'Copy layer', shortcutPaste: 'Paste layer', shortcutDelete: 'Delete layer', shortcutPanels: 'Cycle panels', shortcutHelp: 'Toggle shortcuts panel', shortcutPan: 'Pan canvas', shortcutZoom: 'Zoom in / out', shortcutEditText: 'Edit text content', shortcutMove: 'Move selected layers (Shift: 10px)', shortcutDeselect: 'Clear selection', shortcutZoomIn: 'Zoom in', shortcutZoomOut: 'Zoom out', shortcutZoomFit: 'Fit to screen',
+    shortcutsTitle: 'Keyboard shortcuts', shortcutsGeneral: 'General', shortcutsLayers: 'Layers', shortcutsCanvas: 'Canvas', shortcutsHint: 'Press ? to toggle this panel',
+    shortcutUndo: 'Undo', shortcutRedo: 'Redo', shortcutExport: 'Export SVG', shortcutSelectAll: 'Select all layers', shortcutCopy: 'Copy layer', shortcutPaste: 'Paste layer', shortcutDelete: 'Delete layer', shortcutPanels: 'Cycle panels', shortcutHelp: 'Toggle shortcuts panel', shortcutRangeSelect: 'Select layer range', shortcutToggleSelect: 'Add or remove layer from selection', shortcutPan: 'Pan canvas', shortcutZoom: 'Zoom in / out', shortcutEditText: 'Edit text content', shortcutResizeProportional: 'Resize proportionally', shortcutMove: 'Move selected layers (Shift: 10px)', shortcutDeselect: 'Clear selection', shortcutZoomIn: 'Zoom in', shortcutZoomOut: 'Zoom out', shortcutZoomFit: 'Fit to screen',
     shortcutKeyDrag: 'Drag', shortcutKeyScroll: '⌘ + Scroll', shortcutKeyDoubleClick: 'Double-click',
     exportDialogTitle: 'Export', exportFormat: 'Format', exportScope: 'Export scope', exportAllLayers: 'Export all layers', exportSelectedLayers: 'Export selected layers', exportScale: 'Scale', exportBackground: 'Background', exportTransparent: 'Transparent', exportWhite: 'White', exportCustom: 'Custom', exportOptimize: 'Optimize & minify SVG', exportPreview: 'Preview', exportFailed: 'Export failed',
     alignLeft: 'Align left', alignCenterX: 'Align horizontal centers', alignRight: 'Align right', alignTop: 'Align top', alignCenterY: 'Align vertical centers', alignBottom: 'Align bottom', distributeX: 'Distribute horizontally', distributeY: 'Distribute vertically',
@@ -21,17 +21,17 @@ export const COPY = {
   },
   zh: {
     languageSwitch: 'English', githubRepository: '在 GitHub 查看源码', saved: '所有更改已保存', unsaved: '更改尚未导出', open: '导入 SVG', export: '导出',
-    layers: '图层', addLayer: '添加图层', addElement: '添加元素', loadDemo: '加载 Demo SVG', textContent: '文字内容', editText: '编辑文字内容', fontSize: '字体大小', letterSpacing: '字符间距', fontFamily: '字体家族', fontFamilyDefault: 'SVG 默认字体', fontFamilyPlaceholder: '例如 Arial, sans-serif',
+    layers: '图层', addLayer: '添加图层', addElement: '添加元素', fromImage: '通过图片添加', fromSvgCollection: '从 SVG 收藏添加', svgCollectionTitle: 'SVG 收藏', svgCollectionThemes: 'SVG 主题', svgCollectionCompanyLogos: '公司 Logo', svgCollectionItems: '个图标', svgCollectionSource: '查看来源', svgCollectionAdd: '添加', loadDemo: '加载 Demo SVG', textContent: '文字内容', editText: '编辑文字内容', fontSize: '字体大小', letterSpacing: '字符间距', fontFamily: '字体家族', fontFamilyDefault: 'SVG 默认字体', fontFamilyPlaceholder: '例如 Arial, sans-serif',
     preview: '预览', source: '源码', format: '格式化', editSource: '编辑源码', sourceTree: 'SVG 源码树', collapsedContent: '已折叠内容', resetView: '重置视图并居中', collapseLayers: '折叠图层面板', expandLayers: '展开图层面板', collapseInspector: '折叠属性面板', expandInspector: '展开属性面板', dropHint: '将 SVG 拖到这里开始', inspector: '检查器', appearance: '外观',
-    fill: '填充', stroke: '描边', opacity: '不透明度', strokeWidth: '描边宽度', cornerRadius: '圆角半径', width: '宽度', height: '高度', elementDetails: '元素详情', layer: '图层', visibility: '可见性',
+    fill: '填充', stroke: '描边', opacity: '不透明度', strokeWidth: '描边宽度', cornerRadius: '圆角半径', polygonSides: '边数', width: '宽度', height: '高度', aspectRatio: '图层比例', aspectRatioOriginal: '原始', elementDetails: '元素详情', layer: '图层', visibility: '可见性',
     visible: '可见', livePreview: '实时预览', statusReady: '个元素 · SVG 就绪', changesInstant: '更改会即时生效', exportShort: '导出', selected: '已选中', resizeLineStart: '调整线条起点', resizeLineEnd: '调整线条终点',
     elementSuffix: '元素', show: '显示', hide: '隐藏', noSelection: '选择一个图层来编辑它的属性。', invalidSvg: '该文件不包含有效的 SVG。',
     undo: '撤销', redo: '重做', close: '关闭',
-    toastExported: 'SVG 已导出', toastImported: '已导入', toastCopy: '已复制图层', toastPaste: '已粘贴图层', toastDelete: '已删除图层 — 按 ⌘Z 撤销', toastFormatted: '源码已格式化', toastInvalidFile: '请拖入或选择一个 SVG 文件。',
+    toastExported: 'SVG 已导出', toastImported: '已导入', toastCopy: '已复制图层', toastPaste: '已粘贴图层', toastDelete: '已删除图层 — 按 ⌘Z 撤销', toastFormatted: '源码已格式化', toastInvalidFile: '请拖入或选择一个 SVG 文件。', toastInvalidImageFile: '请选择受支持的图片文件。', toastCollectionImportFailed: '无法导入此 SVG 收藏图标。',
     dropOverlayTitle: '松开以导入 SVG',
     zoomIn: '放大', zoomOut: '缩小', zoomFit: '适应屏幕',
-    shortcutsTitle: '键盘快捷键', shortcutsGeneral: '通用', shortcutsCanvas: '画布', shortcutsHint: '按 ? 可打开或关闭此面板',
-    shortcutUndo: '撤销', shortcutRedo: '重做', shortcutExport: '导出 SVG', shortcutSelectAll: '全选图层', shortcutCopy: '复制图层', shortcutPaste: '粘贴图层', shortcutDelete: '删除图层', shortcutPanels: '循环切换面板', shortcutHelp: '打开/关闭快捷键面板', shortcutPan: '平移画布', shortcutZoom: '放大 / 缩小', shortcutEditText: '编辑文字内容', shortcutMove: '移动选中的图层（Shift：10px）', shortcutDeselect: '取消选择', shortcutZoomIn: '放大', shortcutZoomOut: '缩小', shortcutZoomFit: '适应屏幕',
+    shortcutsTitle: '键盘快捷键', shortcutsGeneral: '通用', shortcutsLayers: '图层', shortcutsCanvas: '画布', shortcutsHint: '按 ? 可打开或关闭此面板',
+    shortcutUndo: '撤销', shortcutRedo: '重做', shortcutExport: '导出 SVG', shortcutSelectAll: '全选图层', shortcutCopy: '复制图层', shortcutPaste: '粘贴图层', shortcutDelete: '删除图层', shortcutPanels: '循环切换面板', shortcutHelp: '打开/关闭快捷键面板', shortcutRangeSelect: '选中图层范围', shortcutToggleSelect: '添加或取消单个图层', shortcutPan: '平移画布', shortcutZoom: '放大 / 缩小', shortcutEditText: '编辑文字内容', shortcutResizeProportional: '等比例调整大小', shortcutMove: '移动选中的图层（Shift：10px）', shortcutDeselect: '取消选择', shortcutZoomIn: '放大', shortcutZoomOut: '缩小', shortcutZoomFit: '适应屏幕',
     shortcutKeyDrag: '拖拽', shortcutKeyScroll: '⌘ + 滚轮', shortcutKeyDoubleClick: '双击',
     exportDialogTitle: '导出', exportFormat: '格式', exportScope: '导出范围', exportAllLayers: '导出整个图层', exportSelectedLayers: '导出选择图层', exportScale: '倍率', exportBackground: '背景', exportTransparent: '透明', exportWhite: '白色', exportCustom: '自定义', exportOptimize: '优化并压缩 SVG', exportPreview: '预览', exportFailed: '导出失败',
     alignLeft: '左对齐', alignCenterX: '水平居中', alignRight: '右对齐', alignTop: '顶对齐', alignCenterY: '垂直居中', alignBottom: '底对齐', distributeX: '水平等距分布', distributeY: '垂直等距分布',
@@ -41,9 +41,9 @@ export const COPY = {
   },
 }
 
-export const ZH_TAG_NAMES = { rect: '矩形', circle: '圆形', ellipse: '椭圆', line: '直线', polyline: '折线', polygon: '多边形', path: '路径', text: '文字', g: '分组', image: '图片' }
-export const ZH_LAYER_NAMES = { Background: '背景', 'Logo mark': '标志图形', Wordmark: '文字标志' }
-export const ADD_LAYER_TAGS = ['rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'path', 'text']
+export const ZH_TAG_NAMES = { rect: '矩形', circle: '圆形', ellipse: '椭圆', line: '直线', polyline: '折线', polygon: '多边形', heart: '爱心', star: '五角星', path: '路径', text: '文字', g: '分组', image: '图片' }
+export const ZH_LAYER_NAMES = { Background: '背景', 'Logo mark': '标志图形', Wordmark: '文字标志', Heart: '爱心', Star: '五角星' }
+export const ADD_LAYER_TAGS = ['rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'heart', 'star', 'path', 'text']
 
 export function getLayerDisplayName(item, language) {
   if (language === 'en') return item.name

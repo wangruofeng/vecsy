@@ -6,11 +6,12 @@ import Icon from './components/Icon.jsx'
 import LayerPanel from './components/LayerPanel.jsx'
 import CanvasPanel from './components/CanvasPanel.jsx'
 import InspectorPanel from './components/InspectorPanel.jsx'
+import SvgCollectionModal from './components/SvgCollectionModal.jsx'
 import useEditorDocument from './hooks/useEditorDocument.js'
 import useCanvasInteraction from './hooks/useCanvasInteraction.js'
 import { getAncestorGroupIds, getColor, getVisibleLayerItems, isElementHidden, setElementVisibility } from './editor/svg-parser.js'
 import { getSvgDimensions, getTopLevelSelectedIds } from './editor/svg-geometry.js'
-import { copyLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, highlightSvgSource, insertClonedLayer, minifySvg, removeLayer, reorderSiblingElements, sanitizeForExport, syncTextLineLayout, translateElements, translateElementsById, updateElementAttributes, withExplicitSize } from './editor/svg-transforms.js'
+import { copyLayerMarkup, createCollectionSvgLayerMarkup, createImageLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, getPolygonSides, highlightSvgSource, insertClonedLayer, minifySvg, removeLayers, reorderSiblingElements, sanitizeForExport, syncTextLineLayout, translateElements, translateElementsById, updateElementAttributes, updatePolygonSides as updatePolygonSidesMarkup, withExplicitSize } from './editor/svg-transforms.js'
 
 const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480">
   <g id="background" data-name="Background">
@@ -32,6 +33,7 @@ function App() {
   const [isLayersOpen, setIsLayersOpen] = useState(true)
   const [isInspectorOpen, setIsInspectorOpen] = useState(true)
   const [addLayerMenuOpen, setAddLayerMenuOpen] = useState(false)
+  const [showSvgCollection, setShowSvgCollection] = useState(false)
   const [toast, setToast] = useState(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [isFileDragOver, setIsFileDragOver] = useState(false)
@@ -56,6 +58,7 @@ function App() {
   const [textFieldDraft, setTextFieldDraft] = useState('')
   const [attributeDrafts, setAttributeDrafts] = useState({ targetId: '', values: {} })
   const fileInput = useRef(null)
+  const imageInput = useRef(null)
   const layerRowRefs = useRef(new Map())
   const layerDragRef = useRef(null)
   const suppressLayerClickRef = useRef(false)
@@ -98,8 +101,17 @@ function App() {
         [copy.shortcutKeyDrag, copy.shortcutPan],
         [copy.shortcutKeyScroll, copy.shortcutZoom],
         [copy.shortcutKeyDoubleClick, copy.shortcutEditText],
+        ['Shift + Drag', copy.shortcutResizeProportional],
         ['↑ ↓ ← →', copy.shortcutMove],
         ['Esc', copy.shortcutDeselect],
+      ],
+    },
+    {
+      title: copy.shortcutsLayers,
+      wide: true,
+      items: [
+        ['Shift + Click', copy.shortcutRangeSelect],
+        ['⌘ + Click', copy.shortcutToggleSelect],
       ],
     },
   ]
@@ -109,7 +121,7 @@ function App() {
   const selectedDisplayName = selected ? getLayerDisplayName(selected, language) : ''
   const contextMenuTarget = contextMenu ? elements.find((element) => element.id === contextMenu.targetId) : null
   const canvasInteraction = useCanvasInteraction({ activeTab, selectedId, selectedIds, selected, elements, svgMarkup, currentSnapshot, commitDocument, selectLayerIds })
-  const { canvasRef, svgRef, svgPosition, setSvgPosition, svgScale, setSvgScale, isDraggingSvg, isDraggingElement, isResizingElement, isPinchingSvg, selectionBox, multiSelectionBoxes, hoveredLayerId, setHoveredLayerId, transientMarkup, updateTransientMarkup, clearTransientMarkup, zoomBy, fitToScreen, getElementSvgBounds, handleCanvasClick, handleCanvasPointerDown: handleCanvasPointerDownBase, handleCanvasPointerMove, handleCanvasPointerUp: handleCanvasPointerUpBase, handleResizePointerMove, handleResizePointerUp } = canvasInteraction
+  const { canvasRef, svgRef, svgPosition, setSvgPosition, svgScale, setSvgScale, isDraggingSvg, isDraggingElement, isResizingElement, isPinchingSvg, selectionBox, multiSelectionBoxes, lineEndpoints, hoveredLayerId, setHoveredLayerId, transientMarkup, updateTransientMarkup, clearTransientMarkup, zoomBy, fitToScreen, getElementSvgBounds, handleCanvasClick, handleCanvasPointerDown: handleCanvasPointerDownBase, handleCanvasPointerMove, handleCanvasPointerUp: handleCanvasPointerUpBase, handleResizePointerMove, handleResizePointerUp } = canvasInteraction
   const setTextEditing = (id) => {
     textEditIdRef.current = id
     setEditingTextId(id)
@@ -140,6 +152,7 @@ function App() {
   const textFontSize = selected?.tag === 'text' ? getDraftedAttribute('font-size', '16') : '16'
   const textLetterSpacing = selected?.tag === 'text' ? getDraftedAttribute('letter-spacing', '0') : '0'
   const textFontFamily = selected?.tag === 'text' ? getDraftedAttribute('font-family') : ''
+  const polygonSides = selected?.tag === 'polygon' ? getPolygonSides(selectedAttrs?.getAttribute('points')) : 3
   const visibleLayerItems = getVisibleLayerItems(elements, expandedGroups)
   const highlightedSource = useMemo(() => highlightSvgSource(sourceDraft), [sourceDraft])
 
@@ -296,6 +309,34 @@ function App() {
     previewAttributes({ rx: nextValue, ry: nextValue })
   }
 
+  const updateRectAspectRatio = (ratio) => {
+    if (!selected || selected.tag !== 'rect') return
+    const width = Number(rectWidthValue)
+    if (!Number.isFinite(width) || width <= 0) return
+    const originalWidth = selectedAttrs?.getAttribute('data-editor-original-width')
+    const originalHeight = selectedAttrs?.getAttribute('data-editor-original-height')
+    const updates = ratio ? {
+      width: String(width),
+      height: String(Number((width / ratio).toFixed(2))),
+      'data-editor-original-width': originalWidth || String(width),
+      'data-editor-original-height': originalHeight || rectHeightValue,
+    } : originalWidth && originalHeight ? {
+      width: originalWidth,
+      height: originalHeight,
+      'data-editor-original-width': null,
+      'data-editor-original-height': null,
+    } : null
+    if (!updates) return
+    const nextMarkup = updateElementAttributes(svgMarkup, selected.id, updates)
+    if (nextMarkup !== svgMarkup) commitDocument(nextMarkup, { nextSelectedId: selected.id })
+  }
+
+  const updatePolygonSides = (value) => {
+    if (!selected || selected.tag !== 'polygon') return
+    const nextMarkup = updatePolygonSidesMarkup(svgMarkup, selected.id, value)
+    if (nextMarkup !== svgMarkup) commitDocument(nextMarkup, { nextSelectedId: selected.id })
+  }
+
   const commitTextEdit = (nextText = textDraft) => {
     const editId = textEditIdRef.current
     if (!editId) return
@@ -421,6 +462,51 @@ function App() {
     }
   }
 
+  const openImagePicker = () => {
+    setAddLayerMenuOpen(false)
+    imageInput.current?.click()
+  }
+
+  const addImageLayer = (file) => {
+    if (!file || !file.type.startsWith('image/')) {
+      showToast(copy.toastInvalidImageFile, 'error')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const image = new Image()
+      image.onload = () => {
+        const created = createImageLayerMarkup(svgMarkup, { name: file.name, href: String(reader.result), width: image.naturalWidth, height: image.naturalHeight })
+        commitDocument(created.markup, { nextSelectedId: created.id })
+        setActiveTab('preview')
+      }
+      image.onerror = () => showToast(copy.toastInvalidImageFile, 'error')
+      image.src = String(reader.result)
+    }
+    reader.onerror = () => showToast(copy.toastInvalidImageFile, 'error')
+    reader.readAsDataURL(file)
+  }
+
+  const openSvgCollection = () => {
+    setAddLayerMenuOpen(false)
+    setShowSvgCollection(true)
+  }
+
+  const addSvgCollectionItem = async (item) => {
+    try {
+      const sourceMarkup = item.inlineSvgMarkup || await fetch(item.editableUrl || item.url).then((response) => {
+        if (!response.ok) throw new Error('Unable to load SVG collection item.')
+        return response.text()
+      })
+      const created = createCollectionSvgLayerMarkup(svgMarkup, { name: item.name, svgMarkup: sourceMarkup })
+      commitDocument(created.markup, { nextSelectedId: created.id })
+      setShowSvgCollection(false)
+      setActiveTab('preview')
+    } catch {
+      showToast(copy.toastCollectionImportFailed, 'error')
+    }
+  }
+
   const copySelectedLayer = (event) => {
     if (!selected) return
     const markup = copyLayerMarkup(svgMarkup, selected.id)
@@ -443,8 +529,8 @@ function App() {
   }
 
   const deleteSelectedLayer = (event) => {
-    if (!selected) return
-    const removed = removeLayer(svgMarkup, selected.id)
+    if (!selectedIds.length) return
+    const removed = removeLayers(svgMarkup, selectedIds)
     if (removed.markup === svgMarkup) return
     event?.preventDefault()
     commitDocument(removed.markup, { nextSelectedId: removed.nextSelectedId })
@@ -810,6 +896,7 @@ function App() {
           <button className="button button-quiet" onClick={() => fileInput.current?.click()}><Icon name="download" /> {copy.open}</button>
           <button className="button button-accent" onClick={openExport}><Icon name="upload" /> {copy.export}</button>
           <input ref={fileInput} type="file" accept="image/svg+xml,.svg" hidden onChange={(event) => handleFile(event.target.files?.[0])} />
+          <input ref={imageInput} type="file" accept="image/*" hidden onChange={(event) => { addImageLayer(event.target.files?.[0]); event.target.value = '' }} />
         </div>
       </header>
 
@@ -821,7 +908,10 @@ function App() {
           setIsLayersOpen={setIsLayersOpen}
           addLayerMenuOpen={addLayerMenuOpen}
           setAddLayerMenuOpen={setAddLayerMenuOpen}
+          openImagePicker={openImagePicker}
+          openSvgCollection={openSvgCollection}
           visibleLayerItems={visibleLayerItems}
+          selectedId={selectedId}
           selectedIds={selectedIds}
           selectLayerIds={selectLayerIds}
           layerRowRefs={layerRowRefs}
@@ -878,6 +968,7 @@ function App() {
           selectedId={selectedId}
           selected={selected}
           selectionBox={selectionBox}
+          lineEndpoints={lineEndpoints}
           textDraft={textDraft}
           setTextDraft={setTextDraft}
           commitTextEdit={commitTextEdit}
@@ -921,6 +1012,9 @@ function App() {
           handleTextAttributeKeyDown={handleTextAttributeKeyDown}
           rectWidthValue={rectWidthValue}
           rectHeightValue={rectHeightValue}
+          updateRectAspectRatio={updateRectAspectRatio}
+          polygonSides={polygonSides}
+          updatePolygonSides={updatePolygonSides}
           fill={fill}
           stroke={stroke}
           opacity={opacity}
@@ -936,7 +1030,7 @@ function App() {
         <div className="shortcuts-modal" role="dialog" aria-modal="true" aria-label={copy.shortcutsTitle} onClick={(event) => event.stopPropagation()}>
           <div className="shortcuts-header"><span>{copy.shortcutsTitle}</span><button className="mini-button" type="button" title={copy.close} aria-label={copy.close} onClick={() => setShowShortcuts(false)}><Icon name="x" size={14} /></button></div>
           <div className="shortcuts-grid">
-            {shortcutGroups.map((group) => <div className="shortcuts-group" key={group.title}>
+            {shortcutGroups.map((group) => <div className={`shortcuts-group ${group.wide ? 'shortcuts-group-wide' : ''}`} key={group.title}>
               <div className="section-label">{group.title}</div>
               {group.items.map(([keys, label]) => <div className="shortcut-row" key={label}><span className="kbd">{keys}</span><span className="shortcut-label">{label}</span></div>)}
             </div>)}
@@ -944,6 +1038,7 @@ function App() {
           <p className="shortcuts-hint">{copy.shortcutsHint}</p>
         </div>
       </div>}
+      {showSvgCollection && <SvgCollectionModal copy={copy} onClose={() => setShowSvgCollection(false)} onSelect={addSvgCollectionItem} />}
       {exportOpen && <div className="shortcuts-overlay" onClick={() => setExportOpen(false)}>
         <div className="shortcuts-modal export-modal" role="dialog" aria-modal="true" aria-label={copy.exportDialogTitle} onClick={(event) => event.stopPropagation()}>
           <div className="shortcuts-header"><span>{copy.exportDialogTitle}</span><button className="mini-button" type="button" title={copy.close} aria-label={copy.close} onClick={() => setExportOpen(false)}><Icon name="x" size={14} /></button></div>
