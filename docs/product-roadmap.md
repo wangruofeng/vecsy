@@ -111,7 +111,7 @@
 
 | 风险 | 缓解 |
 |---|---|
-| `main.jsx` / `useCanvasInteractions.js` 持续膨胀（main.jsx 当前 ~970 行） | P4 测试先行兜底；功能以纯函数沉淀到 `src/editor/`，组件继续下沉到 `src/components/`，main.jsx 只保留编排 |
+| `main.jsx` / `useCanvasInteractions.js` 持续膨胀（main.jsx 当前 ~980 行） | P4 测试先行兜底；功能以纯函数沉淀到 `src/editor/`，组件继续下沉到 `src/components/`，main.jsx 只保留编排 |
 | KV 免费额度超限（分享爆发） | 写入加尺寸/频率限制；监控用量，必要时升级付费（$5/月起） |
 | hash 链接被 IM 截断 | 分享面板标注「链接较长」，P3 短链兜底 |
 | landing 页与编辑器路由拆分影响现有部署 | 先用 Vite MPA 多页验证，再切 `/` + `/app`；保留旧链接重定向 |

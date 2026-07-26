@@ -111,7 +111,7 @@ await writable.close()
 | **Cloudflare Durable Objects** | 中 | 强一致协作编辑 |
 | **GitHub Gist API** | 零 | 把 SVG 存成 Gist，免费、可分享 |
 
-> 当前已有分享功能（copy.shareCopied / shareFailed），如果未来要做分享链接，**Cloudflare KV** 是最契合现有部署的选择。
+> Vector Forge 目前尚未实现跨设备分享（见 `product-roadmap.md` P1/P3）。如果未来要做分享链接，**Cloudflare KV** 是最契合现有部署的选择。
 
 ---
 
@@ -126,7 +126,7 @@ await writable.close()
 | **自动保存大草稿** | — | **OPFS**（如果做） |
 | **多文档管理 / 作品列表** | — | **IndexedDB**（带索引按 lastModified 排序） |
 | **离线可用** | — | **Cache Storage + Service Worker**（缓存静态资源 + 用户文档） |
-| **跨设备分享** | 已有 base64 URL 分享（copy.shareCopied） | 大文档走 **Cloudflare KV** 生成短链 |
+| **跨设备分享** | 尚未实现（计划见 `product-roadmap.md`） | 小文档走 **URL hash**（base64url），大文档走 **Cloudflare KV** 生成短链 |
 
 ---
 
