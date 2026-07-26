@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 140" width="440" height="280">
+<style>
+.m{animation:scan 2.8s ease-in-out infinite}
+@keyframes scan{0%,100%{transform:translateX(-28px) translateY(3px)}50%{transform:translateX(34px) translateY(-2px)}}
+</style>
+<rect width="220" height="140" rx="20" fill="#fff"/>
+<g fill="#ede9fe">
+  <rect x="45" y="38" width="130" height="10" rx="5"/>
+  <rect x="45" y="58" width="95" height="10" rx="5"/>
+  <rect x="45" y="78" width="115" height="10" rx="5"/>
+  <rect x="45" y="98" width="75" height="10" rx="5"/>
+</g>
+<g class="m">
+  <circle cx="115" cy="62" r="25" fill="none" stroke="#7c3aed" stroke-width="6"/>
+  <line x1="133" y1="80" x2="154" y2="101" stroke="#7c3aed" stroke-width="7" stroke-linecap="round"/>
+</g>
+</svg>

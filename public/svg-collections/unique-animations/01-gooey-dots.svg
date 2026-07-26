@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 140" width="480" height="280">
+<defs>
+  <filter id="goo" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur"/>
+    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="goo"/>
+    <feBlend in="SourceGraphic" in2="goo"/>
+  </filter>
+</defs>
+<style>
+.g{filter:url(#goo)}
+.a,.b,.c{fill:#7c3aed}
+.a{animation:ma 2s ease-in-out infinite}
+.b{animation:mb 2s ease-in-out infinite}
+.c{animation:mc 2s ease-in-out infinite}
+@keyframes ma{0%,100%{transform:translateX(0)}50%{transform:translateX(50px)}}
+@keyframes mb{0%,100%{transform:translateX(0)}50%{transform:translateX(-50px)}}
+@keyframes mc{0%,100%{transform:translateY(0)}50%{transform:translateY(-28px)}}
+</style>
+<rect width="240" height="140" rx="20" fill="#fff"/>
+<g class="g">
+  <circle class="a" cx="70" cy="84" r="24"/>
+  <circle class="b" cx="170" cy="84" r="24"/>
+  <circle class="c" cx="120" cy="86" r="20"/>
+</g>
+</svg>

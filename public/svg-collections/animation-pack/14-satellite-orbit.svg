@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160" width="440" height="320">
+<style>.sat{transform-origin:110px 82px;animation:o 5s linear infinite}.earth{animation:p 3s ease-in-out infinite}@keyframes o{to{transform:rotate(360deg)}}@keyframes p{50%{transform:scale(1.05)}}</style>
+<rect width="220" height="160" rx="20" fill="#0f172a"/>
+<circle cx="110" cy="82" r="55" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="6 8"/>
+<circle class="earth" cx="110" cy="82" r="30" fill="#38bdf8"/>
+<path d="M87 78 C97 66 104 70 110 61 C116 53 124 55 132 63 C125 68 128 76 137 82 C126 87 120 96 118 108 C104 106 93 98 87 88 Z" fill="#22c55e"/>
+<g class="sat">
+<rect x="160" y="75" width="22" height="14" rx="3" fill="#e2e8f0"/>
+<rect x="148" y="76" width="10" height="12" fill="#7c3aed"/><rect x="184" y="76" width="10" height="12" fill="#7c3aed"/>
+</g>
+</svg>

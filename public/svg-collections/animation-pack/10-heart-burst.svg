@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 150" width="360" height="300">
+<style>.heart{transform-origin:90px 78px;animation:h 1.6s ease-in-out infinite}.ray{stroke:#ec4899;stroke-width:4;stroke-linecap:round;transform-origin:90px 78px;animation:r 1.6s ease-out infinite}@keyframes h{0%,100%{transform:scale(.82)}45%{transform:scale(1.15)}65%{transform:scale(1)}}@keyframes r{0%,35%{transform:scale(.35);opacity:0}55%{opacity:1}100%{transform:scale(1.2);opacity:0}}</style>
+<rect width="180" height="150" rx="20" fill="#fff"/>
+<g class="ray"><line x1="90" y1="24" x2="90" y2="12"/><line x1="90" y1="132" x2="90" y2="144"/><line x1="36" y1="78" x2="24" y2="78"/><line x1="144" y1="78" x2="156" y2="78"/><line x1="52" y1="40" x2="43" y2="31"/><line x1="128" y1="116" x2="137" y2="125"/><line x1="52" y1="116" x2="43" y2="125"/><line x1="128" y1="40" x2="137" y2="31"/></g>
+<path class="heart" d="M90 116 C82 108 54 91 54 65 C54 48 66 39 79 39 C87 39 92 44 90 46 C94 44 99 39 107 39 C120 39 132 48 132 65 C132 91 104 108 90 116 Z" fill="#ec4899"/>
+</svg>

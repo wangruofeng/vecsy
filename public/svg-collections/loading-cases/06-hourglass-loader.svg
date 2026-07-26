@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="240" height="240">
+<style>
+.frame{fill:none;stroke:#7c3aed;stroke-width:6;stroke-linecap:round;stroke-linejoin:round}
+.top{fill:#a78bfa;animation:t 1.6s ease-in-out infinite}
+.bot{fill:#7c3aed;animation:b 1.6s ease-in-out infinite}
+@keyframes t{0%,15%{opacity:1;transform:translateY(0)}50%,100%{opacity:.15;transform:translateY(10px)}}
+@keyframes b{0%,15%{opacity:.15;transform:translateY(-10px)}50%,100%{opacity:1;transform:translateY(0)}}
+</style>
+<rect width="120" height="120" rx="24" fill="#fff"/>
+<path class="frame" d="M40 24H80M40 96H80M44 24C44 40 53 45 60 52C67 45 76 40 76 24M44 96C44 80 53 75 60 68C67 75 76 80 76 96M60 52V68"/>
+<path class="top" d="M50 32H70C68 39 63 43 60 46C57 43 52 39 50 32Z"/>
+<path class="bot" d="M50 88H70C68 81 63 77 60 74C57 77 52 81 50 88Z"/>
+</svg>

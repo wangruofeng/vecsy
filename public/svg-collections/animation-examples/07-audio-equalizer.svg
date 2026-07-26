@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 190" width="640" height="380">
+  <style>
+    .bar{fill:#7c3aed;transform-box:fill-box;transform-origin:center bottom;animation:rise .9s ease-in-out infinite alternate}
+    .b2{animation-delay:-.58s}.b3{animation-delay:-.24s}.b4{animation-delay:-.74s}.b5{animation-delay:-.38s}.b6{animation-delay:-.66s}.b7{animation-delay:-.12s}
+    @keyframes rise{0%{transform:scaleY(.22);opacity:.48}100%{transform:scaleY(1);opacity:1}}
+  </style>
+  <rect width="320" height="190" fill="#fff"/>
+  <rect class="bar" x="69" y="52" width="20" height="96" rx="10"/>
+  <rect class="bar b2" x="96" y="76" width="20" height="72" rx="10"/>
+  <rect class="bar b3" x="123" y="38" width="20" height="110" rx="10"/>
+  <rect class="bar b4" x="150" y="66" width="20" height="82" rx="10"/>
+  <rect class="bar b5" x="177" y="45" width="20" height="103" rx="10"/>
+  <rect class="bar b6" x="204" y="84" width="20" height="64" rx="10"/>
+  <rect class="bar b7" x="231" y="59" width="20" height="89" rx="10"/>
+</svg>

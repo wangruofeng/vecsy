@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" width="520" height="280">
+<defs>
+  <linearGradient id="wg" x1="0" x2="1">
+    <stop offset="0" stop-color="#7c3aed" stop-opacity="0"/>
+    <stop offset=".5" stop-color="#7c3aed"/>
+    <stop offset="1" stop-color="#7c3aed" stop-opacity="0"/>
+  </linearGradient>
+</defs>
+<style>
+.line{fill:none;stroke:url(#wg);stroke-width:5;stroke-linecap:round}
+.cursor{fill:#7c3aed;animation:s 2.4s linear infinite}
+@keyframes s{0%{transform:translateX(-20px)}100%{transform:translateX(260px)}}
+</style>
+<rect width="260" height="140" rx="20" fill="#fff"/>
+<path class="line" d="M15 72 C28 72 30 30 44 72 S60 112 74 72 S92 22 108 72 S128 102 142 72 S158 42 172 72 S188 116 202 72 S220 30 245 72"/>
+<rect class="cursor" x="0" y="28" width="5" height="88" rx="2.5"/>
+</svg>

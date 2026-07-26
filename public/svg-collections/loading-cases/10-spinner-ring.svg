@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="240" height="240">
+<style>
+.bg{fill:none;stroke:#e5e7eb;stroke-width:10}
+.fg{fill:none;stroke:#7c3aed;stroke-width:10;stroke-linecap:round;stroke-dasharray:90 220;animation:spin 1.1s linear infinite;transform-origin:60px 60px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<rect width="120" height="120" rx="24" fill="#fff"/>
+<circle class="bg" cx="60" cy="60" r="34"/>
+<circle class="fg" cx="60" cy="60" r="34"/>
+</svg>

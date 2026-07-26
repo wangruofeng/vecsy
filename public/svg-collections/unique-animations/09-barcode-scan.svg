@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" width="520" height="280">
+<style>
+.scan{fill:#ef4444;filter:drop-shadow(0 0 4px #ef4444);animation:s 2s ease-in-out infinite}
+@keyframes s{0%,100%{transform:translateY(0)}50%{transform:translateY(64px)}}
+</style>
+<rect width="260" height="140" rx="20" fill="#fff"/>
+<g fill="#111827">
+  <rect x="48" y="36" width="5" height="70"/><rect x="58" y="36" width="3" height="70"/><rect x="66" y="36" width="8" height="70"/>
+  <rect x="80" y="36" width="4" height="70"/><rect x="89" y="36" width="10" height="70"/><rect x="105" y="36" width="3" height="70"/>
+  <rect x="114" y="36" width="7" height="70"/><rect x="127" y="36" width="4" height="70"/><rect x="137" y="36" width="11" height="70"/>
+  <rect x="154" y="36" width="3" height="70"/><rect x="163" y="36" width="8" height="70"/><rect x="177" y="36" width="4" height="70"/>
+  <rect x="187" y="36" width="10" height="70"/><rect x="203" y="36" width="5" height="70"/>
+</g>
+<rect class="scan" x="36" y="34" width="188" height="3" rx="1.5"/>
+</svg>

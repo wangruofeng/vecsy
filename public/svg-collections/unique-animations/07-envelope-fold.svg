@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 140" width="480" height="280">
+<style>
+.flap{transform-origin:120px 53px;animation:fold 2.6s ease-in-out infinite}
+.paper{animation:paper 2.6s ease-in-out infinite}
+@keyframes fold{0%,20%{transform:rotateX(0deg)}55%,100%{transform:rotateX(180deg)}}
+@keyframes paper{0%,20%{transform:translateY(0)}55%,100%{transform:translateY(28px)}}
+</style>
+<rect width="240" height="140" rx="20" fill="#fff"/>
+<rect x="54" y="50" width="132" height="72" rx="10" fill="#ede9fe" stroke="#7c3aed" stroke-width="3"/>
+<rect class="paper" x="76" y="28" width="88" height="62" rx="8" fill="#fff" stroke="#c4b5fd" stroke-width="3"/>
+<path class="flap" d="M54 54 L120 97 L186 54 Z" fill="#c4b5fd" stroke="#7c3aed" stroke-width="3" stroke-linejoin="round"/>
+</svg>

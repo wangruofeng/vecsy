@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 190" width="640" height="380">
+  <rect width="320" height="190" fill="#fff"/>
+  <circle cx="160" cy="95" r="25" fill="#ede9fe" stroke="#7c3aed" stroke-width="4"/>
+  <circle cx="160" cy="95" r="51" fill="none" stroke="#d1d5db" stroke-width="2" stroke-dasharray="5 7"/>
+  <circle cx="160" cy="95" r="76" fill="none" stroke="#d1d5db" stroke-width="2"/>
+  <g>
+    <circle cx="211" cy="95" r="10" fill="#7c3aed"/>
+    <animateTransform attributeName="transform" type="rotate" from="0 160 95" to="360 160 95" dur="2.6s" repeatCount="indefinite"/>
+  </g>
+  <g>
+    <circle cx="236" cy="95" r="7" fill="#7c3aed" opacity=".65"/>
+    <animateTransform attributeName="transform" type="rotate" from="360 160 95" to="0 160 95" dur="4.5s" repeatCount="indefinite"/>
+  </g>
+</svg>

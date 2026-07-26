@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="240" height="240">
+<style>
+.sq{fill:#7c3aed;transform-origin:60px 60px;animation:f 1.2s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes f{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(.65)}100%{transform:rotate(360deg) scale(1)}}
+</style>
+<rect width="120" height="120" rx="24" fill="#fff"/>
+<rect class="sq" x="36" y="36" width="48" height="48" rx="8"/>
+</svg>

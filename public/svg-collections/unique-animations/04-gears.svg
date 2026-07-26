@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 140" width="480" height="280">
+<style>
+.g1{transform-origin:88px 72px;animation:r1 4s linear infinite}
+.g2{transform-origin:150px 68px;animation:r2 3s linear infinite}
+@keyframes r1{to{transform:rotate(360deg)}}@keyframes r2{to{transform:rotate(-360deg)}}
+</style>
+<rect width="240" height="140" rx="20" fill="#fff"/>
+<g class="g1" fill="#7c3aed">
+  <circle cx="88" cy="72" r="30"/>
+  <g>
+    <rect x="83" y="26" width="10" height="16" rx="3"/>
+    <rect x="83" y="102" width="10" height="16" rx="3"/>
+    <rect x="42" y="67" width="16" height="10" rx="3"/>
+    <rect x="118" y="67" width="16" height="10" rx="3"/>
+    <rect x="53" y="36" width="14" height="10" rx="3" transform="rotate(-45 60 41)"/>
+    <rect x="109" y="92" width="14" height="10" rx="3" transform="rotate(-45 116 97)"/>
+    <rect x="53" y="92" width="14" height="10" rx="3" transform="rotate(45 60 97)"/>
+    <rect x="109" y="36" width="14" height="10" rx="3" transform="rotate(45 116 41)"/>
+  </g>
+  <circle cx="88" cy="72" r="12" fill="#fff"/>
+</g>
+<g class="g2" fill="#a78bfa">
+  <circle cx="150" cy="68" r="23"/>
+  <rect x="146" y="32" width="8" height="13" rx="2"/>
+  <rect x="146" y="91" width="8" height="13" rx="2"/>
+  <rect x="114" y="64" width="13" height="8" rx="2"/>
+  <rect x="173" y="64" width="13" height="8" rx="2"/>
+  <circle cx="150" cy="68" r="9" fill="#fff"/>
+</g>
+</svg>

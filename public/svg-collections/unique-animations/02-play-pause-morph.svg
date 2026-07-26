@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 140" width="360" height="280">
+<rect width="180" height="140" rx="20" fill="#fff"/>
+<circle cx="90" cy="70" r="46" fill="#ede9fe" stroke="#7c3aed" stroke-width="4"/>
+<path fill="#7c3aed" d="M72 48 L72 92 L110 70 Z">
+  <animate attributeName="d" dur="2.6s" repeatCount="indefinite"
+    values="M72 48 L72 92 L110 70 Z;
+            M68 48 L82 48 L82 92 L68 92 Z;
+            M98 48 L112 48 L112 92 L98 92 Z;
+            M72 48 L72 92 L110 70 Z"/>
+</path>
+</svg>

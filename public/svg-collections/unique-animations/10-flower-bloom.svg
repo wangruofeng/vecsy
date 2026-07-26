@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 150" width="360" height="300">
+<style>
+.p{fill:#c4b5fd;transform-origin:90px 78px;animation:b 2.8s ease-in-out infinite}
+.p2{animation-delay:-.35s}.p3{animation-delay:-.7s}.p4{animation-delay:-1.05s}.p5{animation-delay:-1.4s}.p6{animation-delay:-1.75s}
+@keyframes b{0%,100%{transform:scale(.65);opacity:.45}50%{transform:scale(1);opacity:1}}
+</style>
+<rect width="180" height="150" rx="20" fill="#fff"/>
+<g>
+  <ellipse class="p" cx="90" cy="42" rx="16" ry="30"/>
+  <ellipse class="p p2" cx="122" cy="58" rx="16" ry="30" transform="rotate(60 122 58)"/>
+  <ellipse class="p p3" cx="122" cy="98" rx="16" ry="30" transform="rotate(120 122 98)"/>
+  <ellipse class="p p4" cx="90" cy="114" rx="16" ry="30"/>
+  <ellipse class="p p5" cx="58" cy="98" rx="16" ry="30" transform="rotate(60 58 98)"/>
+  <ellipse class="p p6" cx="58" cy="58" rx="16" ry="30" transform="rotate(120 58 58)"/>
+  <circle cx="90" cy="78" r="18" fill="#7c3aed"/>
+</g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 140" width="360" height="280">
+<style>.bell{transform-origin:90px 38px;animation:s 1.8s ease-in-out infinite}@keyframes s{0%,35%,100%{transform:rotate(0)}45%{transform:rotate(14deg)}55%{transform:rotate(-12deg)}65%{transform:rotate(8deg)}75%{transform:rotate(-6deg)}85%{transform:rotate(0)}}</style>
+<rect width="180" height="140" rx="20" fill="#fff"/>
+<g class="bell" fill="#7c3aed">
+<path d="M58 92 H122 C115 84 112 74 112 61 C112 46 102 35 90 35 C78 35 68 46 68 61 C68 74 65 84 58 92 Z"/>
+<rect x="83" y="28" width="14" height="14" rx="7"/>
+<circle cx="90" cy="101" r="9"/>
+</g>
+</svg>

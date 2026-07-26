@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="240" height="240">
+<style>
+.track{fill:none;stroke:#e5e7eb;stroke-width:2}.g{transform-origin:60px 60px;animation:rot 1.5s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+</style>
+<rect width="120" height="120" rx="24" fill="#fff"/>
+<circle class="track" cx="60" cy="60" r="28"/>
+<circle class="track" cx="60" cy="60" r="42"/>
+<g class="g">
+<circle cx="88" cy="60" r="7" fill="#7c3aed"/>
+<circle cx="18" cy="60" r="5" fill="#a78bfa"/>
+<circle cx="60" cy="18" r="4" fill="#c4b5fd"/>
+</g>
+</svg>

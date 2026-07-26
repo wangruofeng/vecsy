@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="240" height="240">
+<style>
+.r1,.r2{fill:none;stroke-linecap:round;transform-origin:60px 60px}
+.r1{stroke:#7c3aed;stroke-width:8;stroke-dasharray:60 160;animation:s1 1.2s linear infinite}
+.r2{stroke:#c4b5fd;stroke-width:8;stroke-dasharray:30 140;animation:s2 1.8s linear infinite reverse}
+@keyframes s1{to{transform:rotate(360deg)}}@keyframes s2{to{transform:rotate(360deg)}}
+</style>
+<rect width="120" height="120" rx="24" fill="#fff"/>
+<circle class="r1" cx="60" cy="60" r="30"/>
+<circle class="r2" cx="60" cy="60" r="42"/>
+</svg>

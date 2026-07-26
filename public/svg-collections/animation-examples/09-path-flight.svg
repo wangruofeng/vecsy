@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 190" width="640" height="380">
+  <rect width="320" height="190" fill="#fff"/>
+  <path id="route" d="M35 137 C78 18 146 172 198 66 C228 8 270 47 286 111" fill="none" stroke="#d1d5db" stroke-width="3" stroke-dasharray="7 7"/>
+  <g>
+    <path d="M-15 -9 L17 0 L-15 9 L-7 0 Z" fill="#7c3aed" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+    <animateMotion dur="4s" repeatCount="indefinite" rotate="auto">
+      <mpath href="#route"/>
+    </animateMotion>
+  </g>
+</svg>

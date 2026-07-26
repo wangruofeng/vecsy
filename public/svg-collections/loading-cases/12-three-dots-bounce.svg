@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 80" width="320" height="160">
+<style>
+.d{fill:#7c3aed;animation:b .8s ease-in-out infinite}.d2{animation-delay:.12s}.d3{animation-delay:.24s}
+@keyframes b{0%,80%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-16px);opacity:1}}
+</style>
+<rect width="160" height="80" rx="18" fill="#fff"/>
+<circle class="d" cx="40" cy="42" r="10"/>
+<circle class="d d2" cx="80" cy="42" r="10"/>
+<circle class="d d3" cx="120" cy="42" r="10"/>
+</svg>

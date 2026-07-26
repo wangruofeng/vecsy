@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 150" width="520" height="300">
+<style>
+.road{fill:none;stroke:#cbd5e1;stroke-width:14;stroke-linecap:round}
+.dash{fill:none;stroke:#fff;stroke-width:3;stroke-dasharray:10 12}
+</style>
+<rect width="260" height="150" rx="20" fill="#f8fafc"/>
+<path id="route" class="road" d="M24 110 C60 35 125 130 170 65 C200 22 225 40 240 78"/>
+<path class="dash" d="M24 110 C60 35 125 130 170 65 C200 22 225 40 240 78"/>
+<g>
+<rect x="-16" y="-9" width="32" height="18" rx="5" fill="#7c3aed"/>
+<circle cx="-9" cy="10" r="4" fill="#111827"/><circle cx="9" cy="10" r="4" fill="#111827"/>
+<animateMotion dur="4.2s" repeatCount="indefinite" rotate="auto"><mpath href="#route"/></animateMotion>
+</g>
+</svg>

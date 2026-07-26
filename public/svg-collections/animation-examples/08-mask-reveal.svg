@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 190" width="640" height="380">
+  <defs>
+    <mask id="mask">
+      <rect width="320" height="190" fill="#000"/>
+      <rect x="42" y="52" width="0" height="86" rx="16" fill="#fff">
+        <animate attributeName="width" values="0;236;236;0" keyTimes="0;.45;.75;1" dur="3.6s" repeatCount="indefinite"/>
+      </rect>
+    </mask>
+  </defs>
+  <rect width="320" height="190" fill="#fff"/>
+  <rect x="42" y="52" width="236" height="86" rx="16" fill="#ede9fe"/>
+  <g mask="url(#mask)">
+    <rect x="42" y="52" width="236" height="86" rx="16" fill="#7c3aed"/>
+    <text x="160" y="112" text-anchor="middle" font-size="48" font-family="system-ui,sans-serif" font-weight="700" fill="#fff">SVG</text>
+  </g>
+</svg>

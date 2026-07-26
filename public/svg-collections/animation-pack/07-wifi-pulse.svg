@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 140" width="360" height="280">
+<style>
+.a1,.a2,.a3{fill:none;stroke:#7c3aed;stroke-width:8;stroke-linecap:round;animation:p 2s ease-in-out infinite}
+.a2{animation-delay:.25s}.a3{animation-delay:.5s}
+@keyframes p{0%,100%{opacity:.2}50%{opacity:1}}
+</style>
+<rect width="180" height="140" rx="20" fill="#fff"/>
+<path class="a1" d="M38 56 Q90 10 142 56"/>
+<path class="a2" d="M57 78 Q90 47 123 78"/>
+<path class="a3" d="M75 98 Q90 84 105 98"/>
+<circle cx="90" cy="112" r="8" fill="#7c3aed"/>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 140" width="560" height="280">
+<defs>
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="4" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+<style>
+.t{font:700 34px system-ui,sans-serif;fill:none;stroke:#8b5cf6;stroke-width:2;filter:url(#glow);animation:f 2.8s linear infinite}
+@keyframes f{0%,18%,22%,25%,53%,57%,100%{opacity:1}20%,24%,55%{opacity:.18}}
+</style>
+<rect width="280" height="140" rx="20" fill="#111827"/>
+<text class="t" x="140" y="82" text-anchor="middle">SVG NIGHT</text>
+</svg>

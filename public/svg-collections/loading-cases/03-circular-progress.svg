@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="240" height="240">
+<style>
+.bg{fill:none;stroke:#e5e7eb;stroke-width:10}
+.fg{fill:none;stroke:#7c3aed;stroke-width:10;stroke-linecap:round;stroke-dasharray:188;stroke-dashoffset:188;transform:rotate(-90deg);transform-origin:60px 60px;animation:p 2s ease-in-out infinite}
+@keyframes p{0%{stroke-dashoffset:188}50%{stroke-dashoffset:56}100%{stroke-dashoffset:188}}
+.t{font:700 12px system-ui,sans-serif;fill:#6d28d9}
+</style>
+<rect width="120" height="120" rx="24" fill="#fff"/>
+<circle class="bg" cx="60" cy="60" r="30"/>
+<circle class="fg" cx="60" cy="60" r="30"/>
+<text class="t" x="60" y="64" text-anchor="middle">Loading</text>
+</svg>

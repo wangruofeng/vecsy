@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 150" width="560" height="300">
+<style>
+.b1,.b2,.b3{animation:move 3s linear infinite}
+.b2{animation-delay:-1s}.b3{animation-delay:-2s}
+.w{transform-origin:center;animation:r 1.2s linear infinite}
+@keyframes move{0%{transform:translateX(-55px);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translateX(280px);opacity:0}}
+@keyframes r{to{transform:rotate(360deg)}}
+</style>
+<rect width="280" height="150" rx="20" fill="#fff"/>
+<rect x="25" y="90" width="230" height="22" rx="11" fill="#cbd5e1"/>
+<circle class="w" cx="55" cy="101" r="12" fill="#64748b"/>
+<circle class="w" cx="110" cy="101" r="12" fill="#64748b"/>
+<circle class="w" cx="165" cy="101" r="12" fill="#64748b"/>
+<circle class="w" cx="220" cy="101" r="12" fill="#64748b"/>
+<rect class="b1" x="0" y="54" width="42" height="36" rx="5" fill="#7c3aed"/>
+<rect class="b2" x="0" y="54" width="42" height="36" rx="5" fill="#a78bfa"/>
+<rect class="b3" x="0" y="54" width="42" height="36" rx="5" fill="#c4b5fd"/>
+</svg>

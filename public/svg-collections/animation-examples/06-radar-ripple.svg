@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 190" width="640" height="380">
+  <style>
+    .wave{fill:none;stroke:#7c3aed;stroke-width:4;transform-box:fill-box;transform-origin:center;animation:expand 2.4s ease-out infinite}
+    .w2{animation-delay:-.8s}.w3{animation-delay:-1.6s}
+    @keyframes expand{0%{transform:scale(.35);opacity:.85}100%{transform:scale(2.5);opacity:0}}
+  </style>
+  <rect width="320" height="190" fill="#fff"/>
+  <g transform="translate(160 95)">
+    <circle class="wave" r="34"/><circle class="wave w2" r="34"/><circle class="wave w3" r="34"/>
+    <circle r="29" fill="#7c3aed"/><circle r="9" fill="#fff"/>
+  </g>
+</svg>

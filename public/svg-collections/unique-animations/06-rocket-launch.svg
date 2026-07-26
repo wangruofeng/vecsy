@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160" width="440" height="320">
+<style>
+.rocket{animation:fly 2.8s ease-in-out infinite}
+.flame{transform-origin:110px 114px;animation:fl 0.35s ease-in-out infinite alternate}
+.smoke{fill:#d1d5db;animation:s 1.8s ease-out infinite}
+.s2{animation-delay:-.6s}.s3{animation-delay:-1.2s}
+@keyframes fly{0%,100%{transform:translateY(8px)}50%{transform:translateY(-12px)}}
+@keyframes fl{from{transform:scaleY(.75)}to{transform:scaleY(1.2)}}
+@keyframes s{0%{transform:translateY(0) scale(.5);opacity:.7}100%{transform:translateY(40px) scale(1.7);opacity:0}}
+</style>
+<rect width="220" height="160" rx="20" fill="#0f172a"/>
+<g class="rocket">
+  <path d="M110 30 C132 45 137 75 128 105 H92 C83 75 88 45 110 30 Z" fill="#f8fafc"/>
+  <circle cx="110" cy="67" r="11" fill="#60a5fa"/>
+  <path d="M92 83 L75 105 L92 103 Z" fill="#a78bfa"/>
+  <path d="M128 83 L145 105 L128 103 Z" fill="#a78bfa"/>
+  <path class="flame" d="M99 105 C102 124 108 133 110 138 C112 133 118 124 121 105 Z" fill="#f97316"/>
+</g>
+<circle class="smoke" cx="95" cy="126" r="8"/>
+<circle class="smoke s2" cx="115" cy="132" r="10"/>
+<circle class="smoke s3" cx="132" cy="124" r="7"/>
+</svg>

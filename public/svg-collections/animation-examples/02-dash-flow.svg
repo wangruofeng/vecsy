@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 190" width="640" height="380">
+  <style>
+    .track{fill:none;stroke:#d1d5db;stroke-width:3}
+    .flow{fill:none;stroke:#7c3aed;stroke-width:8;stroke-linecap:round;stroke-dasharray:18 16;animation:run 1.2s linear infinite}
+    @keyframes run{to{stroke-dashoffset:-68}}
+  </style>
+  <rect width="320" height="190" fill="#fff"/>
+  <rect class="track" x="44" y="38" width="232" height="114" rx="44"/>
+  <rect class="flow" x="44" y="38" width="232" height="114" rx="44"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 150" width="520" height="300">
+<style>.g{animation:m 3s linear infinite}@keyframes m{to{transform:translateX(40px)}}</style>
+<rect width="260" height="150" rx="20" fill="#fff"/>
+<g class="g">
+<path d="M-20 40 C20 40 20 110 60 110 S100 40 140 40 S180 110 220 110 S260 40 300 40" fill="none" stroke="#7c3aed" stroke-width="5"/>
+<path d="M-20 110 C20 110 20 40 60 40 S100 110 140 110 S180 40 220 40 S260 110 300 110" fill="none" stroke="#a78bfa" stroke-width="5"/>
+<g stroke="#c4b5fd" stroke-width="3">
+<line x1="0" y1="65" x2="0" y2="85"/><line x1="30" y1="48" x2="30" y2="102"/><line x1="60" y1="40" x2="60" y2="110"/><line x1="90" y1="48" x2="90" y2="102"/><line x1="120" y1="65" x2="120" y2="85"/><line x1="150" y1="48" x2="150" y2="102"/><line x1="180" y1="40" x2="180" y2="110"/><line x1="210" y1="48" x2="210" y2="102"/><line x1="240" y1="65" x2="240" y2="85"/>
+</g>
+</g>
+</svg>

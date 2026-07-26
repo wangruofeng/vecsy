@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 140" width="360" height="280">
+<style>
+.ring{fill:none;stroke:#10b981;stroke-width:8;stroke-dasharray:1;stroke-dashoffset:1;animation:dr 2.4s ease-in-out infinite}
+.check{fill:none;stroke:#10b981;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:dc 2.4s ease-in-out infinite}
+@keyframes dr{0%{stroke-dashoffset:1}35%,100%{stroke-dashoffset:0}}
+@keyframes dc{0%,35%{stroke-dashoffset:1}65%,100%{stroke-dashoffset:0}}
+</style>
+<rect width="180" height="140" rx="20" fill="#fff"/>
+<circle class="ring" pathLength="1" cx="90" cy="70" r="42"/>
+<path class="check" pathLength="1" d="M67 71 L83 87 L116 53"/>
+</svg>

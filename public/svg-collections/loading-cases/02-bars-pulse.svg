@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90" width="320" height="180">
+<style>
+.b{fill:#7c3aed;transform-origin:center bottom;transform-box:fill-box;animation:p .8s ease-in-out infinite alternate}
+.b2{animation-delay:.12s}.b3{animation-delay:.24s}.b4{animation-delay:.36s}.b5{animation-delay:.48s}
+@keyframes p{0%{transform:scaleY(.25);opacity:.4}100%{transform:scaleY(1);opacity:1}}
+</style>
+<rect width="160" height="90" rx="18" fill="#fff"/>
+<rect class="b" x="24" y="18" width="14" height="52" rx="7"/>
+<rect class="b b2" x="50" y="18" width="14" height="52" rx="7"/>
+<rect class="b b3" x="76" y="18" width="14" height="52" rx="7"/>
+<rect class="b b4" x="102" y="18" width="14" height="52" rx="7"/>
+<rect class="b b5" x="128" y="18" width="14" height="52" rx="7"/>
+</svg>

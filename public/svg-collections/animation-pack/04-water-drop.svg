@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 150" width="360" height="300">
+<style>
+.drop{animation:f 1.8s ease-in infinite}.ring{fill:none;stroke:#38bdf8;stroke-width:4;transform-origin:90px 114px;animation:r 1.8s ease-out infinite}
+@keyframes f{0%{transform:translateY(-50px);opacity:0}20%{opacity:1}70%{transform:translateY(48px)}100%{transform:translateY(48px);opacity:0}}
+@keyframes r{0%,65%{transform:scale(.15);opacity:0}75%{opacity:1}100%{transform:scale(1.2);opacity:0}}
+</style>
+<rect width="180" height="150" rx="20" fill="#fff"/>
+<path class="drop" d="M90 35 C78 52 71 62 71 73 C71 84 80 93 90 93 C100 93 109 84 109 73 C109 62 102 52 90 35 Z" fill="#38bdf8"/>
+<ellipse class="ring" cx="90" cy="114" rx="34" ry="10"/>
+</svg>

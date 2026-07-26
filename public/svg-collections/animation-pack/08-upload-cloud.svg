@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 150" width="440" height="300">
+<style>.arrow{animation:u 2s ease-in-out infinite}@keyframes u{0%,100%{transform:translateY(10px);opacity:.35}50%{transform:translateY(-12px);opacity:1}}</style>
+<rect width="220" height="150" rx="20" fill="#fff"/>
+<path d="M62 104 H158 C176 104 187 91 187 75 C187 60 176 48 161 46 C155 28 137 18 120 23 C103 15 80 23 73 42 C55 43 42 56 42 73 C42 90 50 104 62 104 Z" fill="#ede9fe" stroke="#7c3aed" stroke-width="4"/>
+<g class="arrow" fill="none" stroke="#7c3aed" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+<line x1="110" y1="94" x2="110" y2="54"/><path d="M92 70 L110 52 L128 70"/>
+</g>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="320" height="240">
+<style>
+.l{stroke:#7c3aed;stroke-width:8;stroke-linecap:round;transform-origin:80px 60px;animation-duration:2.6s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
+.a{animation-name:a}.b{animation-name:b}.c{animation-name:c}
+@keyframes a{0%,20%{transform:translateY(-18px) rotate(0)}50%,70%{transform:translateY(0) rotate(45deg)}100%{transform:translateY(-18px) rotate(0)}}
+@keyframes b{0%,20%{opacity:1}50%,70%{opacity:0}100%{opacity:1}}
+@keyframes c{0%,20%{transform:translateY(18px) rotate(0)}50%,70%{transform:translateY(0) rotate(-45deg)}100%{transform:translateY(18px) rotate(0)}}
+</style>
+<rect width="160" height="120" rx="20" fill="#fff"/>
+<line class="l a" x1="48" y1="60" x2="112" y2="60"/>
+<line class="l b" x1="48" y1="60" x2="112" y2="60"/>
+<line class="l c" x1="48" y1="60" x2="112" y2="60"/>
+</svg>

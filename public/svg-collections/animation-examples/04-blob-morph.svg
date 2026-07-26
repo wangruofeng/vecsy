@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 190" width="640" height="380">
+  <defs>
+    <radialGradient id="g" cx="35%" cy="25%" r="80%">
+      <stop offset="0" stop-color="#ede9fe"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </radialGradient>
+  </defs>
+  <rect width="320" height="190" fill="#fff"/>
+  <path fill="url(#g)" stroke="#7c3aed" stroke-width="3" d="M160 31 C207 25 257 47 255 94 C253 140 209 161 161 153 C111 162 64 140 66 92 C68 48 112 25 160 31 Z">
+    <animate attributeName="d" dur="4.5s" repeatCount="indefinite"
+      values="M160 31 C207 25 257 47 255 94 C253 140 209 161 161 153 C111 162 64 140 66 92 C68 48 112 25 160 31 Z;
+              M159 23 C201 36 265 32 249 88 C270 127 213 164 169 148 C119 171 58 134 72 92 C48 47 111 15 159 23 Z;
+              M160 31 C207 25 257 47 255 94 C253 140 209 161 161 153 C111 162 64 140 66 92 C68 48 112 25 160 31 Z"/>
+  </path>
+</svg>
