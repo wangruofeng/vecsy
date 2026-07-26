@@ -51,8 +51,7 @@ h1 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: clamp(25px, 
 .add-layer-menu { position: absolute; z-index: 8; top: 48px; right: 10px; width: 148px; padding: 5px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--panel-raised); box-shadow: 0 14px 30px rgba(0,0,0,.5); }
 .add-layer-menu button { width: 100%; display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 4px; color: var(--muted-2); background: transparent; text-align: left; font-size: 11px; }
 .add-layer-menu button:hover { color: #f5f2eb; background: rgba(255,255,255,.07); }
-.add-layer-menu .add-from-collection { margin-bottom: 4px; color: var(--amber); background: rgba(242,169,59,.08); }
-.add-layer-menu .add-from-collection:hover { background: rgba(242,169,59,.16); }
+.add-layer-menu .add-from-collection { margin-bottom: 4px; }
 .add-layer-menu .layer-shape { width: 16px; height: 16px; display: grid; place-items: center; flex: 0 0 16px; }
 .add-layer-menu .shape-rect { width: 14px; height: 11px; }
 .add-layer-menu .shape-circle { width: 12px; height: 12px; }
