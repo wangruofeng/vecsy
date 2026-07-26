@@ -30,6 +30,14 @@ const ANIMATION_COLLECTIONS = [
     files: ['01-arc-chase.svg', '02-bars-pulse.svg', '03-circular-progress.svg', '04-dots-spinner.svg', '05-dual-ring.svg', '06-hourglass-loader.svg', '07-orbit-dots.svg', '08-ripple-loader.svg', '09-shimmer-pill.svg', '10-spinner-ring.svg', '11-square-flip.svg', '12-three-dots-bounce.svg'],
   },
   {
+    id: 'svg-spinners',
+    labelKey: 'svgCollectionSvgSpinners',
+    directory: 'svg-spinners',
+    sourceUrl: 'https://icon-sets.iconify.design/svg-spinners/',
+    nameFn: spinnerName,
+    files: ['12-dots-scale-rotate.svg', '180-ring.svg', '180-ring-with-bg.svg', '270-ring.svg', '270-ring-with-bg.svg', '3-dots-bounce.svg', '3-dots-fade.svg', '3-dots-move.svg', '3-dots-rotate.svg', '3-dots-scale.svg', '3-dots-scale-middle.svg', '6-dots-rotate.svg', '6-dots-scale.svg', '6-dots-scale-middle.svg', '8-dots-rotate.svg', '90-ring.svg', '90-ring-with-bg.svg', 'bars-fade.svg', 'bars-rotate-fade.svg', 'bars-scale.svg', 'bars-scale-fade.svg', 'bars-scale-middle.svg', 'blocks-scale.svg', 'blocks-shuffle-2.svg', 'blocks-shuffle-3.svg', 'blocks-wave.svg', 'bouncing-ball.svg', 'clock.svg', 'dot-revolve.svg', 'eclipse.svg', 'eclipse-half.svg', 'gooey-balls-1.svg', 'gooey-balls-2.svg', 'pulse.svg', 'pulse-2.svg', 'pulse-3.svg', 'pulse-multiple.svg', 'pulse-ring.svg', 'pulse-rings-2.svg', 'pulse-rings-3.svg', 'pulse-rings-multiple.svg', 'ring-resize.svg', 'tadpole.svg', 'wifi.svg', 'wifi-fade.svg', 'wind-toy.svg'],
+  },
+  {
     id: 'unique-animations',
     labelKey: 'svgCollectionUniqueAnimations',
     directory: 'unique-animations',
@@ -46,19 +54,26 @@ function animationName(file) {
   return file.replace(/\.svg$/, '').replace(/^\d+-/, '').split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join(' ')
 }
 
+// svg-spinners 的名字里数字前缀（如 90-ring、180-ring）是名称语义的一部分，不可剥离
+function spinnerName(file) {
+  return file.replace(/\.svg$/, '').split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join(' ')
+}
+
 function getCollectionAssetUrl(directory, file) {
   return `${import.meta.env.BASE_URL}svg-collections/${directory}/${file}`
 }
 
-function createAnimationCollection({ id, labelKey, directory, files }) {
-  return {
+function createAnimationCollection({ id, labelKey, directory, files, sourceUrl, nameFn = animationName }) {
+  const collection = {
     id,
     labelKey,
     items: files.map((file) => {
       const url = getCollectionAssetUrl(directory, file)
-      return { id: `${id}-${file.replace(/\.svg$/, '')}`, name: animationName(file), url, editableUrl: url, preserveAppearance: true }
+      return { id: `${id}-${file.replace(/\.svg$/, '')}`, name: nameFn(file), url, editableUrl: url, preserveAppearance: true }
     }),
   }
+  if (sourceUrl) collection.sourceUrl = sourceUrl
+  return collection
 }
 
 export const SVG_COLLECTIONS = [{
