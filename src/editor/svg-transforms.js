@@ -10,6 +10,57 @@ export function updateElementTransform(rawMarkup, targetId, transform) {
   return new XMLSerializer().serializeToString(doc.documentElement)
 }
 
+function parseTranslateScaleTransform(transform) {
+  if (!transform.trim()) return { scaleX: 1, scaleY: 1, translateX: 0, translateY: 0 }
+  const functionPattern = /([A-Za-z]+)\s*\(([^)]*)\)/g
+  const numberPattern = /[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/g
+  let match
+  let cursor = 0
+  let scaleX = 1
+  let scaleY = 1
+  let translateX = 0
+  let translateY = 0
+  while ((match = functionPattern.exec(transform))) {
+    if (!/^[\s,]*$/.test(transform.slice(cursor, match.index))) return null
+    cursor = functionPattern.lastIndex
+    const values = match[2].match(numberPattern)?.map(Number) || []
+    if (match[2].replace(numberPattern, '').replace(/[\s,]/g, '') || values.some((value) => !Number.isFinite(value))) return null
+    if (match[1] === 'translate' && (values.length === 1 || values.length === 2)) {
+      translateX += scaleX * values[0]
+      translateY += scaleY * (values[1] ?? 0)
+    } else if (match[1] === 'scale' && (values.length === 1 || values.length === 2)) {
+      scaleX *= values[0]
+      scaleY *= values[1] ?? values[0]
+    } else {
+      return null
+    }
+  }
+  return /^[\s,]*$/.test(transform.slice(cursor)) ? { scaleX, scaleY, translateX, translateY } : null
+}
+
+export function bakeRectTranslateScaleTransform(rawMarkup, targetId) {
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const node = doc.querySelector(`[data-editor-id="${targetId}"]`)
+  if (node?.tagName !== 'rect') return null
+  const matrix = parseTranslateScaleTransform(node.getAttribute('transform') || '')
+  const x = Number(node.getAttribute('x')) || 0
+  const y = Number(node.getAttribute('y')) || 0
+  const width = Number(node.getAttribute('width')) || 0
+  const height = Number(node.getAttribute('height')) || 0
+  if (!matrix || !width || !height) return null
+  const x1 = matrix.scaleX * x + matrix.translateX
+  const x2 = matrix.scaleX * (x + width) + matrix.translateX
+  const y1 = matrix.scaleY * y + matrix.translateY
+  const y2 = matrix.scaleY * (y + height) + matrix.translateY
+  const rect = { x: Math.min(x1, x2), y: Math.min(y1, y2), width: Math.abs(x2 - x1), height: Math.abs(y2 - y1) }
+  node.setAttribute('x', rect.x.toFixed(2))
+  node.setAttribute('y', rect.y.toFixed(2))
+  node.setAttribute('width', rect.width.toFixed(2))
+  node.setAttribute('height', rect.height.toFixed(2))
+  node.removeAttribute('transform')
+  return { markup: new XMLSerializer().serializeToString(doc.documentElement), rect }
+}
+
 export function translateElements(rawMarkup, targetIds, delta) {
   const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
   const translate = `translate(${delta.x.toFixed(2)} ${delta.y.toFixed(2)})`
@@ -68,6 +119,20 @@ export function updateElementAttributes(rawMarkup, targetId, updates) {
     else node.setAttribute(attribute, value)
   })
   if (node.tagName?.toLowerCase() === 'text' && 'font-size' in updates) syncTextLineLayout(node)
+  return new XMLSerializer().serializeToString(doc.documentElement)
+}
+
+export function resizeBackgroundLayer(rawMarkup, targetId, bounds) {
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const layer = doc.querySelector(`[data-editor-id="${targetId}"]`)
+  const background = Array.from(layer?.children || []).find((node) => node.tagName === 'rect' && node.hasAttribute('fill'))
+  if (!layer || !background) return rawMarkup
+  const { minX, minY, width, height } = bounds
+  background.setAttribute('x', minX.toFixed(2))
+  background.setAttribute('y', minY.toFixed(2))
+  background.setAttribute('width', width.toFixed(2))
+  background.setAttribute('height', height.toFixed(2))
+  layer.removeAttribute('transform')
   return new XMLSerializer().serializeToString(doc.documentElement)
 }
 
@@ -202,12 +267,39 @@ export function reorderSiblingElements(rawMarkup, draggedId, targetId) {
 export function sanitizeForExport(rawMarkup) {
   const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
   doc.querySelectorAll('[data-editor-id]').forEach((node) => node.removeAttribute('data-editor-id'))
-  doc.querySelectorAll('.is-selected').forEach((node) => {
-    const nextClass = (node.getAttribute('class') || '').replace(/\bis-selected\b/g, '').trim()
-    if (nextClass) node.setAttribute('class', nextClass)
-    else node.removeAttribute('class')
-  })
   return new XMLSerializer().serializeToString(doc.documentElement)
+}
+
+export function filterSvgToLayerIds(rawMarkup, layerIds) {
+  if (!layerIds.length) return rawMarkup
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const selectedIds = new Set(layerIds)
+  const keepSelectedLayers = (node) => {
+    Array.from(node.children).forEach((child) => {
+      const id = child.getAttribute('data-editor-id')
+      if (id && selectedIds.has(id)) return
+      if (id) {
+        const hasSelectedDescendant = child.querySelector('[data-editor-id]') && Array.from(child.querySelectorAll('[data-editor-id]')).some((descendant) => selectedIds.has(descendant.getAttribute('data-editor-id')))
+        if (!hasSelectedDescendant) {
+          child.remove()
+          return
+        }
+      }
+      keepSelectedLayers(child)
+    })
+  }
+  keepSelectedLayers(doc.documentElement)
+  return new XMLSerializer().serializeToString(doc.documentElement)
+}
+
+export function cropSvgToBounds(rawMarkup, bounds) {
+  if (!bounds?.width || !bounds?.height) return rawMarkup
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const root = doc.documentElement
+  root.setAttribute('viewBox', `${bounds.minX.toFixed(2)} ${bounds.minY.toFixed(2)} ${bounds.width.toFixed(2)} ${bounds.height.toFixed(2)}`)
+  root.removeAttribute('width')
+  root.removeAttribute('height')
+  return new XMLSerializer().serializeToString(root)
 }
 
 export function minifySvg(rawMarkup) {
@@ -234,9 +326,13 @@ export function translateElementsById(rawMarkup, moves) {
   return new XMLSerializer().serializeToString(doc.documentElement)
 }
 
-export function highlightSelectedMarkup(rawMarkup, selectedIds, editingTextId = '') {
-  return selectedIds.reduce(
-    (markup, id) => markup.replace(`data-editor-id="${id}"`, `data-editor-id="${id}" class="is-selected${id === editingTextId ? ' is-editing-text' : ''}"`),
-    rawMarkup,
-  )
+export function highlightSelectedMarkup(rawMarkup, editingTextId = '') {
+  if (!editingTextId) return rawMarkup
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const node = doc.querySelector(`[data-editor-id="${editingTextId}"]`)
+  if (!node) return rawMarkup
+  const classNames = new Set((node.getAttribute('class') || '').split(/\s+/).filter(Boolean))
+  classNames.add('is-editing-text')
+  node.setAttribute('class', [...classNames].join(' '))
+  return new XMLSerializer().serializeToString(doc.documentElement)
 }

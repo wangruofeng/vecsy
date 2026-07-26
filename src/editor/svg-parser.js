@@ -53,10 +53,9 @@ export function parseSvg(markup) {
   return { markup: new XMLSerializer().serializeToString(doc.documentElement), elements }
 }
 
-export function getColor(value, fallback) {
-  if (!value || value === 'none' || value.startsWith('url(')) return fallback
-  if (value.startsWith('#')) return value.toUpperCase()
-  return fallback
+export function getColor(value) {
+  if (!value || value === 'none' || value.startsWith('url(')) return ''
+  return value.startsWith('#') ? value.toUpperCase() : value
 }
 
 export function isElementHidden(node) {

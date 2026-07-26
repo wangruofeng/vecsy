@@ -10,7 +10,7 @@ import useEditorDocument from './hooks/useEditorDocument.js'
 import useCanvasInteraction from './hooks/useCanvasInteraction.js'
 import { getAncestorGroupIds, getColor, getVisibleLayerItems, isElementHidden, setElementVisibility } from './editor/svg-parser.js'
 import { getSvgDimensions, getTopLevelSelectedIds } from './editor/svg-geometry.js'
-import { copyLayerMarkup, createLayerMarkup, formatSvgMarkup, getEditableTextContent, highlightSvgSource, insertClonedLayer, minifySvg, removeLayer, reorderSiblingElements, sanitizeForExport, syncTextLineLayout, translateElementsById, updateElementAttributes, withExplicitSize } from './editor/svg-transforms.js'
+import { copyLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, highlightSvgSource, insertClonedLayer, minifySvg, removeLayer, reorderSiblingElements, sanitizeForExport, syncTextLineLayout, translateElements, translateElementsById, updateElementAttributes, withExplicitSize } from './editor/svg-transforms.js'
 
 const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480">
   <g id="background" data-name="Background">
@@ -25,32 +25,6 @@ const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480
 
 const STORAGE_KEY = 'vector-forge:document'
 const HISTORY_LIMIT = 50
-
-function bytesToBase64Url(bytes) {
-  let binary = ''
-  const chunkSize = 0x8000
-  for (let index = 0; index < bytes.length; index += chunkSize) binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize))
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-}
-
-function base64UrlToBytes(value) {
-  const base64 = value.replace(/-/g, '+').replace(/_/g, '/')
-  const binary = atob(base64)
-  const bytes = new Uint8Array(binary.length)
-  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index)
-  return bytes
-}
-
-async function compressText(text) {
-  if (typeof CompressionStream === 'undefined') return null
-  const stream = new Blob([text]).stream().pipeThrough(new CompressionStream('deflate-raw'))
-  return new Uint8Array(await new Response(stream).arrayBuffer())
-}
-
-async function decompressText(bytes) {
-  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))
-  return new Response(stream).text()
-}
 
 function App() {
   const { language, setLanguage, svgMarkup, sourceDraft, setSourceDraft, elements, selectedId, setSelectedId, selectedIds, setSelectedIds, fileName, dirty, setDirty, history, storageError, setStorageError, selectLayerIds, currentSnapshot, commitDocument, undo, redo, loadDocument } = useEditorDocument({ initialMarkup: SAMPLE_SVG, storageKey: STORAGE_KEY, historyLimit: HISTORY_LIMIT })
@@ -67,6 +41,9 @@ function App() {
   const [exportBackground, setExportBackground] = useState('transparent')
   const [exportCustomColor, setExportCustomColor] = useState('#FFFFFF')
   const [exportOptimize, setExportOptimize] = useState(true)
+  const [exportSelectedOnly, setExportSelectedOnly] = useState(false)
+  const [exportLayerIds, setExportLayerIds] = useState([])
+  const [exportBounds, setExportBounds] = useState(null)
   const [contextMenu, setContextMenu] = useState(null)
   const [renamingLayerId, setRenamingLayerId] = useState('')
   const [renameDraft, setRenameDraft] = useState('')
@@ -76,7 +53,6 @@ function App() {
   const [dragOverLayerId, setDragOverLayerId] = useState('')
   const [editingTextId, setEditingTextId] = useState('')
   const [textDraft, setTextDraft] = useState('')
-  const [textEditStyle, setTextEditStyle] = useState({})
   const [textFieldDraft, setTextFieldDraft] = useState('')
   const [attributeDrafts, setAttributeDrafts] = useState({ targetId: '', values: {} })
   const fileInput = useRef(null)
@@ -85,13 +61,13 @@ function App() {
   const suppressLayerClickRef = useRef(false)
   const sourceHighlightRef = useRef(null)
   const clipboardLayerRef = useRef(null)
-  const textEditRef = useRef(null)
   const attributePreviewFrameRef = useRef(0)
   const pendingAttributeUpdatesRef = useRef(null)
   const attributeCommitTimerRef = useRef(0)
   const toastTimerRef = useRef(0)
   const fileDragCounterRef = useRef(0)
   const renameInputRef = useRef(null)
+  const textEditIdRef = useRef('')
   const copy = COPY[language]
 
   useLayoutEffect(() => {
@@ -122,6 +98,7 @@ function App() {
         [copy.shortcutKeyDrag, copy.shortcutPan],
         [copy.shortcutKeyScroll, copy.shortcutZoom],
         [copy.shortcutKeyDoubleClick, copy.shortcutEditText],
+        ['↑ ↓ ← →', copy.shortcutMove],
         ['Esc', copy.shortcutDeselect],
       ],
     },
@@ -133,11 +110,29 @@ function App() {
   const contextMenuTarget = contextMenu ? elements.find((element) => element.id === contextMenu.targetId) : null
   const canvasInteraction = useCanvasInteraction({ activeTab, selectedId, selectedIds, selected, elements, svgMarkup, currentSnapshot, commitDocument, selectLayerIds })
   const { canvasRef, svgRef, svgPosition, setSvgPosition, svgScale, setSvgScale, isDraggingSvg, isDraggingElement, isResizingElement, isPinchingSvg, selectionBox, multiSelectionBoxes, hoveredLayerId, setHoveredLayerId, transientMarkup, updateTransientMarkup, clearTransientMarkup, zoomBy, fitToScreen, getElementSvgBounds, handleCanvasClick, handleCanvasPointerDown: handleCanvasPointerDownBase, handleCanvasPointerMove, handleCanvasPointerUp: handleCanvasPointerUpBase, handleResizePointerMove, handleResizePointerUp } = canvasInteraction
-  const handleSvgDoubleClick = (event) => canvasInteraction.handleSvgDoubleClick(event, setTextDraft, setEditingTextId, setTextEditStyle)
-  const handleCanvasPointerDown = (event) => handleCanvasPointerDownBase(event, setTextDraft, setEditingTextId, setTextEditStyle)
-  const handleCanvasPointerUp = (event, cancelled = false) => handleCanvasPointerUpBase(event, cancelled, setTextDraft, setEditingTextId, setTextEditStyle)
+  const setTextEditing = (id) => {
+    textEditIdRef.current = id
+    setEditingTextId(id)
+  }
+  const handleSvgDoubleClick = (event) => canvasInteraction.handleSvgDoubleClick(event, setTextDraft, setTextEditing)
+  const handleCanvasPointerDown = (event) => {
+    if (textEditIdRef.current) commitTextEdit()
+    handleCanvasPointerDownBase(event, setTextDraft, setTextEditing)
+  }
+  const handleCanvasPointerUp = (event, cancelled = false) => handleCanvasPointerUpBase(event, cancelled, setTextDraft, setTextEditing)
+  const startTextEditFromInspector = (id, draft) => {
+    setTextDraft(draft)
+    setTextEditing(id)
+  }
   const handleResizePointerDown = (event, handle) => canvasInteraction.handleResizePointerDown(event, handle)
   const renderedMarkup = transientMarkup || svgMarkup
+  const getSelectedPaint = (attribute) => {
+    const directValue = selectedAttrs?.getAttribute(attribute)
+    if (directValue) return getColor(directValue)
+    if (selected?.tag !== 'g') return ''
+    const values = [...new Set(Array.from(selectedAttrs.children).map((node) => getColor(node.getAttribute(attribute))).filter(Boolean))]
+    return values.length === 1 ? values[0] : ''
+  }
   const getDraftedAttribute = (attribute, fallback = '') => {
     if (attributeDrafts.targetId === selected?.id && Object.hasOwn(attributeDrafts.values, attribute)) return attributeDrafts.values[attribute]
     return selectedAttrs?.getAttribute(attribute) || fallback
@@ -163,19 +158,6 @@ function App() {
     if (attributePreviewFrameRef.current) cancelAnimationFrame(attributePreviewFrameRef.current)
     attributePreviewFrameRef.current = 0
   }, [selectedId, svgMarkup])
-
-  useEffect(() => {
-    if (!editingTextId) return
-    const editor = textEditRef.current
-    if (!editor) return
-    editor.textContent = textDraft
-    editor.focus()
-    const range = document.createRange()
-    range.selectNodeContents(editor)
-    const selection = window.getSelection()
-    selection?.removeAllRanges()
-    selection?.addRange(range)
-  }, [editingTextId])
 
   useEffect(() => {
     const handleOutsideLayerMenu = (event) => {
@@ -315,17 +297,18 @@ function App() {
   }
 
   const commitTextEdit = (nextText = textDraft) => {
-    if (!editingTextId) return
+    const editId = textEditIdRef.current
+    if (!editId) return
+    textEditIdRef.current = ''
     const doc = new DOMParser().parseFromString(svgMarkup, 'image/svg+xml')
-    const node = doc.querySelector(`[data-editor-id="${editingTextId}"]`)
+    const node = doc.querySelector(`[data-editor-id="${editId}"]`)
     if (node) {
       node.textContent = nextText
       syncTextLineLayout(node)
       const nextMarkup = new XMLSerializer().serializeToString(doc.documentElement)
-      commitDocument(nextMarkup, { nextSelectedId: editingTextId })
+      commitDocument(nextMarkup, { nextSelectedId: editId })
     }
     setEditingTextId('')
-    setTextEditStyle({})
   }
 
   const commitTextField = () => {
@@ -340,8 +323,7 @@ function App() {
   }
 
   const cancelTextEdit = () => {
-    setEditingTextId('')
-    setTextEditStyle({})
+    setTextEditing('')
   }
 
   const toggleVisibility = (item, event) => {
@@ -435,7 +417,7 @@ function App() {
     setActiveTab('preview')
     if (tag === 'text') {
       setTextDraft(textContent)
-      setEditingTextId(created.id)
+      setTextEditing(created.id)
     }
   }
 
@@ -479,6 +461,13 @@ function App() {
     } else {
       setIsInspectorOpen(true)
     }
+  }
+
+  const moveSelectedLayers = (dx, dy) => {
+    if (!selectedIds.length) return
+    const targetIds = getTopLevelSelectedIds(svgMarkup, selectedIds)
+    const nextMarkup = translateElements(svgMarkup, targetIds, { x: dx, y: dy })
+    if (nextMarkup !== svgMarkup) commitDocument(nextMarkup, { nextSelectedId: selectedId, nextSelectedIds: selectedIds })
   }
 
   useEffect(() => {
@@ -550,6 +539,13 @@ function App() {
         pasteLayer(event)
         return
       }
+      if (!modifier && !event.altKey && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+        const step = event.shiftKey ? 10 : 1
+        const moves = { ArrowUp: [0, -step], ArrowDown: [0, step], ArrowLeft: [-step, 0], ArrowRight: [step, 0] }
+        event.preventDefault()
+        moveSelectedLayers(...moves[event.key])
+        return
+      }
       if (key === 'delete' || key === 'backspace') deleteSelectedLayer(event)
     }
     window.addEventListener('keydown', handleEditorShortcuts)
@@ -612,6 +608,25 @@ function App() {
     URL.revokeObjectURL(url)
   }
 
+  const openExport = () => {
+    const layerIds = getTopLevelSelectedIds(svgMarkup, selectedIds)
+    const boxes = layerIds.map(getElementSvgBounds).filter(Boolean)
+    setExportLayerIds(layerIds)
+    setExportBounds(boxes.length ? {
+      minX: Math.min(...boxes.map((box) => box.minX)), minY: Math.min(...boxes.map((box) => box.minY)),
+      width: Math.max(...boxes.map((box) => box.maxX)) - Math.min(...boxes.map((box) => box.minX)),
+      height: Math.max(...boxes.map((box) => box.maxY)) - Math.min(...boxes.map((box) => box.minY)),
+    } : null)
+    setExportSelectedOnly(layerIds.length > 0)
+    setExportOpen(true)
+  }
+
+  const selectedExportMarkup = filterSvgToLayerIds(svgMarkup, exportLayerIds)
+  const exportMarkup = exportSelectedOnly && exportLayerIds.length ? cropSvgToBounds(selectedExportMarkup, exportBounds) : svgMarkup
+  const exportPreviewDimensions = useMemo(() => getSvgDimensions(new DOMParser().parseFromString(exportMarkup, 'image/svg+xml')), [exportMarkup])
+  const exportPreviewWidth = Math.min(280, 170 * exportPreviewDimensions.width / exportPreviewDimensions.height)
+  const exportPreviewStyle = { width: `${exportPreviewWidth}px`, height: `${exportPreviewWidth * exportPreviewDimensions.height / exportPreviewDimensions.width}px` }
+
   const exportSvg = () => {
     downloadBlob(new Blob([sanitizeForExport(svgMarkup)], { type: 'image/svg+xml' }), `${fileName.replace(/\.svg$/i, '')}-edited.svg`)
     setDirty(false)
@@ -620,7 +635,7 @@ function App() {
 
   const exportDocument = () => {
     const baseName = fileName.replace(/\.svg$/i, '') || 'untitled'
-    const cleanMarkup = sanitizeForExport(svgMarkup)
+    const cleanMarkup = sanitizeForExport(exportMarkup)
     const dimensions = getSvgDimensions(new DOMParser().parseFromString(cleanMarkup, 'image/svg+xml'))
     if (exportFormat === 'svg') {
       // Bake the viewBox's intrinsic pixel size into width/height so the file
@@ -744,41 +759,6 @@ function App() {
     commitDocument(new XMLSerializer().serializeToString(doc.documentElement), { nextSelectedId: targetId })
   }
 
-  const shareDocument = async () => {
-    try {
-      const payload = sanitizeForExport(svgMarkup)
-      const compressed = await compressText(payload)
-      const encoded = compressed ? `d=${bytesToBase64Url(compressed)}` : `r=${bytesToBase64Url(new TextEncoder().encode(payload))}`
-      const url = `${window.location.origin}${window.location.pathname}#${encoded}`
-      window.history.replaceState(null, '', `#${encoded}`)
-      await navigator.clipboard.writeText(url)
-      showToast(copy.shareCopied)
-    } catch {
-      showToast(copy.shareFailed, 'error')
-    }
-  }
-
-  useEffect(() => {
-    const hash = window.location.hash
-    const match = hash.match(/^#(d|r)=(.+)$/)
-    if (!match) return undefined
-    let cancelled = false
-    const restoreShared = async () => {
-      try {
-        const bytes = base64UrlToBytes(match[2])
-        const text = match[1] === 'd' ? await decompressText(bytes) : new TextDecoder().decode(bytes)
-        if (cancelled) return
-        window.history.replaceState(null, '', window.location.pathname)
-        loadSvg(text, 'shared.svg', { silent: true })
-        showToast(copy.sharedOpened)
-      } catch {
-        if (!cancelled) showToast(copy.shareFailed, 'error')
-      }
-    }
-    restoreShared()
-    return () => { cancelled = true }
-  }, [])
-
   useEffect(() => {
     if (!contextMenu) return undefined
     const close = () => setContextMenu(null)
@@ -798,8 +778,8 @@ function App() {
     renameInputRef.current?.select()
   }, [renamingLayerId])
 
-  const fill = getDraftedAttribute('fill', getColor(selectedAttrs?.getAttribute('fill'), '#5B75FF'))
-  const stroke = getDraftedAttribute('stroke', getColor(selectedAttrs?.getAttribute('stroke'), '#23211D'))
+  const fill = getDraftedAttribute('fill', getSelectedPaint('fill'))
+  const stroke = getDraftedAttribute('stroke', getSelectedPaint('stroke'))
   const opacity = Number(getDraftedAttribute('opacity', '1'))
   const strokeWidth = Number(getDraftedAttribute('stroke-width', '0'))
   const rectWidthValue = getDraftedAttribute('width', selectedAttrs?.getAttribute('width') || '200')
@@ -824,12 +804,11 @@ function App() {
           <button className="icon-button" title={`${copy.undo} (⌘Z)`} aria-keyshortcuts="Meta+Z" onClick={undo} disabled={!history.past.length}><Icon name="undo" /></button>
           <button className="icon-button" title={`${copy.redo} (⌘⇧Z)`} aria-keyshortcuts="Meta+Shift+Z" onClick={redo} disabled={!history.future.length}><Icon name="redo" /></button>
           <button className="icon-button" type="button" title={`${copy.shortcutsTitle} (?)`} aria-label={copy.shortcutsTitle} aria-pressed={showShortcuts} onClick={() => setShowShortcuts((current) => !current)}><Icon name="help" /></button>
-          <button className="icon-button" type="button" title={copy.share} aria-label={copy.share} onClick={shareDocument}><Icon name="link" /></button>
           <span className="divider" />
           <span className="save-state"><span className={`status-dot ${dirty ? 'dirty' : ''}`} />{dirty ? copy.unsaved : copy.saved}</span>
           <button className="language-toggle" type="button" onClick={() => setLanguage((current) => current === 'en' ? 'zh' : 'en')} aria-label={copy.languageSwitch}>{copy.languageSwitch}</button>
           <button className="button button-quiet" onClick={() => fileInput.current?.click()}><Icon name="download" /> {copy.open}</button>
-          <button className="button button-accent" onClick={() => setExportOpen(true)}><Icon name="upload" /> {copy.export}</button>
+          <button className="button button-accent" onClick={openExport}><Icon name="upload" /> {copy.export}</button>
           <input ref={fileInput} type="file" accept="image/svg+xml,.svg" hidden onChange={(event) => handleFile(event.target.files?.[0])} />
         </div>
       </header>
@@ -896,11 +875,9 @@ function App() {
           svgPosition={svgPosition}
           renderedMarkup={renderedMarkup}
           editingTextId={editingTextId}
-          textEditStyle={textEditStyle}
           selectedId={selectedId}
           selected={selected}
           selectionBox={selectionBox}
-          textEditRef={textEditRef}
           textDraft={textDraft}
           setTextDraft={setTextDraft}
           commitTextEdit={commitTextEdit}
@@ -935,8 +912,7 @@ function App() {
           textFieldDraft={textFieldDraft}
           setTextFieldDraft={setTextFieldDraft}
           commitTextField={commitTextField}
-          setTextDraft={setTextDraft}
-          setEditingTextId={setEditingTextId}
+          startTextEdit={startTextEditFromInspector}
           textFontSize={textFontSize}
           textLetterSpacing={textLetterSpacing}
           textFontFamily={textFontFamily}
@@ -978,6 +954,14 @@ function App() {
               <div className="export-row"><span className="export-label">{copy.exportBackground}</span><div className="view-tabs"><button type="button" className={exportBackground === 'transparent' ? 'active' : ''} onClick={() => setExportBackground('transparent')}>{copy.exportTransparent}</button><button type="button" className={exportBackground === 'white' ? 'active' : ''} onClick={() => setExportBackground('white')}>{copy.exportWhite}</button><button type="button" className={exportBackground === 'custom' ? 'active' : ''} onClick={() => setExportBackground('custom')}>{copy.exportCustom}</button></div>{exportBackground === 'custom' && <input className="color-picker" type="color" value={exportCustomColor} onChange={(event) => setExportCustomColor(event.target.value.toUpperCase())} aria-label={copy.exportCustom} />}</div>
             </>}
             {exportFormat === 'svg' && <label className="export-check"><input type="checkbox" checked={exportOptimize} onChange={(event) => setExportOptimize(event.target.checked)} /><span>{copy.exportOptimize}</span></label>}
+            <div className="export-row">
+              <span className="export-label">{copy.exportScope}</span>
+              <div className="view-tabs" role="radiogroup" aria-label={copy.exportScope}>
+                <button type="button" role="radio" aria-checked={!exportSelectedOnly} className={!exportSelectedOnly ? 'active' : ''} onClick={() => setExportSelectedOnly(false)}>{copy.exportAllLayers}</button>
+                <button type="button" role="radio" aria-checked={exportSelectedOnly} className={exportSelectedOnly ? 'active' : ''} disabled={!exportLayerIds.length} onClick={() => setExportSelectedOnly(true)}>{copy.exportSelectedLayers}</button>
+              </div>
+            </div>
+            <div className="export-preview"><span className="export-label">{copy.exportPreview}</span><div className="export-preview-canvas" style={exportPreviewStyle} dangerouslySetInnerHTML={{ __html: exportMarkup }} /></div>
           </div>
           <div className="export-footer"><button className="button button-accent" type="button" onClick={exportDocument}><Icon name="upload" /> {copy.exportShort}</button></div>
         </div>

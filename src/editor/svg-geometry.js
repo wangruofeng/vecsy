@@ -17,7 +17,10 @@ export function getSvgPoint(svgWrap, clientX, clientY) {
   const viewBox = svg.viewBox?.baseVal
   const width = viewBox?.width || Number(svg.getAttribute('width')) || rect.width
   const height = viewBox?.height || Number(svg.getAttribute('height')) || rect.height
-  return { x: (clientX - rect.left) * width / rect.width, y: (clientY - rect.top) * height / rect.height }
+  return {
+    x: (viewBox?.x || 0) + (clientX - rect.left) * width / rect.width,
+    y: (viewBox?.y || 0) + (clientY - rect.top) * height / rect.height,
+  }
 }
 
 export function getSvgPointerDelta(svgWrap, start, current) {
@@ -26,18 +29,11 @@ export function getSvgPointerDelta(svgWrap, start, current) {
   return { x: currentPoint.x - startPoint.x, y: currentPoint.y - startPoint.y }
 }
 
-// Measure the visible part of an SVG node, clipped to the SVG viewport.
-export function getVisibleNodeRect(svgWrap, node) {
-  const svg = svgWrap?.querySelector('svg')
-  const viewport = svg?.getBoundingClientRect()
+// Measure an SVG node's rendered bounds, including portions outside the viewport.
+export function getNodeRect(node) {
   const rect = node?.getBoundingClientRect?.()
-  if (!viewport || !rect) return null
-  const left = Math.max(rect.left, viewport.left)
-  const top = Math.max(rect.top, viewport.top)
-  const right = Math.min(rect.right, viewport.right)
-  const bottom = Math.min(rect.bottom, viewport.bottom)
-  if (right - left <= 0 || bottom - top <= 0) return null
-  return { left, top, right, bottom, width: right - left, height: bottom - top }
+  if (!rect || rect.width <= 0 || rect.height <= 0) return null
+  return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height }
 }
 
 export function getTopLevelSelectedIds(rawMarkup, targetIds) {

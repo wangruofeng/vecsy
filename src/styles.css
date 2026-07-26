@@ -27,7 +27,7 @@ button { border: 0; cursor: pointer; color: inherit; }
 .button:hover { transform: translateY(-1px); }
 .button-quiet { background: #222226; color: #d8d4cb; }
 .button-quiet:hover { background: #2c2c31; }
-.button-accent { background: var(--amber); color: #1c1206; }
+.button-accent { background: var(--amber); color: #5a4a2e; }
 .button-accent:hover { background: #ffbe55; }
 .workspace-heading { max-width: 1500px; margin: 0 auto; padding: 40px 20px 28px; display: flex; justify-content: space-between; align-items: end; }
 h1 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: clamp(25px, 3vw, 37px); line-height: 1.1; letter-spacing: -.02em; font-weight: 600; color: #f5f2eb; }
@@ -82,26 +82,23 @@ h1 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: clamp(25px, 
 .zoom-readout { min-width: 39px; padding: 4px 5px; border-radius: 4px; color: var(--muted); background: transparent; font: 10px 'DM Mono', monospace; }.zoom-readout:hover { color: #fff; background: rgba(255,255,255,.06); }
 .canvas-stage { position: relative; flex: 1; overflow: hidden; cursor: grab; touch-action: none; background-color: #232327; background-image: linear-gradient(45deg, #2a2a30 25%, transparent 25%), linear-gradient(-45deg, #2a2a30 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a30 75%), linear-gradient(-45deg, transparent 75%, #2a2a30 75%); background-size: 22px 22px; background-position: 0 0, 0 11px, 11px -11px, -11px 0px; }
 .canvas-stage:active { cursor: grabbing; }
-.svg-wrap { position: absolute; top: 50%; left: 50%; width: min(72%, 570px); min-width: 290px; line-height: 0; cursor: grab; user-select: none; touch-action: none; transform: translate(-50%, -50%) translate3d(var(--svg-x), var(--svg-y), 0) scale(var(--svg-scale)); filter: drop-shadow(0 22px 20px rgba(0,0,0,.4)); }
+.svg-wrap { position: absolute; z-index: 1; top: 50%; left: 50%; width: min(72%, 570px); min-width: 290px; line-height: 0; cursor: grab; user-select: none; touch-action: none; transform: translate(-50%, -50%) translate3d(var(--svg-x), var(--svg-y), 0) scale(var(--svg-scale)); filter: drop-shadow(0 22px 20px rgba(0,0,0,.4)); }
 .svg-wrap.is-dragging { cursor: grabbing; filter: drop-shadow(0 26px 24px rgba(0,0,0,.5)); }
 .svg-wrap.is-pinching { cursor: grabbing; }
-/* Clip to the SVG viewport like every external renderer (and the exported file)
-   does — overflow:visible here would show artwork the export will crop. */
-.svg-wrap svg { position: relative; z-index: 1; display: block; width: 100%; height: auto; max-height: 100%; overflow: hidden; }
-.svg-wrap [data-editor-id] { cursor: move; transition: filter .15s ease; }
+/* The editor must expose real layer geometry outside the original viewBox.
+   Export applies its own viewBox crop from the same rendered bounds. */
+.svg-wrap svg { position: relative; z-index: 1; display: block; width: 100%; height: auto; max-height: 100%; overflow: visible; }
+.svg-wrap [data-editor-id] { cursor: move; }
 .svg-wrap.is-dragging-element [data-editor-id] { cursor: grabbing; }
-.svg-wrap [data-editor-id]:hover { filter: brightness(1.04); }
 .selection-overlay { position: absolute; z-index: 3; pointer-events: none; border: 1px solid #f2a93b; box-shadow: 0 0 0 1px rgba(242,169,59,.25); transition: border-width .12s ease, box-shadow .12s ease; }
-/* Secondary boxes for every additional layer in a multi-selection: dashed,
-   no handles — the primary keeps the solid box with resize handles. */
-.selection-overlay-group { z-index: 2; border-color: rgba(242,169,59,.9); box-shadow: 0 0 0 1px rgba(242,169,59,.22); }
-.selection-overlay-multi { z-index: 3; border-width: 2px; border-style: dashed; border-color: rgba(242,169,59,.95); box-shadow: 0 0 0 1px rgba(242,169,59,.18); }
-.selection-overlay-primary { border-style: solid; }
+/* Individual layers in a multi-selection use dashed boxes; the union box is solid. */
+.selection-overlay-group { z-index: 4; border-width: 2px; border-style: solid; border-color: rgba(242,169,59,.9); box-shadow: 0 0 0 1px rgba(242,169,59,.22); }
+.selection-overlay-multi { z-index: 3; border-width: 1px; border-style: dashed; border-color: rgba(242,169,59,.95); box-shadow: 0 0 0 1px rgba(242,169,59,.18); }
 .selection-overlay.is-hovered { border-width: 2px; box-shadow: 0 0 0 1px rgba(242,169,59,.45); }
 .selection-overlay.is-resizing { border-color: #fff; }
 .selection-size-label { position: absolute; left: 50%; bottom: -34px; transform: translateX(-50%); padding: 4px 8px; border-radius: 4px; color: #1c1206; background: #f2a93b; box-shadow: 0 2px 6px rgba(242,169,59,.3); font: 700 11px/1 'DM Mono', monospace; white-space: nowrap; }
-.svg-wrap .is-editing-text { visibility: hidden; }
-.text-inline-editor { position: absolute; z-index: 4; display: block; min-width: 2ch; overflow: visible; padding: 0 2px; border: 1px dashed rgba(242,169,59,.72); border-radius: 2px; outline: 0; color: #f2efe9; background: transparent; box-shadow: none; caret-color: currentColor; cursor: text; line-height: 1.2; white-space: pre; }
+.svg-wrap .is-editing-text { visibility: hidden !important; }
+.text-inline-editor { position: absolute; z-index: 4; display: block; box-sizing: border-box; min-width: 2ch; overflow: visible; padding: 0 1px; border: 1px dashed rgba(242,169,59,.72); border-radius: 2px; outline: 0; appearance: none; background: transparent; box-shadow: none; caret-color: currentColor; cursor: text; white-space: pre; }
 .text-inline-editor:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(242,169,59,.1); }
 .resize-handle { position: absolute; width: 10px; height: 10px; padding: 0; pointer-events: auto; border: 2px solid #fff; border-radius: 2px; background: #f2a93b; box-shadow: 0 0 0 1px #f2a93b; }
 .resize-handle-top-left { top: 0; left: 0; transform: translate(-50%, -50%); cursor: nwse-resize; }
@@ -198,15 +195,20 @@ h1 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: clamp(25px, 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
 
 /* P1: multi-select highlight, export dialog, context menu, align group */
-.svg-wrap .is-selected { filter: brightness(1.06) drop-shadow(0 0 5px rgba(242,169,59,.75)); }
 .align-group { display: flex; align-items: center; gap: 2px; margin-right: 9px; padding-right: 9px; border-right: 1px solid var(--border-strong); }
 .align-group .mini-button:disabled { opacity: .4; cursor: default; }
 .align-group .mini-button:disabled:hover { color: var(--muted); background: transparent; }
 .export-body { display: flex; flex-direction: column; gap: 16px; padding: 18px; }
 .export-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.export-modal .view-tabs button:disabled { opacity: .4; cursor: default; }
 .export-label { width: 66px; flex: none; color: var(--muted); font: 10px 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .08em; }
 .export-check { display: flex; align-items: center; gap: 8px; color: #cfcbc2; font-size: 11px; cursor: pointer; }
 .export-check input { accent-color: var(--amber); }
+.export-check:has(input:disabled) { color: var(--muted); cursor: default; }
+.export-preview { display: flex; flex-direction: column; gap: 8px; }
+.export-preview .export-label { width: auto; }
+.export-preview-canvas { align-self: center; box-sizing: border-box; overflow: hidden; border: 1px solid var(--border-strong); border-radius: 6px; background-color: #232327; background-image: linear-gradient(45deg, #2a2a30 25%, transparent 25%), linear-gradient(-45deg, #2a2a30 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a30 75%), linear-gradient(-45deg, transparent 75%, #2a2a30 75%); background-size: 18px 18px; background-position: 0 0, 0 9px, 9px -9px, -9px 0; }
+.export-preview-canvas svg { display: block; width: 100%; height: 100%; }
 .export-footer { display: flex; justify-content: flex-end; padding: 0 18px 18px; }
 .context-menu { position: fixed; z-index: 60; width: 176px; padding: 5px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--panel-raised); box-shadow: 0 18px 40px rgba(0,0,0,.5); }
 .context-menu button { width: 100%; display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 5px; color: var(--muted-2); background: transparent; text-align: left; font-size: 11px; }

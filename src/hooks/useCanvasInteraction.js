@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { clampScale, getSvgPoint, getSvgPointerDelta, getTopLevelSelectedIds, getVisibleNodeRect, pointerCenter, pointerDistance } from '../editor/svg-geometry.js'
-import { getEditableTextContent, translateElements, updateElementAttributes, updateElementTransform } from '../editor/svg-transforms.js'
+import { clampScale, getNodeRect, getSvgPoint, getSvgPointerDelta, getTopLevelSelectedIds, pointerCenter, pointerDistance } from '../editor/svg-geometry.js'
+import { bakeRectTranslateScaleTransform, getEditableTextContent, resizeBackgroundLayer, translateElements, updateElementAttributes, updateElementTransform } from '../editor/svg-transforms.js'
 
 export default function useCanvasInteraction({ activeTab, selectedId, selectedIds, selected, elements, svgMarkup, currentSnapshot, commitDocument, selectLayerIds }) {
   const [svgPosition, setSvgPosition] = useState({ x: 0, y: 0 })
@@ -58,7 +58,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
       const stageRect = stage.getBoundingClientRect()
       const toBox = (id) => {
         const node = wrap.querySelector(`[data-editor-id="${id}"]`)
-        const rect = node ? getVisibleNodeRect(wrap, node) : null
+        const rect = node ? getNodeRect(node) : null
         return rect ? { id, left: rect.left - stageRect.left, top: rect.top - stageRect.top, width: rect.width, height: rect.height } : null
       }
       setSelectionBox(toBox(selectedId))
@@ -123,27 +123,16 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     if (!targetId && !event.metaKey && !event.ctrlKey) selectLayerIds([])
   }
 
-  function startTextEdit(target, item, setTextDraft, setEditingTextId, setTextEditStyle) {
+  function startTextEdit(target, item, setTextDraft, setEditingTextId) {
     selectLayerIds([item.id], item.id)
     const stageRect = canvasRef.current?.getBoundingClientRect()
     const targetRect = target.getBoundingClientRect()
     if (stageRect && targetRect) setSelectionBox({ left: targetRect.left - stageRect.left, top: targetRect.top - stageRect.top, width: targetRect.width, height: targetRect.height })
-    const computedStyle = window.getComputedStyle(target)
-    const textAnchor = target.getAttribute('text-anchor') || 'start'
-    setTextEditStyle({
-      color: computedStyle.fill,
-      fontFamily: computedStyle.fontFamily,
-      fontSize: computedStyle.fontSize,
-      fontStyle: computedStyle.fontStyle,
-      fontWeight: computedStyle.fontWeight,
-      letterSpacing: computedStyle.letterSpacing,
-      textAlign: textAnchor === 'middle' ? 'center' : textAnchor === 'end' ? 'right' : 'left',
-    })
     setTextDraft(getEditableTextContent(target))
     setEditingTextId(item.id)
   }
 
-  const handleSvgDoubleClick = (event, setTextDraft, setEditingTextId, setTextEditStyle) => {
+  const handleSvgDoubleClick = (event, setTextDraft, setEditingTextId) => {
     const eventTarget = getEventElementTarget(event)
     const eventItem = eventTarget ? elements.find((element) => element.id === eventTarget.getAttribute('data-editor-id')) : null
     // After the first click, the selection overlay can become the event target.
@@ -153,10 +142,10 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     if (!item || item.tag !== 'text') return
     event.preventDefault()
     event.stopPropagation()
-    startTextEdit(target, item, setTextDraft, setEditingTextId, setTextEditStyle)
+    startTextEdit(target, item, setTextDraft, setEditingTextId)
   }
 
-  const handleCanvasPointerDown = (event, setTextDraft, setEditingTextId, setTextEditStyle) => {
+  const handleCanvasPointerDown = (event, setTextDraft, setEditingTextId) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return
     const elementTarget = getEventElementTarget(event)
     const item = elementTarget ? elements.find((element) => element.id === elementTarget.getAttribute('data-editor-id')) : null
@@ -238,7 +227,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     setSvgPosition({ x: drag.origin.x + event.clientX - drag.startX, y: drag.origin.y + event.clientY - drag.startY })
   }
 
-  const handleCanvasPointerUp = (event, cancelled = false, setTextDraft, setEditingTextId, setTextEditStyle) => {
+  const handleCanvasPointerUp = (event, cancelled = false, setTextDraft, setEditingTextId) => {
     activePointersRef.current.delete(event.pointerId)
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
     if (activePointersRef.current.size < 2) {
@@ -257,7 +246,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
         lastTextTapRef.current = isSecondTap ? { id: '', time: 0 } : { id: textItem.id, time: now }
         if (isSecondTap) {
           const target = svgRef.current?.querySelector(`[data-editor-id="${textItem.id}"]`)
-          if (target) startTextEdit(target, textItem, setTextDraft, setEditingTextId, setTextEditStyle)
+          if (target) startTextEdit(target, textItem, setTextDraft, setEditingTextId)
         }
       }
       if (cancelled || !elementDrag.moved) clearTransientMarkup()
@@ -278,16 +267,31 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     event.preventDefault()
     event.stopPropagation()
     const target = svgRef.current?.querySelector(`[data-editor-id="${selected.id}"]`)
-    const baseBox = target ? getVisibleNodeRect(svgRef.current, target) : null
+    const baseBox = getNodeRect(target)
     if (!target || (selected.tag !== 'line' && (!baseBox?.width || !baseBox?.height))) return
+    const backgroundRect = selected.tag === 'g' && target.parentElement?.tagName === 'svg' ? Array.from(target.children).find((node) => node.tagName === 'rect' && node.hasAttribute('fill')) : null
+    let ancestor = target.parentElement
+    let hasTransformedAncestor = false
+    while (selected.tag === 'rect' && ancestor?.tagName !== 'svg') {
+      if (ancestor.hasAttribute('transform')) hasTransformedAncestor = true
+      ancestor = ancestor.parentElement
+    }
+    const bakedRect = selected.tag === 'rect' && !hasTransformedAncestor ? bakeRectTranslateScaleTransform(svgMarkup, selected.id) : null
     const pointerId = event.pointerId ?? 'mouse'
     if (event.pointerId != null && event.currentTarget.setPointerCapture) event.currentTarget.setPointerCapture(event.pointerId)
     const lineX1 = Number(target.getAttribute('x1')) || 0
     const lineX2 = Number(target.getAttribute('x2')) || 0
     resizeRef.current = {
-      pointerId, targetId: selected.id, handle, kind: selected.tag === 'line' ? 'line' : 'shape',
+      pointerId, targetId: selected.id, handle, kind: selected.tag === 'line' ? 'line' : backgroundRect ? 'background' : bakedRect ? 'rect' : 'shape',
       lineEndpoint: selected.tag === 'line' ? (handle === 'line-start' ? (lineX1 <= lineX2 ? 'x1' : 'x2') : (lineX1 <= lineX2 ? 'x2' : 'x1')) : '',
-      baseBox, baseMarkup: svgMarkup, baseSnapshot: currentSnapshot(), baseTransform: target.getAttribute('transform') || '', previewMarkup: svgMarkup, moved: false,
+      rect: bakedRect?.rect || null,
+      background: backgroundRect ? {
+        topLeft: getSvgPoint(svgRef.current, baseBox.left, baseBox.top),
+        bottomRight: getSvgPoint(svgRef.current, baseBox.right, baseBox.bottom),
+        minWidth: Math.abs(getSvgPoint(svgRef.current, baseBox.left + 8, baseBox.top).x - getSvgPoint(svgRef.current, baseBox.left, baseBox.top).x),
+        minHeight: Math.abs(getSvgPoint(svgRef.current, baseBox.left, baseBox.top + 8).y - getSvgPoint(svgRef.current, baseBox.left, baseBox.top).y),
+      } : null,
+      baseBox, baseMarkup: bakedRect?.markup || svgMarkup, baseSnapshot: currentSnapshot(), baseTransform: target.getAttribute('transform') || '', previewMarkup: bakedRect?.markup || svgMarkup, moved: false,
     }
     window.addEventListener('pointermove', handleResizePointerMove)
     window.addEventListener('pointerup', handleResizePointerUp)
@@ -309,6 +313,19 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
       updateTransientMarkup(nextMarkup)
       return
     }
+    if (resize.kind === 'background') {
+      const pointer = getSvgPoint(svgRef.current, event.clientX, event.clientY)
+      const { topLeft, bottomRight, minWidth, minHeight } = resize.background
+      const minX = resize.handle === 'top-left' ? Math.min(pointer.x, bottomRight.x - minWidth) : topLeft.x
+      const minY = resize.handle === 'top-left' ? Math.min(pointer.y, bottomRight.y - minHeight) : topLeft.y
+      const maxX = resize.handle === 'top-left' ? bottomRight.x : Math.max(pointer.x, topLeft.x + minWidth)
+      const maxY = resize.handle === 'top-left' ? bottomRight.y : Math.max(pointer.y, topLeft.y + minHeight)
+      const nextMarkup = resizeBackgroundLayer(resize.baseMarkup, resize.targetId, { minX, minY, width: maxX - minX, height: maxY - minY })
+      resize.previewMarkup = nextMarkup
+      resize.moved = true
+      updateTransientMarkup(nextMarkup)
+      return
+    }
     const { baseBox } = resize
     const minSize = 8
     const anchor = resize.handle === 'top-left' ? { x: baseBox.right, y: baseBox.bottom } : { x: baseBox.left, y: baseBox.top }
@@ -316,6 +333,19 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     const height = resize.handle === 'top-left' ? anchor.y - Math.min(event.clientY, anchor.y - minSize) : Math.max(event.clientY, anchor.y + minSize) - anchor.y
     const scaleX = width / baseBox.width
     const scaleY = height / baseBox.height
+    if (resize.kind === 'rect' && resize.rect.width && resize.rect.height) {
+      const nextWidth = resize.rect.width * scaleX
+      const nextHeight = resize.rect.height * scaleY
+      const nextX = resize.handle === 'top-left' ? resize.rect.x + resize.rect.width - nextWidth : resize.rect.x
+      const nextY = resize.handle === 'top-left' ? resize.rect.y + resize.rect.height - nextHeight : resize.rect.y
+      const nextMarkup = updateElementAttributes(resize.baseMarkup, resize.targetId, {
+        x: nextX.toFixed(2), y: nextY.toFixed(2), width: nextWidth.toFixed(2), height: nextHeight.toFixed(2),
+      })
+      resize.previewMarkup = nextMarkup
+      resize.moved = true
+      updateTransientMarkup(nextMarkup)
+      return
+    }
     const anchorPoint = getSvgPoint(svgRef.current, anchor.x, anchor.y)
     const resizeTransform = `translate(${anchorPoint.x.toFixed(2)} ${anchorPoint.y.toFixed(2)}) scale(${scaleX.toFixed(4)} ${scaleY.toFixed(4)}) translate(${-anchorPoint.x.toFixed(2)} ${-anchorPoint.y.toFixed(2)})`
     const nextTransform = resize.baseTransform ? `${resizeTransform} ${resize.baseTransform}` : resizeTransform

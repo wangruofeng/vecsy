@@ -1,3 +1,4 @@
+import { useLayoutEffect, useState } from 'react'
 import Icon from './Icon.jsx'
 import { highlightSelectedMarkup, highlightSvgSource } from '../editor/svg-transforms.js'
 import { getElementAndDescendantIds } from '../editor/svg-parser.js'
@@ -28,21 +29,86 @@ function getSourceRows(source, elements, expandedGroups) {
   return rows
 }
 
+function InlineTextEditor({ canvasRef, svgRef, editingTextId, textDraft, setTextDraft, commitTextEdit, cancelTextEdit, copy, svgScale, svgPosition, renderedMarkup }) {
+  const [metrics, setMetrics] = useState(null)
+
+  useLayoutEffect(() => {
+    const stage = canvasRef.current
+    if (!stage) return undefined
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const source = svgRef.current?.querySelector(`[data-editor-id="${editingTextId}"]`)
+      if (!source) return
+      const stageRect = stage.getBoundingClientRect()
+      const sourceRect = source.getBoundingClientRect()
+      const computed = window.getComputedStyle(source)
+      const fontSize = Number.parseFloat(computed.fontSize) || 16
+      const svg = source.closest('svg')
+      const viewBox = (svg?.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number)
+      const svgRect = svg?.getBoundingClientRect()
+      const scaleX = svgRect && viewBox[2] ? svgRect.width / viewBox[2] : 1
+      const scaleY = svgRect && viewBox[3] ? svgRect.height / viewBox[3] : 1
+      const toScreenPixels = (value, scale) => {
+        const parsed = Number.parseFloat(value)
+        return Number.isFinite(parsed) ? `${parsed * scale}px` : value
+      }
+      const screenFontSize = fontSize * scaleY
+      const textAnchor = source.getAttribute('text-anchor') || 'start'
+      setMetrics({
+        left: sourceRect.left - stageRect.left - 1,
+        top: sourceRect.top - stageRect.top - 1,
+        width: Math.max(sourceRect.width + 2, 40),
+        height: Math.max(sourceRect.height + 2, screenFontSize * 1.2),
+        color: computed.fill,
+        fontFamily: computed.fontFamily,
+        fontSize: `${screenFontSize}px`,
+        fontStyle: computed.fontStyle,
+        fontWeight: computed.fontWeight,
+        letterSpacing: toScreenPixels(computed.letterSpacing, scaleX),
+        lineHeight: computed.lineHeight === 'normal' ? `${screenFontSize * 1.2}px` : toScreenPixels(computed.lineHeight, scaleY),
+        textAlign: textAnchor === 'middle' ? 'center' : textAnchor === 'end' ? 'right' : 'left',
+      })
+    }
+    const scheduleUpdate = () => {
+      if (!frame) frame = requestAnimationFrame(update)
+    }
+    scheduleUpdate()
+    const observer = new ResizeObserver(scheduleUpdate)
+    observer.observe(stage)
+    window.addEventListener('resize', scheduleUpdate)
+    return () => {
+      if (frame) cancelAnimationFrame(frame)
+      observer.disconnect()
+      window.removeEventListener('resize', scheduleUpdate)
+    }
+  }, [canvasRef, svgRef, editingTextId, svgScale, svgPosition.x, svgPosition.y, renderedMarkup])
+
+  if (!metrics) return null
+  return <input
+    type="text"
+    className="text-inline-editor"
+    style={metrics}
+    value={textDraft}
+    autoFocus
+    onChange={(event) => setTextDraft(event.target.value)}
+    onFocus={(event) => event.currentTarget.select()}
+    onKeyDown={(event) => {
+      event.stopPropagation()
+      if (event.key === 'Enter') { event.preventDefault(); commitTextEdit(event.currentTarget.value) }
+      if (event.key === 'Escape') { event.preventDefault(); cancelTextEdit() }
+    }}
+    onBlur={(event) => commitTextEdit(event.currentTarget.value)}
+    onClick={(event) => event.stopPropagation()}
+    onPointerDown={(event) => event.stopPropagation()}
+    aria-label={copy.editText}
+  />
+}
+
 export default function CanvasPanel(props) {
-  const { copy, activeTab, setActiveTab, formatSource, sourceDisplayMode, setSourceDisplayMode, expandedGroups, toggleGroup, selectedIds, selectLayerIds, alignSelection, zoomBy, fitToScreen, svgScale, setSvgScale, setSvgPosition, canvasRef, handleCanvasClick, handleSvgDoubleClick, openContextMenu, handleCanvasPointerDown, handleCanvasPointerMove, handleCanvasPointerUp, hoveredLayerId, setHoveredLayerId, elements, isDraggingSvg, isDraggingElement, isPinchingSvg, svgRef, svgPosition, renderedMarkup, editingTextId, textEditStyle, selectedId, selected, selectionBox, textEditRef, textDraft, setTextDraft, commitTextEdit, cancelTextEdit, language, selectionGroupBox, multiSelectionBoxes, isResizingElement, handleResizePointerMove, handleResizePointerUp, handleResizePointerDown, sourceHighlightRef, highlightedSource, sourceDraft, setSourceDraft, syncSourceScroll, commitDocument, showToast, loadDemo, toast, toastTimerRef, selectedDisplayName, setToast } = props
+  const { copy, activeTab, setActiveTab, formatSource, sourceDisplayMode, setSourceDisplayMode, expandedGroups, toggleGroup, selectedIds, selectLayerIds, alignSelection, zoomBy, fitToScreen, svgScale, setSvgScale, setSvgPosition, canvasRef, handleCanvasClick, handleSvgDoubleClick, openContextMenu, handleCanvasPointerDown, handleCanvasPointerMove, handleCanvasPointerUp, hoveredLayerId, setHoveredLayerId, elements, isDraggingSvg, isDraggingElement, isPinchingSvg, svgRef, svgPosition, renderedMarkup, editingTextId, selectedId, selected, selectionBox, textDraft, setTextDraft, commitTextEdit, cancelTextEdit, language, selectionGroupBox, multiSelectionBoxes, isResizingElement, handleResizePointerMove, handleResizePointerUp, handleResizePointerDown, sourceHighlightRef, highlightedSource, sourceDraft, setSourceDraft, syncSourceScroll, commitDocument, showToast, loadDemo, toast, toastTimerRef, selectedDisplayName, setToast } = props
   const sourceRows = getSourceRows(sourceDraft, elements, expandedGroups)
   const selectSourceItem = (item) => selectLayerIds(getElementAndDescendantIds(elements, item.id), item.id)
-  const textAnchor = selected?.node?.getAttribute('text-anchor') || 'start'
-  const textInlineStyle = {
-    color: selected?.node?.getAttribute('fill') || '#23211D',
-    fontFamily: selected?.node?.getAttribute('font-family') || 'Arial, sans-serif',
-    fontSize: `${Math.max(12, selectionBox?.height || 16)}px`,
-    fontStyle: selected?.node?.getAttribute('font-style') || 'normal',
-    fontWeight: selected?.node?.getAttribute('font-weight') || '400',
-    letterSpacing: selected?.node?.getAttribute('letter-spacing') || 'normal',
-    textAlign: textAnchor === 'middle' ? 'center' : textAnchor === 'end' ? 'right' : 'left',
-    ...textEditStyle,
-  }
   return (
         <section className="canvas-panel">
           <div className="canvas-toolbar">
@@ -56,31 +122,13 @@ export default function CanvasPanel(props) {
                 className={`svg-wrap ${isDraggingSvg || isDraggingElement ? 'is-dragging' : ''} ${isDraggingElement ? 'is-dragging-element' : ''} ${isPinchingSvg ? 'is-pinching' : ''}`}
                 ref={svgRef}
                 style={{ '--svg-x': `${svgPosition.x}px`, '--svg-y': `${svgPosition.y}px`, '--svg-scale': svgScale }}
-                dangerouslySetInnerHTML={{ __html: highlightSelectedMarkup(renderedMarkup, selectedIds, editingTextId) }}
+                dangerouslySetInnerHTML={{ __html: highlightSelectedMarkup(renderedMarkup, editingTextId) }}
               />
-              {editingTextId === selectedId && selected?.tag === 'text' && selectionBox && <div
-                ref={textEditRef}
-                className="text-inline-editor"
-                style={{ ...textInlineStyle, left: selectionBox.left - 4, top: selectionBox.top - 4, width: Math.max(selectionBox.width + 8, 40), height: Math.max(selectionBox.height + 8, 28) }}
-                contentEditable
-                suppressContentEditableWarning
-                role="textbox"
-                aria-multiline="false"
-                onInput={(event) => setTextDraft(event.currentTarget.textContent || '')}
-                onKeyDown={(event) => {
-                  event.stopPropagation()
-                  if (event.key === 'Enter') { event.preventDefault(); commitTextEdit(event.currentTarget.textContent || '') }
-                  if (event.key === 'Escape') { event.preventDefault(); cancelTextEdit() }
-                }}
-                onBlur={(event) => commitTextEdit(event.currentTarget.textContent || '')}
-                onClick={(event) => event.stopPropagation()}
-                onPointerDown={(event) => event.stopPropagation()}
-                aria-label={copy.editText}
-              />}
+              {editingTextId === selectedId && selected?.tag === 'text' && <InlineTextEditor canvasRef={canvasRef} svgRef={svgRef} editingTextId={editingTextId} textDraft={textDraft} setTextDraft={setTextDraft} commitTextEdit={commitTextEdit} cancelTextEdit={cancelTextEdit} copy={copy} svgScale={svgScale} svgPosition={svgPosition} renderedMarkup={renderedMarkup} />}
               {selectionGroupBox && <div className="selection-overlay selection-overlay-group" style={{ left: selectionGroupBox.left, top: selectionGroupBox.top, width: selectionGroupBox.right - selectionGroupBox.left, height: selectionGroupBox.bottom - selectionGroupBox.top }} />}
-              {selectedIds.length > 1 && selectionBox && <div className="selection-overlay selection-overlay-multi selection-overlay-primary" style={{ left: selectionBox.left, top: selectionBox.top, width: selectionBox.width, height: selectionBox.height }} />}
+              {selectedIds.length > 1 && selectionBox && <div className="selection-overlay selection-overlay-multi" style={{ left: selectionBox.left, top: selectionBox.top, width: selectionBox.width, height: selectionBox.height }} />}
               {selectedIds.length > 1 && multiSelectionBoxes.map((box) => <div key={box.id} className="selection-overlay selection-overlay-multi" style={{ left: box.left, top: box.top, width: box.width, height: box.height }} />)}
-              {selectedIds.length <= 1 && selectionBox && selected && <div className={`selection-overlay ${isResizingElement ? 'is-resizing' : ''} ${hoveredLayerId === selected.id ? 'is-hovered' : ''}`} style={{ left: selectionBox.left, top: selectionBox.top, width: selectionBox.width, height: selectionBox.height }} onPointerMove={handleResizePointerMove} onPointerUp={handleResizePointerUp} onPointerCancel={(event) => handleResizePointerUp(event, true)}>
+              {selectedIds.length <= 1 && selectionBox && selected && !editingTextId && <div className={`selection-overlay ${isResizingElement ? 'is-resizing' : ''} ${hoveredLayerId === selected.id ? 'is-hovered' : ''}`} style={{ left: selectionBox.left, top: selectionBox.top, width: selectionBox.width, height: selectionBox.height }} onPointerMove={handleResizePointerMove} onPointerUp={handleResizePointerUp} onPointerCancel={(event) => handleResizePointerUp(event, true)}>
                 {selected.tag === 'line' ? <><button className="resize-handle resize-handle-line-start" type="button" aria-label={copy.resizeLineStart} title={copy.resizeLineStart} onPointerDown={(event) => handleResizePointerDown(event, 'line-start')} onMouseDown={(event) => handleResizePointerDown(event, 'line-start')} onPointerMove={handleResizePointerMove} onPointerUp={handleResizePointerUp} onPointerCancel={(event) => handleResizePointerUp(event, true)} /><button className="resize-handle resize-handle-line-end" type="button" aria-label={copy.resizeLineEnd} title={copy.resizeLineEnd} onPointerDown={(event) => handleResizePointerDown(event, 'line-end')} onMouseDown={(event) => handleResizePointerDown(event, 'line-end')} onPointerMove={handleResizePointerMove} onPointerUp={handleResizePointerUp} onPointerCancel={(event) => handleResizePointerUp(event, true)} /></> : <><button className="resize-handle resize-handle-top-left" type="button" aria-label={copy.resizeTopLeft} title={copy.resizeTopLeft} onPointerDown={(event) => handleResizePointerDown(event, 'top-left')} onMouseDown={(event) => handleResizePointerDown(event, 'top-left')} onPointerMove={handleResizePointerMove} onPointerUp={handleResizePointerUp} onPointerCancel={(event) => handleResizePointerUp(event, true)} /><button className="resize-handle resize-handle-bottom-right" type="button" aria-label={copy.resizeBottomRight} title={copy.resizeBottomRight} onPointerDown={(event) => handleResizePointerDown(event, 'bottom-right')} onMouseDown={(event) => handleResizePointerDown(event, 'bottom-right')} onPointerMove={handleResizePointerMove} onPointerUp={handleResizePointerUp} onPointerCancel={(event) => handleResizePointerUp(event, true)} /></>}
                 <span className="selection-size-label">{Math.round(selectionBox.width)} × {Math.round(selectionBox.height)}</span>
               </div>}
