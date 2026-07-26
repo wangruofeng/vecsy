@@ -58,6 +58,26 @@ export function getColor(value) {
   return value.startsWith('#') ? value.toUpperCase() : value
 }
 
+export function getSvgColorTokens(markup) {
+  const doc = new DOMParser().parseFromString(markup, 'image/svg+xml')
+  const counts = new Map()
+  const colorAttributes = ['fill', 'stroke', 'stop-color']
+  const add = (value) => {
+    const color = getColor(value?.trim())
+    if (!color) return
+    counts.set(color, (counts.get(color) || 0) + 1)
+  }
+  doc.querySelectorAll('[fill], [stroke], [stop-color], [style]').forEach((node) => {
+    colorAttributes.forEach((attribute) => add(node.getAttribute(attribute)))
+    const style = node.getAttribute('style') || ''
+    style.split(';').forEach((rule) => {
+      const [property, value] = rule.split(':')
+      if (/^\s*(fill|stroke|stop-color)\s*$/i.test(property || '')) add(value)
+    })
+  })
+  return Array.from(counts, ([color, count]) => ({ color, count })).sort((left, right) => right.count - left.count || left.color.localeCompare(right.color))
+}
+
 export function isElementHidden(node) {
   if (!node) return false
   if (node.getAttribute('display') === 'none' || node.getAttribute('visibility') === 'hidden') return true

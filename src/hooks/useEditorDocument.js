@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { LANGUAGES } from '../app/copy.js'
 import { parseSvg } from '../editor/svg-parser.js'
 
 export default function useEditorDocument({ initialMarkup, storageKey, historyLimit = 50 }) {
@@ -19,7 +20,10 @@ export default function useEditorDocument({ initialMarkup, storageKey, historyLi
       return initial
     }
   }, [initial, persisted])
-  const [language, setLanguage] = useState(persisted?.language === 'zh' ? 'zh' : 'en')
+  const [language, setLanguage] = useState(() => {
+    const stored = persisted?.language === 'zh' ? 'zh-CN' : persisted?.language
+    return LANGUAGES.some((item) => item.code === stored) ? stored : 'en'
+  })
   const [svgMarkup, setSvgMarkup] = useState(persistedDocument.markup)
   const [sourceDraft, setSourceDraft] = useState(persistedDocument.markup)
   const [elements, setElements] = useState(persistedDocument.elements)

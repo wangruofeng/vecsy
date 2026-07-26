@@ -118,8 +118,135 @@ export function updateElementAttributes(rawMarkup, targetId, updates) {
     if (value === '' || value == null) node.removeAttribute(attribute)
     else node.setAttribute(attribute, value)
   })
+  if (node.tagName?.toLowerCase() === 'text' && 'fill' in updates && updates.fill && !updates.fill.startsWith('url(') && node.hasAttribute('data-editor-solid-fill')) {
+    node.setAttribute('data-editor-solid-fill', updates.fill)
+  }
   if (node.tagName?.toLowerCase() === 'text' && 'font-size' in updates) syncTextLineLayout(node)
   return new XMLSerializer().serializeToString(doc.documentElement)
+}
+
+function normalizeColorToken(value) {
+  const color = String(value || '').trim()
+  if (!color || color === 'none' || color.startsWith('url(')) return ''
+  return color.startsWith('#') ? color.toUpperCase() : color
+}
+
+export function replaceSvgColorToken(rawMarkup, sourceColor, nextColor) {
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const source = normalizeColorToken(sourceColor)
+  const replacement = normalizeColorToken(nextColor)
+  const colorAttributes = ['fill', 'stroke', 'stop-color']
+  if (!source || !replacement) return rawMarkup
+  doc.querySelectorAll('[fill], [stroke], [stop-color], [style], [data-editor-solid-fill]').forEach((node) => {
+    colorAttributes.forEach((attribute) => {
+      if (normalizeColorToken(node.getAttribute(attribute)) === source) node.setAttribute(attribute, replacement)
+    })
+    if (normalizeColorToken(node.getAttribute('data-editor-solid-fill')) === source) node.setAttribute('data-editor-solid-fill', replacement)
+    const style = node.getAttribute('style') || ''
+    if (!style) return
+    const nextStyle = style.split(';').map((rule) => {
+      const [property, value] = rule.split(':')
+      return /^\s*(fill|stroke|stop-color)\s*$/i.test(property || '') && normalizeColorToken(value) === source ? `${property}: ${replacement}` : rule
+    }).join(';')
+    node.setAttribute('style', nextStyle)
+  })
+  return new XMLSerializer().serializeToString(doc.documentElement)
+}
+
+function getTextGradientId(targetId) {
+  return `vector-forge-text-gradient-${targetId}`
+}
+
+function getFillGradientId(node) {
+  const match = /^url\(\s*#([^\s)]+)\s*\)$/.exec(node.getAttribute('fill') || '')
+  return match?.[1] || ''
+}
+
+function getGradientAngle(gradient) {
+  const storedAngle = gradient.getAttribute('data-editor-angle')
+  if (storedAngle != null && storedAngle !== '' && Number.isFinite(Number(storedAngle))) return Number(storedAngle)
+  const parseCoordinate = (value, fallback) => {
+    if (value == null || value === '') return fallback
+    const parsed = Number.parseFloat(value)
+    return Number.isFinite(parsed) ? parsed : fallback
+  }
+  const x1 = parseCoordinate(gradient.getAttribute('x1'), 0)
+  const y1 = parseCoordinate(gradient.getAttribute('y1'), 0)
+  const x2 = parseCoordinate(gradient.getAttribute('x2'), 1)
+  const y2 = parseCoordinate(gradient.getAttribute('y2'), 0)
+  if (x1 === x2 && y1 === y2) return 0
+  return (Math.atan2(-(y2 - y1), x2 - x1) * 180 / Math.PI + 360) % 360
+}
+
+function getStopColor(stop, fallback) {
+  if (stop.getAttribute('stop-color')) return stop.getAttribute('stop-color')
+  const style = stop.getAttribute('style') || ''
+  const colorRule = style.split(';').find((rule) => /^\s*stop-color\s*:/i.test(rule))
+  return colorRule?.split(':').slice(1).join(':').trim() || fallback
+}
+
+export function getTextGradientConfig(rawMarkup, targetId) {
+  try {
+    const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+    const node = doc.querySelector(`[data-editor-id="${targetId}"]`)
+    if (node?.tagName?.toLowerCase() !== 'text') return null
+    const gradientId = getFillGradientId(node)
+    const gradient = gradientId ? doc.getElementById(gradientId) : null
+    const stops = gradient ? Array.from(gradient.querySelectorAll('stop')) : []
+    if (gradient?.tagName?.toLowerCase() !== 'lineargradient' || stops.length < 2) return { enabled: false }
+    return {
+      startColor: getStopColor(stops[0], '#23211D'),
+      endColor: getStopColor(stops[stops.length - 1], '#F2A93B'),
+      angle: getGradientAngle(gradient),
+      enabled: true,
+    }
+  } catch {
+    return { enabled: false }
+  }
+}
+
+export function updateTextGradient(rawMarkup, targetId, config) {
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const root = doc.documentElement
+  const node = doc.querySelector(`[data-editor-id="${targetId}"]`)
+  if (node?.tagName?.toLowerCase() !== 'text') return rawMarkup
+  const gradientId = getTextGradientId(targetId)
+  const existing = doc.querySelector(`linearGradient[id="${gradientId}"]`)
+  if (!config?.enabled) {
+    node.setAttribute('fill', node.getAttribute('data-editor-solid-fill') || '#23211D')
+    return new XMLSerializer().serializeToString(root)
+  }
+  let defs = root.querySelector('defs')
+  if (!defs) {
+    defs = doc.createElementNS('http://www.w3.org/2000/svg', 'defs')
+    root.insertBefore(defs, root.firstChild)
+  }
+  const gradient = existing || doc.createElementNS('http://www.w3.org/2000/svg', 'linearGradient')
+  if (!existing) defs.appendChild(gradient)
+  if (!node.hasAttribute('data-editor-solid-fill')) {
+    const currentFill = node.getAttribute('fill') || ''
+    node.setAttribute('data-editor-solid-fill', currentFill.startsWith('url(') ? config.startColor || '#23211D' : currentFill || '#23211D')
+  }
+  const angle = Number(config.angle) || 0
+  const radians = angle * Math.PI / 180
+  const x = Math.cos(radians)
+  const y = -Math.sin(radians)
+  gradient.setAttribute('id', gradientId)
+  gradient.setAttribute('data-editor-angle', String(angle))
+  gradient.setAttribute('x1', String((0.5 - x / 2).toFixed(4)))
+  gradient.setAttribute('y1', String((0.5 - y / 2).toFixed(4)))
+  gradient.setAttribute('x2', String((0.5 + x / 2).toFixed(4)))
+  gradient.setAttribute('y2', String((0.5 + y / 2).toFixed(4)))
+  gradient.replaceChildren()
+  const stops = [[0, config.startColor], [1, config.endColor]]
+  stops.forEach(([offset, color]) => {
+    const stop = doc.createElementNS('http://www.w3.org/2000/svg', 'stop')
+    stop.setAttribute('offset', String(offset))
+    stop.setAttribute('stop-color', color)
+    gradient.appendChild(stop)
+  })
+  node.setAttribute('fill', `url(#${gradientId})`)
+  return new XMLSerializer().serializeToString(root)
 }
 
 export function resizeBackgroundLayer(rawMarkup, targetId, bounds) {
@@ -215,7 +342,7 @@ export function createLayerMarkup(rawMarkup, tag, textContent = 'New text') {
   return { markup: new XMLSerializer().serializeToString(root), id: newId }
 }
 
-export function createCollectionSvgLayerMarkup(rawMarkup, { name, svgMarkup }) {
+export function createCollectionSvgLayerMarkup(rawMarkup, { name, svgMarkup, preserveAppearance = false }) {
   const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
   const sourceDoc = new DOMParser().parseFromString(svgMarkup, 'image/svg+xml')
   const sourceRoot = sourceDoc.documentElement
@@ -232,17 +359,19 @@ export function createCollectionSvgLayerMarkup(rawMarkup, { name, svgMarkup }) {
   const x = bounds.x + (bounds.width - sourceWidth * scale) / 2 - (viewBox[0] || 0) * scale
   const y = bounds.y + (bounds.height - sourceHeight * scale) / 2 - (viewBox[1] || 0) * scale
   node.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${scale.toFixed(4)})`)
-  node.setAttribute('fill', '#23211D')
+  if (!preserveAppearance) node.setAttribute('fill', '#23211D')
   node.setAttribute('data-editor-id', newId)
   node.setAttribute('data-editor-collection-icon', '')
   node.setAttribute('data-name', name)
   Array.from(sourceRoot.children).forEach((child) => {
     if (['script', 'foreignObject'].includes(child.tagName)) return
     const imported = doc.importNode(child, true)
-    imported.querySelectorAll?.('[fill]').forEach((element) => {
-      if (element.getAttribute('fill') !== 'none') element.removeAttribute('fill')
-    })
-    if (imported.hasAttribute('fill') && imported.getAttribute('fill') !== 'none') imported.removeAttribute('fill')
+    if (!preserveAppearance) {
+      imported.querySelectorAll?.('[fill]').forEach((element) => {
+        if (element.getAttribute('fill') !== 'none') element.removeAttribute('fill')
+      })
+      if (imported.hasAttribute('fill') && imported.getAttribute('fill') !== 'none') imported.removeAttribute('fill')
+    }
     node.appendChild(imported)
   })
   root.appendChild(doc.createTextNode('\n  '))

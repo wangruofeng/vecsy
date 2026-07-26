@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
-import { COPY, ADD_LAYER_TAGS, getLayerDisplayName, getTagDisplayName } from './app/copy.js'
+import { COPY, LANGUAGES, ADD_LAYER_TAGS, getLayerDisplayName, getTagDisplayName } from './app/copy.js'
 import Icon from './components/Icon.jsx'
 import LayerPanel from './components/LayerPanel.jsx'
 import CanvasPanel from './components/CanvasPanel.jsx'
@@ -9,9 +9,9 @@ import InspectorPanel from './components/InspectorPanel.jsx'
 import SvgCollectionModal from './components/SvgCollectionModal.jsx'
 import useEditorDocument from './hooks/useEditorDocument.js'
 import useCanvasInteraction from './hooks/useCanvasInteraction.js'
-import { getAncestorGroupIds, getColor, getVisibleLayerItems, isElementHidden, setElementVisibility } from './editor/svg-parser.js'
+import { getAncestorGroupIds, getColor, getSvgColorTokens, getVisibleLayerItems, isElementHidden, setElementVisibility } from './editor/svg-parser.js'
 import { getSvgDimensions, getTopLevelSelectedIds } from './editor/svg-geometry.js'
-import { copyLayerMarkup, createCollectionSvgLayerMarkup, createImageLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, getPolygonSides, highlightSvgSource, insertClonedLayer, minifySvg, removeLayers, reorderSiblingElements, sanitizeForExport, syncTextLineLayout, translateElements, translateElementsById, updateElementAttributes, updatePolygonSides as updatePolygonSidesMarkup, withExplicitSize } from './editor/svg-transforms.js'
+import { copyLayerMarkup, createCollectionSvgLayerMarkup, createImageLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, getPolygonSides, getTextGradientConfig, highlightSvgSource, insertClonedLayer, minifySvg, removeLayers, reorderSiblingElements, replaceSvgColorToken, sanitizeForExport, syncTextLineLayout, translateElements, translateElementsById, updateElementAttributes, updatePolygonSides as updatePolygonSidesMarkup, updateTextGradient, withExplicitSize } from './editor/svg-transforms.js'
 
 const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480">
   <g id="background" data-name="Background">
@@ -27,12 +27,40 @@ const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480
 const STORAGE_KEY = 'vector-forge:document'
 const HISTORY_LIMIT = 50
 
+function formatFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(bytes < 10 * 1024 ? 1 : 0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function renderRasterExport(markup, width, height, format) {
+  return new Promise((resolve, reject) => {
+    const imageUrl = URL.createObjectURL(new Blob([markup], { type: 'image/svg+xml' }))
+    const image = new Image()
+    image.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const context = canvas.getContext('2d')
+      context.drawImage(image, 0, 0, width, height)
+      URL.revokeObjectURL(imageUrl)
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Could not encode image')), `image/${format}`, 0.92)
+    }
+    image.onerror = () => {
+      URL.revokeObjectURL(imageUrl)
+      reject(new Error('Could not load SVG'))
+    }
+    image.src = imageUrl
+  })
+}
+
 function App() {
   const { language, setLanguage, svgMarkup, sourceDraft, setSourceDraft, elements, selectedId, setSelectedId, selectedIds, setSelectedIds, fileName, dirty, setDirty, history, storageError, setStorageError, selectLayerIds, currentSnapshot, commitDocument, undo, redo, loadDocument } = useEditorDocument({ initialMarkup: SAMPLE_SVG, storageKey: STORAGE_KEY, historyLimit: HISTORY_LIMIT })
   const [activeTab, setActiveTab] = useState('preview')
   const [isLayersOpen, setIsLayersOpen] = useState(true)
   const [isInspectorOpen, setIsInspectorOpen] = useState(true)
   const [addLayerMenuOpen, setAddLayerMenuOpen] = useState(false)
+  const [langMenuOpen, setLangMenuOpen] = useState(false)
   const [showSvgCollection, setShowSvgCollection] = useState(false)
   const [toast, setToast] = useState(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
@@ -40,12 +68,11 @@ function App() {
   const [exportOpen, setExportOpen] = useState(false)
   const [exportFormat, setExportFormat] = useState('svg')
   const [exportScale, setExportScale] = useState(2)
-  const [exportBackground, setExportBackground] = useState('transparent')
-  const [exportCustomColor, setExportCustomColor] = useState('#FFFFFF')
   const [exportOptimize, setExportOptimize] = useState(true)
   const [exportSelectedOnly, setExportSelectedOnly] = useState(false)
   const [exportLayerIds, setExportLayerIds] = useState([])
   const [exportBounds, setExportBounds] = useState(null)
+  const [exportSizes, setExportSizes] = useState(null)
   const [contextMenu, setContextMenu] = useState(null)
   const [renamingLayerId, setRenamingLayerId] = useState('')
   const [renameDraft, setRenameDraft] = useState('')
@@ -67,6 +94,12 @@ function App() {
   const attributePreviewFrameRef = useRef(0)
   const pendingAttributeUpdatesRef = useRef(null)
   const attributeCommitTimerRef = useRef(0)
+  const textGradientPreviewFrameRef = useRef(0)
+  const pendingTextGradientRef = useRef(null)
+  const textGradientCommitTimerRef = useRef(0)
+  const colorTokenPreviewFrameRef = useRef(0)
+  const pendingColorTokenRef = useRef(null)
+  const colorTokenCommitTimerRef = useRef(0)
   const toastTimerRef = useRef(0)
   const fileDragCounterRef = useRef(0)
   const renameInputRef = useRef(null)
@@ -118,6 +151,7 @@ function App() {
 
   const selected = elements.find((item) => item.id === selectedId)
   const selectedAttrs = selected ? selected.node : null
+  const isSelectedHidden = isElementHidden(selectedAttrs)
   const selectedDisplayName = selected ? getLayerDisplayName(selected, language) : ''
   const contextMenuTarget = contextMenu ? elements.find((element) => element.id === contextMenu.targetId) : null
   const canvasInteraction = useCanvasInteraction({ activeTab, selectedId, selectedIds, selected, elements, svgMarkup, currentSnapshot, commitDocument, selectLayerIds })
@@ -152,12 +186,16 @@ function App() {
   const textFontSize = selected?.tag === 'text' ? getDraftedAttribute('font-size', '16') : '16'
   const textLetterSpacing = selected?.tag === 'text' ? getDraftedAttribute('letter-spacing', '0') : '0'
   const textFontFamily = selected?.tag === 'text' ? getDraftedAttribute('font-family') : ''
+  const textFontWeight = selected?.tag === 'text' ? getDraftedAttribute('font-weight', 'normal') : 'normal'
+  const isTextBold = textFontWeight === 'bold' || Number(textFontWeight) >= 600
   const polygonSides = selected?.tag === 'polygon' ? getPolygonSides(selectedAttrs?.getAttribute('points')) : 3
+  const textGradient = selected?.tag === 'text' ? getTextGradientConfig(svgMarkup, selected.id) : null
   const visibleLayerItems = getVisibleLayerItems(elements, expandedGroups)
+  const colorTokens = useMemo(() => getSvgColorTokens(svgMarkup), [svgMarkup])
   const highlightedSource = useMemo(() => highlightSvgSource(sourceDraft), [sourceDraft])
 
   useEffect(() => {
-    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en'
+    document.documentElement.lang = language
     document.title = copy.documentTitle
   }, [language])
 
@@ -170,11 +208,17 @@ function App() {
     attributeCommitTimerRef.current = 0
     if (attributePreviewFrameRef.current) cancelAnimationFrame(attributePreviewFrameRef.current)
     attributePreviewFrameRef.current = 0
+    pendingTextGradientRef.current = null
+    if (textGradientCommitTimerRef.current) window.clearTimeout(textGradientCommitTimerRef.current)
+    textGradientCommitTimerRef.current = 0
+    if (textGradientPreviewFrameRef.current) cancelAnimationFrame(textGradientPreviewFrameRef.current)
+    textGradientPreviewFrameRef.current = 0
   }, [selectedId, svgMarkup])
 
   useEffect(() => {
     const handleOutsideLayerMenu = (event) => {
-      if (!event.target?.closest?.('.layers-panel')) setAddLayerMenuOpen(false)
+      if (!event.target?.closest?.('.add-layer-menu') && !event.target?.closest?.('.layers-add-button')) setAddLayerMenuOpen(false)
+      if (!event.target?.closest?.('.language-menu-wrap')) setLangMenuOpen(false)
     }
     document.addEventListener('pointerdown', handleOutsideLayerMenu, true)
     return () => document.removeEventListener('pointerdown', handleOutsideLayerMenu, true)
@@ -263,6 +307,71 @@ function App() {
     attributeCommitTimerRef.current = window.setTimeout(() => {
       attributeCommitTimerRef.current = 0
       commitPreviewAttributes()
+    }, 450)
+  }
+
+  const previewTextGradient = (config) => {
+    if (selected?.tag !== 'text') return
+    pendingTextGradientRef.current = { targetId: selected.id, config }
+    if (textGradientPreviewFrameRef.current) return
+    textGradientPreviewFrameRef.current = requestAnimationFrame(() => {
+      textGradientPreviewFrameRef.current = 0
+      const pending = pendingTextGradientRef.current
+      if (pending) updateTransientMarkup(updateTextGradient(svgMarkup, pending.targetId, pending.config))
+    })
+  }
+
+  const commitTextGradient = () => {
+    if (textGradientCommitTimerRef.current) window.clearTimeout(textGradientCommitTimerRef.current)
+    textGradientCommitTimerRef.current = 0
+    const pending = pendingTextGradientRef.current
+    if (!pending) return
+    if (textGradientPreviewFrameRef.current) cancelAnimationFrame(textGradientPreviewFrameRef.current)
+    textGradientPreviewFrameRef.current = 0
+    pendingTextGradientRef.current = null
+    clearTransientMarkup()
+    const nextMarkup = updateTextGradient(svgMarkup, pending.targetId, pending.config)
+    if (nextMarkup !== svgMarkup) commitDocument(nextMarkup, { nextSelectedId: pending.targetId })
+  }
+
+  const previewTextGradientDebounced = (config) => {
+    previewTextGradient(config)
+    if (textGradientCommitTimerRef.current) window.clearTimeout(textGradientCommitTimerRef.current)
+    textGradientCommitTimerRef.current = window.setTimeout(() => {
+      textGradientCommitTimerRef.current = 0
+      commitTextGradient()
+    }, 450)
+  }
+
+  const previewColorToken = (sourceColor, nextColor) => {
+    pendingColorTokenRef.current = { sourceColor, nextColor }
+    if (colorTokenPreviewFrameRef.current) return
+    colorTokenPreviewFrameRef.current = requestAnimationFrame(() => {
+      colorTokenPreviewFrameRef.current = 0
+      const pending = pendingColorTokenRef.current
+      if (pending) updateTransientMarkup(replaceSvgColorToken(svgMarkup, pending.sourceColor, pending.nextColor))
+    })
+  }
+
+  const commitColorToken = () => {
+    if (colorTokenCommitTimerRef.current) window.clearTimeout(colorTokenCommitTimerRef.current)
+    colorTokenCommitTimerRef.current = 0
+    const pending = pendingColorTokenRef.current
+    if (!pending) return
+    if (colorTokenPreviewFrameRef.current) cancelAnimationFrame(colorTokenPreviewFrameRef.current)
+    colorTokenPreviewFrameRef.current = 0
+    pendingColorTokenRef.current = null
+    clearTransientMarkup()
+    const nextMarkup = replaceSvgColorToken(svgMarkup, pending.sourceColor, pending.nextColor)
+    if (nextMarkup !== svgMarkup) commitDocument(nextMarkup, { nextSelectedId: selectedId, nextSelectedIds: selectedIds })
+  }
+
+  const previewColorTokenDebounced = (sourceColor, nextColor) => {
+    previewColorToken(sourceColor, nextColor)
+    if (colorTokenCommitTimerRef.current) window.clearTimeout(colorTokenCommitTimerRef.current)
+    colorTokenCommitTimerRef.current = window.setTimeout(() => {
+      colorTokenCommitTimerRef.current = 0
+      commitColorToken()
     }, 450)
   }
 
@@ -498,7 +607,7 @@ function App() {
         if (!response.ok) throw new Error('Unable to load SVG collection item.')
         return response.text()
       })
-      const created = createCollectionSvgLayerMarkup(svgMarkup, { name: item.name, svgMarkup: sourceMarkup })
+      const created = createCollectionSvgLayerMarkup(svgMarkup, { name: item.name, svgMarkup: sourceMarkup, preserveAppearance: item.preserveAppearance })
       commitDocument(created.markup, { nextSelectedId: created.id })
       setShowSvgCollection(false)
       setActiveTab('preview')
@@ -578,6 +687,10 @@ function App() {
           setShowShortcuts(false)
           return
         }
+        if (showSvgCollection) {
+          setShowSvgCollection(false)
+          return
+        }
         setSelectedId('')
         setSelectedIds([])
         return
@@ -636,7 +749,7 @@ function App() {
     }
     window.addEventListener('keydown', handleEditorShortcuts)
     return () => window.removeEventListener('keydown', handleEditorShortcuts)
-  }, [selectedId, selectedIds, elements, svgMarkup, fileName, dirty, history, isLayersOpen, isInspectorOpen, showShortcuts, svgScale, contextMenu, exportOpen, renamingLayerId])
+  }, [selectedId, selectedIds, elements, svgMarkup, fileName, dirty, history, isLayersOpen, isInspectorOpen, showShortcuts, svgScale, contextMenu, exportOpen, renamingLayerId, showSvgCollection])
 
   const syncSourceScroll = (event) => {
     if (!sourceHighlightRef.current) return
@@ -713,6 +826,31 @@ function App() {
   const exportPreviewWidth = Math.min(280, 170 * exportPreviewDimensions.width / exportPreviewDimensions.height)
   const exportPreviewStyle = { width: `${exportPreviewWidth}px`, height: `${exportPreviewWidth * exportPreviewDimensions.height / exportPreviewDimensions.width}px` }
 
+  useEffect(() => {
+    if (!exportOpen) return undefined
+    let cancelled = false
+    const cleanMarkup = sanitizeForExport(exportMarkup)
+    const dimensions = getSvgDimensions(new DOMParser().parseFromString(cleanMarkup, 'image/svg+xml'))
+    const sizedMarkup = withExplicitSize(cleanMarkup, Math.round(dimensions.width), Math.round(dimensions.height))
+    const svgMarkup = exportOptimize ? minifySvg(sizedMarkup) : sizedMarkup
+    const svg = formatFileSize(new Blob([svgMarkup], { type: 'image/svg+xml' }).size)
+    setExportSizes({ svg })
+
+    const pixelWidth = Math.max(1, Math.round(dimensions.width * exportScale))
+    const pixelHeight = Math.max(1, Math.round(dimensions.height * exportScale))
+    const rasterMarkup = withExplicitSize(cleanMarkup, pixelWidth, pixelHeight)
+    Promise.all([
+      renderRasterExport(rasterMarkup, pixelWidth, pixelHeight, 'png'),
+      renderRasterExport(rasterMarkup, pixelWidth, pixelHeight, 'webp'),
+    ]).then(([png, webp]) => {
+      if (!cancelled) setExportSizes({ svg, png: formatFileSize(png.size), webp: formatFileSize(webp.size) })
+    }).catch(() => {
+      if (!cancelled) setExportSizes({ svg })
+    })
+
+    return () => { cancelled = true }
+  }, [exportOpen, exportMarkup, exportScale, exportOptimize])
+
   const exportSvg = () => {
     downloadBlob(new Blob([sanitizeForExport(svgMarkup)], { type: 'image/svg+xml' }), `${fileName.replace(/\.svg$/i, '')}-edited.svg`)
     setDirty(false)
@@ -739,35 +877,12 @@ function App() {
     const pixelWidth = Math.max(1, Math.round(dimensions.width * exportScale))
     const pixelHeight = Math.max(1, Math.round(dimensions.height * exportScale))
     const sizedMarkup = withExplicitSize(cleanMarkup, pixelWidth, pixelHeight)
-    const imageUrl = URL.createObjectURL(new Blob([sizedMarkup], { type: 'image/svg+xml' }))
-    const image = new Image()
-    image.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = pixelWidth
-      canvas.height = pixelHeight
-      const context = canvas.getContext('2d')
-      if (exportBackground !== 'transparent') {
-        context.fillStyle = exportBackground === 'white' ? '#FFFFFF' : exportCustomColor
-        context.fillRect(0, 0, pixelWidth, pixelHeight)
-      }
-      context.drawImage(image, 0, 0, pixelWidth, pixelHeight)
-      URL.revokeObjectURL(imageUrl)
-      canvas.toBlob((blob) => {
-        if (blob) {
-          downloadBlob(blob, `${baseName}-${exportScale}x.${exportFormat}`)
-          setDirty(false)
-          setExportOpen(false)
-          showToast(copy.toastExported)
-        } else {
-          showToast(copy.exportFailed, 'error')
-        }
-      }, `image/${exportFormat}`, 0.92)
-    }
-    image.onerror = () => {
-      URL.revokeObjectURL(imageUrl)
-      showToast(copy.exportFailed, 'error')
-    }
-    image.src = imageUrl
+    renderRasterExport(sizedMarkup, pixelWidth, pixelHeight, exportFormat).then((blob) => {
+      downloadBlob(blob, `${baseName}-${exportScale}x.${exportFormat}`)
+      setDirty(false)
+      setExportOpen(false)
+      showToast(copy.toastExported)
+    }).catch(() => showToast(copy.exportFailed, 'error'))
   }
 
   const alignSelection = (type) => {
@@ -885,14 +1000,17 @@ function App() {
   return (
     <main className="app-shell" onDragEnter={handleFileDragEnter} onDragOver={handleFileDragOver} onDragLeave={handleFileDragLeave} onDrop={handleDrop}>
       <header className="topbar">
-        <div className="brand"><svg className="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M19 17 C25 34, 29 43, 32 45.5 C35 43, 43 30, 45 17" fill="none" stroke="#F2A93B" strokeWidth="7" strokeLinecap="round" /></svg><span>VECTOR FORGE</span><a className="brand-github-link" href="https://github.com/wangruofeng/vector-forge" target="_blank" rel="noreferrer" title={copy.githubRepository} aria-label={copy.githubRepository}><Icon name="github" size={17} /></a></div>
+        <div className="brand"><svg className="brand-mark" viewBox="0 0 1024 1024" aria-hidden="true"><defs><linearGradient id="vf-brand-orange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FBA13A" /><stop offset="52%" stopColor="#F59836" /><stop offset="100%" stopColor="#F39230" /></linearGradient></defs><rect x="37" y="34" width="949" height="954" rx="160" fill="url(#vf-brand-orange)" /><path d="M210 254 H325 C333 254 340 258 344 266 L512 600 L681 266 C685 258 692 254 701 254 H816 C827 254 834 266 829 276 L541 838 C535 849 524 854 513 854 C501 854 490 849 484 838 L196 276 C191 266 199 254 210 254 Z" fill="#FFFFFF" /></svg><span>VECTOR FORGE</span><a className="brand-github-link" href="https://github.com/wangruofeng/vector-forge" target="_blank" rel="noreferrer" title={copy.githubRepository} aria-label={copy.githubRepository}><Icon name="github" size={17} /></a></div>
         <div className="topbar-actions">
           <button className="icon-button" title={`${copy.undo} (⌘Z)`} aria-keyshortcuts="Meta+Z" onClick={undo} disabled={!history.past.length}><Icon name="undo" /></button>
           <button className="icon-button" title={`${copy.redo} (⌘⇧Z)`} aria-keyshortcuts="Meta+Shift+Z" onClick={redo} disabled={!history.future.length}><Icon name="redo" /></button>
           <button className="icon-button" type="button" title={`${copy.shortcutsTitle} (?)`} aria-label={copy.shortcutsTitle} aria-pressed={showShortcuts} onClick={() => setShowShortcuts((current) => !current)}><Icon name="help" /></button>
           <span className="divider" />
           <span className="save-state"><span className={`status-dot ${dirty ? 'dirty' : ''}`} />{dirty ? copy.unsaved : copy.saved}</span>
-          <button className="language-toggle" type="button" onClick={() => setLanguage((current) => current === 'en' ? 'zh' : 'en')} aria-label={copy.languageSwitch}>{copy.languageSwitch}</button>
+          <div className="language-menu-wrap">
+            <button className="language-toggle" type="button" onClick={() => setLangMenuOpen((current) => !current)} aria-label={copy.languageSwitch} aria-haspopup="menu" aria-expanded={langMenuOpen} title={copy.languageSwitch}><Icon name="globe" size={13} /><span>{LANGUAGES.find((item) => item.code === language)?.short || 'EN'}</span></button>
+            {langMenuOpen && <div className="language-menu" role="menu" aria-label={copy.languageSwitch}>{LANGUAGES.map((item) => <button key={item.code} type="button" role="menuitemradio" aria-checked={language === item.code} className={language === item.code ? 'is-active' : ''} onClick={() => { setLanguage(item.code); setLangMenuOpen(false) }}><span className="language-menu-check">{language === item.code && <Icon name="check" size={12} />}</span><span>{item.label}</span></button>)}</div>}
+          </div>
           <button className="button button-quiet" onClick={() => fileInput.current?.click()}><Icon name="download" /> {copy.open}</button>
           <button className="button button-accent" onClick={openExport}><Icon name="upload" /> {copy.export}</button>
           <input ref={fileInput} type="file" accept="image/svg+xml,.svg" hidden onChange={(event) => handleFile(event.target.files?.[0])} />
@@ -1000,6 +1118,7 @@ function App() {
           setIsInspectorOpen={setIsInspectorOpen}
           selected={selected}
           selectedDisplayName={selectedDisplayName}
+          isSelectedHidden={isSelectedHidden}
           textFieldDraft={textFieldDraft}
           setTextFieldDraft={setTextFieldDraft}
           commitTextField={commitTextField}
@@ -1007,8 +1126,12 @@ function App() {
           textFontSize={textFontSize}
           textLetterSpacing={textLetterSpacing}
           textFontFamily={textFontFamily}
+          isTextBold={isTextBold}
           previewAttributeDebounced={previewAttributeDebounced}
           commitPreviewAttributes={commitPreviewAttributes}
+          previewTextGradientDebounced={previewTextGradientDebounced}
+          commitTextGradient={commitTextGradient}
+          textGradient={textGradient}
           handleTextAttributeKeyDown={handleTextAttributeKeyDown}
           rectWidthValue={rectWidthValue}
           rectHeightValue={rectHeightValue}
@@ -1023,6 +1146,9 @@ function App() {
           cornerRadius={cornerRadius}
           previewRectRadius={previewRectRadius}
           elements={elements}
+          colorTokens={colorTokens}
+          previewColorTokenDebounced={previewColorTokenDebounced}
+          commitColorToken={commitColorToken}
         />
       </section>
 
@@ -1046,7 +1172,6 @@ function App() {
             <div className="export-row"><span className="export-label">{copy.exportFormat}</span><div className="view-tabs"><button type="button" className={exportFormat === 'svg' ? 'active' : ''} onClick={() => setExportFormat('svg')}>SVG</button><button type="button" className={exportFormat === 'png' ? 'active' : ''} onClick={() => setExportFormat('png')}>PNG</button><button type="button" className={exportFormat === 'webp' ? 'active' : ''} onClick={() => setExportFormat('webp')}>WebP</button></div></div>
             {exportFormat !== 'svg' && <>
               <div className="export-row"><span className="export-label">{copy.exportScale}</span><div className="view-tabs">{[1, 2, 3].map((scale) => <button key={scale} type="button" className={exportScale === scale ? 'active' : ''} onClick={() => setExportScale(scale)}>{scale}x</button>)}</div></div>
-              <div className="export-row"><span className="export-label">{copy.exportBackground}</span><div className="view-tabs"><button type="button" className={exportBackground === 'transparent' ? 'active' : ''} onClick={() => setExportBackground('transparent')}>{copy.exportTransparent}</button><button type="button" className={exportBackground === 'white' ? 'active' : ''} onClick={() => setExportBackground('white')}>{copy.exportWhite}</button><button type="button" className={exportBackground === 'custom' ? 'active' : ''} onClick={() => setExportBackground('custom')}>{copy.exportCustom}</button></div>{exportBackground === 'custom' && <input className="color-picker" type="color" value={exportCustomColor} onChange={(event) => setExportCustomColor(event.target.value.toUpperCase())} aria-label={copy.exportCustom} />}</div>
             </>}
             {exportFormat === 'svg' && <label className="export-check"><input type="checkbox" checked={exportOptimize} onChange={(event) => setExportOptimize(event.target.checked)} /><span>{copy.exportOptimize}</span></label>}
             <div className="export-row">
@@ -1057,6 +1182,7 @@ function App() {
               </div>
             </div>
             <div className="export-preview"><span className="export-label">{copy.exportPreview}</span><div className="export-preview-canvas" style={exportPreviewStyle} dangerouslySetInnerHTML={{ __html: exportMarkup }} /></div>
+            <div className="export-size" aria-live="polite"><span className="export-label">{copy.exportEstimatedSize}</span><div className="export-size-values"><span>SVG {exportSizes?.svg || '—'}</span><span>PNG {exportSizes?.png || '—'}</span><span>WebP {exportSizes?.webp || '—'}</span></div></div>
           </div>
           <div className="export-footer"><button className="button button-accent" type="button" onClick={exportDocument}><Icon name="upload" /> {copy.exportShort}</button></div>
         </div>
