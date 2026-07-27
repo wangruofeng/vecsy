@@ -1,4 +1,7 @@
-# Vector Forge
+<p align="center">
+  <img src="/public/favicon.svg" width="128" alt="logo">
+</p>
+<h1 align="center">Vector Forge</h1>
 
 Vector Forge 是一个运行在浏览器中的 SVG 编辑器，支持拖入 SVG 文件后实时查看、选择和调整内部图层。
 
