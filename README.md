@@ -52,12 +52,12 @@
 
 ## 快捷键
 
-| 快捷键 | 功能 |
-|--------|------|
-| <kbd>⌘</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Z</kbd> | 撤销 |
-| <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | 重做 |
-| <kbd>⌘</kbd> + <kbd>C</kbd> / <kbd>V</kbd> / <kbd>Ctrl</kbd> + <kbd>C</kbd> / <kbd>V</kbd> | 复制 / 粘贴图层 |
-| <kbd>Delete</kbd> / <kbd>Backspace</kbd> | 删除选中图层 |
+| Mac | Windows/Linux | 功能 |
+|-----|---------------|------|
+| <kbd>⌘</kbd> + <kbd>Z</kbd> | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | 撤销 |
+| <kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>Z</kbd> | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | 重做 |
+| <kbd>⌘</kbd> + <kbd>C</kbd> / <kbd>⌘</kbd> + <kbd>V</kbd> | <kbd>Ctrl</kbd> + <kbd>C</kbd> / <kbd>Ctrl</kbd> + <kbd>V</kbd> | 复制 / 粘贴图层 |
+| <kbd>Delete</kbd> / <kbd>⌫</kbd> | <kbd>Delete</kbd> / <kbd>Backspace</kbd> | 删除选中图层 |
 
 ## 技术栈
 
