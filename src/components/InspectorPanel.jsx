@@ -84,8 +84,24 @@ function LayerTypeRow({ tag, count, language }) {
   return <div className="layer-type-row"><span>{getTagDisplayName(tag, language)}</span><strong>{count}</strong></div>
 }
 
+function DocumentNameField({ copy, fileName, onRename }) {
+  const [draft, setDraft] = useState(fileName)
+  const [editing, setEditing] = useState(false)
+  useEffect(() => setDraft(fileName), [fileName])
+  const commit = () => {
+    const nextName = draft.trim() || fileName
+    setDraft(nextName)
+    setEditing(false)
+    if (nextName !== fileName) onRename(nextName)
+  }
+  return <div className="document-name-field">
+    <label>{copy.svgName}</label>
+    {editing ? <input autoFocus value={draft} aria-label={copy.svgName} onChange={(event) => setDraft(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setDraft(fileName); setEditing(false) } }} /> : <button type="button" onClick={() => setEditing(true)} title={copy.editSvgName}><span>{fileName}</span><Icon name="edit" size={13} /></button>}
+  </div>
+}
+
 export default function InspectorPanel(props) {
-  const { copy, language, isInspectorOpen, setIsInspectorOpen, selected, selectedDisplayName, isSelectedHidden, textFieldDraft, setTextFieldDraft, commitTextField, startTextEdit, textFontSize, textLetterSpacing, textFontFamily, isTextBold, previewAttributeDebounced, commitPreviewAttributes, previewTextGradientDebounced, commitTextGradient, textGradient, handleTextAttributeKeyDown, rectWidthValue, rectHeightValue, lineStartX, lineStartY, lineEndX, lineEndY, updateRectAspectRatio, polygonSides, updatePolygonSides, fill, stroke, opacity, strokeWidth, cornerRadiusMax, cornerRadius, previewRectRadius, elements, colorTokens, previewColorTokenDebounced, commitColorToken } = props
+  const { copy, language, isInspectorOpen, setIsInspectorOpen, selected, selectedDisplayName, isSelectedHidden, textFieldDraft, setTextFieldDraft, commitTextField, startTextEdit, textFontSize, textLetterSpacing, textFontFamily, isTextBold, previewAttributeDebounced, commitPreviewAttributes, previewTextGradientDebounced, commitTextGradient, textGradient, handleTextAttributeKeyDown, rectWidthValue, rectHeightValue, lineStartX, lineStartY, lineEndX, lineEndY, updateRectAspectRatio, polygonSides, updatePolygonSides, fill, stroke, opacity, strokeWidth, cornerRadiusMax, cornerRadius, previewRectRadius, elements, colorTokens, previewColorTokenDebounced, commitColorToken, fileName, renameDocument } = props
   const [copiedToken, setCopiedToken] = useState('')
   const [editingToken, setEditingToken] = useState('')
   const layerTypeCounts = Array.from(elements.reduce((counts, { tag }) => counts.set(tag, (counts.get(tag) || 0) + 1), new Map()))
@@ -124,7 +140,7 @@ export default function InspectorPanel(props) {
               {selected.tag === 'rect' && <div className="field-row"><label>{copy.cornerRadius}</label><div className="range-wrap"><input type="range" min="0" max={cornerRadiusMax} step="1" value={cornerRadius} style={{ '--range-progress': `${cornerRadiusMax ? cornerRadius / cornerRadiusMax * 100 : 0}%` }} onChange={(event) => previewRectRadius(event.target.value)} onPointerUp={commitPreviewAttributes} onBlur={commitPreviewAttributes} /><span>{cornerRadius}px</span></div></div>}
             </div>
             <div className="inspector-section"><div className="section-label">{copy.elementDetails}</div><div className="detail-grid"><div><span>{copy.layer}</span><strong>{String(elements.indexOf(selected) + 1).padStart(2, '0')} / {String(elements.length).padStart(2, '0')}</strong></div><div><span>{copy.visibility}</span><strong>{isSelectedHidden ? copy.hidden : copy.visible}</strong></div></div></div>
-          </> : <div className="inspector-summary"><div className="layer-type-summary"><div className="section-label">{copy.layerTypes}</div><div className="layer-type-list">{layerTypeCounts.map(([tag, count]) => <LayerTypeRow key={tag} tag={tag} count={count} language={language} />)}</div></div><div className="color-token-summary"><div className="section-label">{copy.colorTokens}</div>{colorTokens.length ? <div className="color-token-list">{colorTokens.map((token) => <ColorTokenRow key={token.color} token={token} copy={copy} copied={copiedToken === token.color} editing={editingToken === token.color} onCopy={copyColorToken} onEdit={setEditingToken} onPreview={previewColorTokenDebounced} onCommit={() => { commitColorToken(); setEditingToken('') }} />)}</div> : <div className="empty-inspector">{copy.colorTokensEmpty}</div>}</div></div>}</div>
+          </> : <div className="inspector-summary"><div className="document-summary"><DocumentNameField copy={copy} fileName={fileName} onRename={renameDocument} /></div><div className="layer-type-summary"><div className="section-label">{copy.layerTypes}</div><div className="layer-type-list">{layerTypeCounts.map(([tag, count]) => <LayerTypeRow key={tag} tag={tag} count={count} language={language} />)}</div></div><div className="color-token-summary"><div className="section-label">{copy.colorTokens}</div>{colorTokens.length ? <div className="color-token-list">{colorTokens.map((token) => <ColorTokenRow key={token.color} token={token} copy={copy} copied={copiedToken === token.color} editing={editingToken === token.color} onCopy={copyColorToken} onEdit={setEditingToken} onPreview={previewColorTokenDebounced} onCommit={() => { commitColorToken(); setEditingToken('') }} />)}</div> : <div className="empty-inspector">{copy.colorTokensEmpty}</div>}</div></div>}</div>
           <div className="inspector-footer"><span><span className="kbd">⌘</span><span className="kbd">S</span> {copy.exportShort}</span><span className="footer-hint">{copy.changesInstant}</span></div>
         </aside>
   )

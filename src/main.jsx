@@ -2,11 +2,13 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
 import { COPY, LANGUAGES, ADD_LAYER_TAGS, getLayerDisplayName, getTagDisplayName } from './app/copy.js'
+import { registerRuntimeIdentity } from './app/runtime-identity.js'
 import Icon from './components/Icon.jsx'
 import LayerPanel from './components/LayerPanel.jsx'
 import CanvasPanel from './components/CanvasPanel.jsx'
 import InspectorPanel from './components/InspectorPanel.jsx'
 import SvgCollectionModal from './components/SvgCollectionModal.jsx'
+import RecentSvgModal from './components/RecentSvgModal.jsx'
 import useEditorDocument from './hooks/useEditorDocument.js'
 import useCanvasInteraction from './hooks/useCanvasInteraction.js'
 import { getAncestorGroupIds, getColor, getSvgColorTokens, getVisibleLayerItems, isElementHidden, setElementVisibility } from './editor/svg-parser.js'
@@ -55,13 +57,14 @@ function renderRasterExport(markup, width, height, format) {
 }
 
 function App() {
-  const { language, setLanguage, svgMarkup, sourceDraft, setSourceDraft, elements, selectedId, setSelectedId, selectedIds, setSelectedIds, fileName, dirty, setDirty, history, storageError, setStorageError, selectLayerIds, currentSnapshot, commitDocument, undo, redo, loadDocument } = useEditorDocument({ initialMarkup: SAMPLE_SVG, storageKey: STORAGE_KEY, historyLimit: HISTORY_LIMIT })
+  const { language, setLanguage, svgMarkup, sourceDraft, setSourceDraft, elements, selectedId, setSelectedId, selectedIds, setSelectedIds, fileName, dirty, setDirty, history, storageError, setStorageError, selectLayerIds, currentSnapshot, commitDocument, undo, redo, loadDocument, recentDocuments, removeRecentDocument } = useEditorDocument({ initialMarkup: SAMPLE_SVG, storageKey: STORAGE_KEY, historyLimit: HISTORY_LIMIT })
   const [activeTab, setActiveTab] = useState('preview')
   const [isLayersOpen, setIsLayersOpen] = useState(true)
   const [isInspectorOpen, setIsInspectorOpen] = useState(true)
   const [addLayerMenuOpen, setAddLayerMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
   const [showSvgCollection, setShowSvgCollection] = useState(false)
+  const [showRecentSvgs, setShowRecentSvgs] = useState(false)
   const [toast, setToast] = useState(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [isFileDragOver, setIsFileDragOver] = useState(false)
@@ -404,6 +407,15 @@ function App() {
     }
   }
 
+  const renameDocument = (nextFileName) => {
+    commitDocument(svgMarkup, { nextSelectedId: selectedId, nextSelectedIds: selectedIds, nextFileName, nextDirty: true })
+  }
+
+  const openRecentDocument = (document) => {
+    loadSvg(document.svgMarkup, document.fileName, { silent: true })
+    setShowRecentSvgs(false)
+  }
+
   useEffect(() => {
     const handleHistoryShortcut = (event) => {
       if (!(event.metaKey || event.ctrlKey) || event.altKey || event.key.toLowerCase() !== 'z') return
@@ -711,6 +723,10 @@ function App() {
           setShowSvgCollection(false)
           return
         }
+        if (showRecentSvgs) {
+          setShowRecentSvgs(false)
+          return
+        }
         setSelectedId('')
         setSelectedIds([])
         return
@@ -787,7 +803,7 @@ function App() {
       window.removeEventListener('keyup', resetArrowKeyHold)
       window.removeEventListener('blur', resetArrowKeyHold)
     }
-  }, [selectedId, selectedIds, elements, svgMarkup, fileName, dirty, history, isLayersOpen, isInspectorOpen, showShortcuts, svgScale, contextMenu, exportOpen, exportPreviewOpen, renamingLayerId, showSvgCollection])
+  }, [selectedId, selectedIds, elements, svgMarkup, fileName, dirty, history, isLayersOpen, isInspectorOpen, showShortcuts, svgScale, contextMenu, exportOpen, exportPreviewOpen, renamingLayerId, showSvgCollection, showRecentSvgs])
 
   const syncSourceScroll = (event) => {
     if (!sourceHighlightRef.current) return
@@ -1106,6 +1122,7 @@ function App() {
           <button className="icon-button" title={`${copy.undo} (⌘Z)`} aria-keyshortcuts="Meta+Z" onClick={undo} disabled={!history.past.length}><Icon name="undo" /></button>
           <button className="icon-button" title={`${copy.redo} (⌘⇧Z)`} aria-keyshortcuts="Meta+Shift+Z" onClick={redo} disabled={!history.future.length}><Icon name="redo" /></button>
           <button className="icon-button" type="button" title={`${copy.shortcutsTitle} (?)`} aria-label={copy.shortcutsTitle} aria-pressed={showShortcuts} onClick={() => setShowShortcuts((current) => !current)}><Icon name="help" /></button>
+          <button className="icon-button recent-svg-button" type="button" title={copy.recentSvgs} aria-label={copy.recentSvgs} aria-pressed={showRecentSvgs} onClick={() => setShowRecentSvgs(true)}><Icon name="history" /></button>
           <span className="divider" />
           <span className="save-state"><span className={`status-dot ${dirty ? 'dirty' : ''}`} />{dirty ? copy.unsaved : copy.saved}</span>
           <div className="language-menu-wrap">
@@ -1255,6 +1272,8 @@ function App() {
           colorTokens={colorTokens}
           previewColorTokenDebounced={previewColorTokenDebounced}
           commitColorToken={commitColorToken}
+          fileName={fileName}
+          renameDocument={renameDocument}
         />
       </section>
 
@@ -1271,6 +1290,7 @@ function App() {
         </div>
       </div>}
       {showSvgCollection && <SvgCollectionModal copy={copy} onClose={() => setShowSvgCollection(false)} onSelect={addSvgCollectionItem} />}
+      {showRecentSvgs && <RecentSvgModal copy={copy} documents={recentDocuments} onClose={() => setShowRecentSvgs(false)} onOpen={openRecentDocument} onRemove={removeRecentDocument} />}
       {exportOpen && <div className="shortcuts-overlay" onClick={() => setExportOpen(false)}>
         <div className="shortcuts-modal export-modal" role="dialog" aria-modal="true" aria-label={copy.exportDialogTitle} onClick={(event) => event.stopPropagation()}>
           <div className="shortcuts-header"><span>{copy.exportDialogTitle}</span><button className="mini-button" type="button" title={copy.close} aria-label={copy.close} onClick={() => setExportOpen(false)}><Icon name="x" size={14} /></button></div>
@@ -1314,4 +1334,5 @@ function App() {
   )
 }
 
+registerRuntimeIdentity()
 createRoot(document.getElementById('root')).render(<App />)

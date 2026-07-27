@@ -3,6 +3,7 @@ import { LANGUAGES } from '../app/copy.js'
 import { parseSvg } from '../editor/svg-parser.js'
 
 export default function useEditorDocument({ initialMarkup, storageKey, historyLimit = 50 }) {
+  const recentStorageKey = `${storageKey}:recent-documents`
   const initial = useMemo(() => parseSvg(initialMarkup), [initialMarkup])
   const [persisted] = useState(() => {
     try {
@@ -35,6 +36,16 @@ export default function useEditorDocument({ initialMarkup, storageKey, historyLi
     return validIds.length ? validIds : (fallbackId ? [fallbackId] : [])
   })
   const [fileName, setFileName] = useState(persisted?.fileName || 'untitled.svg')
+  const [recentDocuments, setRecentDocuments] = useState(() => {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(recentStorageKey) || '[]')
+      return Array.isArray(stored)
+        ? stored.filter((item) => item?.fileName && item?.svgMarkup).slice(0, 20)
+        : []
+    } catch {
+      return []
+    }
+  })
   const [dirty, setDirty] = useState(Boolean(persisted?.dirty))
   const [history, setHistory] = useState(() => ({
     past: Array.isArray(persisted?.history?.past) ? persisted.history.past : [],
@@ -58,6 +69,31 @@ export default function useEditorDocument({ initialMarkup, storageKey, historyLi
     }, 350)
     return () => window.clearTimeout(timeout)
   }, [storageKey, svgMarkup, fileName, selectedId, selectedIds, dirty, history, language])
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(recentStorageKey, JSON.stringify(recentDocuments))
+      } catch {
+        if (!storageWarnedRef.current) {
+          storageWarnedRef.current = true
+          setStorageError(true)
+        }
+      }
+    }, 350)
+    return () => window.clearTimeout(timeout)
+  }, [recentDocuments, recentStorageKey])
+
+  const recordRecentDocument = (markup, name) => {
+    setRecentDocuments((current) => [
+      { fileName: name, svgMarkup: markup, updatedAt: Date.now() },
+      ...current.filter((item) => item.fileName !== name),
+    ].slice(0, 20))
+  }
+
+  const removeRecentDocument = (fileName) => {
+    setRecentDocuments((current) => current.filter((item) => item.fileName !== fileName))
+  }
 
   const selectLayerIds = (nextIds, primaryId = nextIds[nextIds.length - 1] || '') => {
     const validIds = [...new Set(nextIds)].filter((id) => elements.some((item) => item.id === id))
@@ -83,6 +119,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, historyLi
     setSelectedIds(validSelectedIds.length ? validSelectedIds : (validSelectedId ? [validSelectedId] : []))
     setFileName(nextFileName)
     setDirty(nextDirty)
+    recordRecentDocument(parsed.markup, nextFileName)
   }
 
   const restoreSnapshot = (snapshot) => {
@@ -95,6 +132,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, historyLi
     setSelectedIds(validSelectedId ? [validSelectedId] : [])
     setFileName(snapshot.fileName)
     setDirty(snapshot.dirty)
+    recordRecentDocument(parsed.markup, snapshot.fileName)
   }
 
   const undo = () => {
@@ -121,6 +159,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, historyLi
     setFileName(nextFileName)
     setDirty(false)
     setHistory({ past: [], future: [] })
+    recordRecentDocument(parsed.markup, nextFileName)
     return parsed
   }
 
@@ -132,9 +171,10 @@ export default function useEditorDocument({ initialMarkup, storageKey, historyLi
     selectedId, setSelectedId,
     selectedIds, setSelectedIds,
     fileName, setFileName,
+    recentDocuments,
     dirty, setDirty,
     history, setHistory,
     storageError, setStorageError,
-    selectLayerIds, currentSnapshot, commitDocument, restoreSnapshot, undo, redo, loadDocument,
+    selectLayerIds, currentSnapshot, commitDocument, restoreSnapshot, undo, redo, loadDocument, removeRecentDocument,
   }
 }
