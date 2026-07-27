@@ -1,11 +1,15 @@
+<h4 align="right"><strong>简体中文</strong> | <a href="README_EN.md">English</a></h4>
+
 <p align="center">
-  <img src="/public/favicon.svg" width="128" alt="logo">
+  <img src="/public/favicon.svg" width="138" alt="logo">
 </p>
 <h1 align="center">Vector Forge</h1>
 
-Vector Forge 是一个运行在浏览器中的 SVG 编辑器，支持拖入 SVG 文件后实时查看、选择和调整内部图层。
+<p align="center"><strong>Vector Forge 是一个运行在浏览器中的 SVG 编辑器，支持拖入 SVG 文件后实时查看、选择和调整内部图层。</strong></p>
 
-[在线体验](https://vector-forge.wangruofeng007.com/) · [GitHub 仓库](https://github.com/wangruofeng/vector-forge)
+<div align="center">
+    <a href="https://vector-forge.wangruofeng007.com/" target="_blank">在线体验</a>
+</div>
 
 ## 功能
 
@@ -118,41 +122,6 @@ npx wrangler login
 │   └── web-storage-options.md   # Web 数据持久化方案选型
 ├── index.html
 └── package.json
-```
-
-## SEO 与可分享性
-
-`index.html` 内置了完整的 SEO 基础设施，无需后端：
-
-- **静态兜底文案**：`#root` 内手写 H1 + 功能列表，爬虫与禁用 JS 客户端首屏可见；React `createRoot` 渲染时清空替换，不产生 hydration 问题（未用 `hydrateRoot`）。
-- **元数据**：title、description、keywords、canonical、Open Graph（含 `og:locale` 双语）、Twitter Card。
-- **结构化数据**：`WebApplication` + `WebSite` + `Organization` 三实体 `@graph`，验证用 [Rich Results Test](https://search.google.com/test/rich-results)（会渲染 JS）。
-- **PWA**：`manifest.json` + 三种尺寸图标，可在浏览器「安装为应用」。
-- **爬虫策略**：`public/robots.txt` 显式允许搜索引擎、封禁 AI 训练 / 检索爬虫（GPTBot、ClaudeBot、CCBot、Google-Extended、PerplexityBot 等）。若希望被 AI 搜索引用，编辑此文件放开对应 User-agent。
-- **缓存**：`public/_headers` 把 `/assets/*` 设为 1 年 immutable（带哈希），HTML 走 `must-revalidate`。
-- **404**：`public/404.html` 是独立静态页，Cloudflare Pages 对未匹配路由返回它（404 状态）。
-
-## 部署到 Cloudflare Pages 后的验证清单
-
-```bash
-# 1. 部署
-npm run build
-npx wrangler pages deploy dist --project-name vector-forge --branch main
-
-# 2. 验证关键资源（应返回 200 + 正确 content-type）
-curl -sI https://vector-forge.wangruofeng007.com/robots.txt
-curl -sI https://vector-forge.wangruofeng007.com/sitemap.xml
-curl -sI https://vector-forge.wangruofeng007.com/manifest.json
-curl -sI https://vector-forge.wangruofeng007.com/og-image.png
-
-# 3. 验证项目 robots.txt 是否覆盖了 Cloudflare 托管默认
-curl -s https://vector-forge.wangruofeng007.com/robots.txt | head -5
-
-# 4. 验证未匹配路由返回 404（而非软 404）
-curl -sI https://vector-forge.wangruofeng007.com/no-such-page | head -1
-
-# 5. 验证 _headers 是否生效（assets 应为 immutable）
-curl -sI https://vector-forge.wangruofeng007.com/assets/ | grep -i cache-control
 ```
 
 ## License
