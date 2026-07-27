@@ -8,6 +8,12 @@
 <p align="center"><strong>Vector Forge is a browser-based SVG editor that lets you drag in SVG files, inspect, select, and tweak layers in real time.</strong></p>
 
 <div align="center">
+  <a href="https://reactjs.org/"><img src="https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB" alt="React"></a>
+  <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white" alt="Vite"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-AGPL%20v3-blue.svg" alt="License"></a>
+</div>
+
+<div align="center">
     <a href="https://vector-forge.wangruofeng007.com/" target="_blank">Try it live</a>
 </div>
 

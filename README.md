@@ -8,6 +8,12 @@
 <p align="center"><strong>Vector Forge 是一个运行在浏览器中的 SVG 编辑器，支持拖入 SVG 文件后实时查看、选择和调整内部图层。</strong></p>
 
 <div align="center">
+  <a href="https://reactjs.org/"><img src="https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB" alt="React"></a>
+  <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white" alt="Vite"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-AGPL%20v3-blue.svg" alt="License"></a>
+</div>
+
+<div align="center">
     <a href="https://vector-forge.wangruofeng007.com/" target="_blank">在线体验</a>
 </div>
 
