@@ -110,12 +110,60 @@ export function getEditableTextContent(node) {
   return tspans.length ? tspans.map((tspan) => tspan.textContent || '').join('\n') : (node.textContent || '')
 }
 
+function getStyleProperty(style, property) {
+  const propertyPattern = new RegExp(`^\\s*${property}\\s*:\\s*(.+)$`, 'i')
+  const rule = String(style || '').split(';').map((item) => item.match(propertyPattern)).find(Boolean)
+  return rule?.[1].trim() || ''
+}
+
+function getStylesheetPaint(doc, node, property) {
+  let value = ''
+  doc.querySelectorAll('style').forEach((styleNode) => {
+    const rulePattern = /([^{}]+)\{([^{}]*)\}/g
+    let match
+    while ((match = rulePattern.exec(styleNode.textContent || ''))) {
+      const selector = match[1].trim()
+      if (selector.startsWith('@')) continue
+      const matchesNode = selector.split(',').some((candidate) => {
+        try {
+          return node.matches(candidate.trim())
+        } catch {
+          return false
+        }
+      })
+      if (matchesNode) value = getStyleProperty(match[2], property) || value
+    }
+  })
+  return value
+}
+
+function setStyleProperty(node, property, value) {
+  const rules = String(node.getAttribute('style') || '').split(';').map((rule) => rule.trim()).filter(Boolean)
+  const propertyPattern = new RegExp(`^\\s*${property}\\s*:`, 'i')
+  const nextRules = rules.filter((rule) => !propertyPattern.test(rule))
+  if (value !== '' && value != null) nextRules.push(`${property}: ${value}`)
+  if (nextRules.length) node.setAttribute('style', nextRules.join('; '))
+  else node.removeAttribute('style')
+}
+
+export function getElementPaint(rawMarkup, targetId, property) {
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const node = doc.querySelector(`[data-editor-id="${targetId}"]`)
+  if (!node) return ''
+  return getStyleProperty(node.getAttribute('style'), property)
+    || getStylesheetPaint(doc, node, property)
+    || node.getAttribute(property)
+    || ''
+}
+
 export function updateElementAttributes(rawMarkup, targetId, updates) {
   const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
   const node = doc.querySelector(`[data-editor-id="${targetId}"]`)
   if (!node) return rawMarkup
   Object.entries(updates).forEach(([attribute, value]) => {
-    if (value === '' || value == null) node.removeAttribute(attribute)
+    const usesStylesheetPaint = node.tagName?.toLowerCase() === 'text' && attribute === 'fill' && Boolean(getStylesheetPaint(doc, node, attribute))
+    if (usesStylesheetPaint) setStyleProperty(node, attribute, value)
+    else if (value === '' || value == null) node.removeAttribute(attribute)
     else node.setAttribute(attribute, value)
   })
   if (node.tagName?.toLowerCase() === 'text' && 'fill' in updates && updates.fill && !updates.fill.startsWith('url(') && node.hasAttribute('data-editor-solid-fill')) {
@@ -576,6 +624,34 @@ export function removeLayers(rawMarkup, targetIds) {
   topLevelNodes.forEach((node) => node.remove())
   const nextSelectedId = doc.querySelector('[data-editor-id]')?.getAttribute('data-editor-id') || ''
   return { markup: new XMLSerializer().serializeToString(doc.documentElement), nextSelectedId }
+}
+
+export function groupLayers(rawMarkup, targetIds) {
+  if (targetIds.length < 2) return { markup: rawMarkup, nextSelectedId: '' }
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const selectedIds = new Set(targetIds)
+  const nodes = targetIds.map((targetId) => doc.querySelector(`[data-editor-id="${targetId}"]`)).filter((node) => node && node !== doc.documentElement)
+  const topLevelNodes = nodes.filter((node) => {
+    let parent = node.parentElement
+    while (parent) {
+      if (selectedIds.has(parent.getAttribute('data-editor-id'))) return false
+      parent = parent.parentElement
+    }
+    return true
+  })
+  const parent = topLevelNodes[0]?.parentElement
+  if (topLevelNodes.length < 2 || !parent || topLevelNodes.some((node) => node.parentElement !== parent)) return { markup: rawMarkup, nextSelectedId: '' }
+  const sortedNodes = [...topLevelNodes].sort((left, right) => Array.from(parent.children).indexOf(left) - Array.from(parent.children).indexOf(right))
+  const usedIds = new Set(Array.from(doc.querySelectorAll('[data-editor-id]')).map((node) => node.getAttribute('data-editor-id')))
+  let index = 0
+  while (usedIds.has(`group-${index}`)) index += 1
+  const groupId = `group-${index}`
+  const group = doc.createElementNS('http://www.w3.org/2000/svg', 'g')
+  group.setAttribute('data-editor-id', groupId)
+  group.setAttribute('data-name', 'Group')
+  parent.insertBefore(group, sortedNodes[0])
+  sortedNodes.forEach((node) => group.appendChild(node))
+  return { markup: new XMLSerializer().serializeToString(doc.documentElement), nextSelectedId: groupId }
 }
 
 export function reorderSiblingElements(rawMarkup, draggedId, targetId) {

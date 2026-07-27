@@ -11,7 +11,7 @@ export default function Icon({ name, size = 16 }) {
     grid: <><rect x="2.5" y="2.5" width="4.6" height="4.6" rx="1" /><rect x="8.9" y="2.5" width="4.6" height="4.6" rx="1" /><rect x="2.5" y="8.9" width="4.6" height="4.6" rx="1" /><rect x="8.9" y="8.9" width="4.6" height="4.6" rx="1" /></>,
     plus: <><path d="M8 3v10M3 8h10" /></>,
     code: <><path d="m5 4-3 4 3 4M11 4l3 4-3 4M9 2.5 7 13.5" /></>,
-    merge: <><path d="M3 4h2.5c2 0 2.5 2 2.5 4v4" /><path d="M3 12h2.5c2 0 2.5-2 2.5-4V4" /><path d="m9.5 5 2-2 2 2M9.5 11l2 2 2-2" /></>,
+    simplify: <><path d="M13.5 6.5H9.5V2.5M14 2 9.5 6.5" /><path d="M2.5 9.5h4v4M2 14l4.5-4.5" /></>,
     sidebar: <><rect x="2.5" y="3" width="11" height="10" rx="1.5" /><path d="M6.5 3v10" /></>,
     x: <><path d="m4 4 8 8M12 4l-8 8" /></>,
     check: <path d="m3 8 3 3 5-6" />,
@@ -32,7 +32,7 @@ export default function Icon({ name, size = 16 }) {
     distributeX: <><rect x="2.5" y="4.5" width="2.4" height="7" rx="0.6" /><rect x="6.8" y="4.5" width="2.4" height="7" rx="0.6" /><rect x="11.1" y="4.5" width="2.4" height="7" rx="0.6" /></>,
     distributeY: <><rect x="4.5" y="2.5" width="7" height="2.4" rx="0.6" /><rect x="4.5" y="6.8" width="7" height="2.4" rx="0.6" /><rect x="4.5" y="11.1" width="7" height="2.4" rx="0.6" /></>,
     edit: <path d="M9.8 3.2a1.5 1.5 0 0 1 2.1 2.1L5.5 11.7 3 12.3l.6-2.5 6.2-6.6Z" />,
-    copy: <><rect x="5.5" y="5.5" width="7" height="7" rx="1.5" /><path d="M10.2 5.5V4.4a1.9 1.9 0 0 0-1.9-1.9H5.4a1.9 1.9 0 0 0-1.9 1.9v2.9a1.9 1.9 0 0 0 1.9 1.9h1.1" /></>,
+    copy: <><rect x="5.8" y="5.8" width="7.7" height="7.7" rx="1.5" /><path d="M10.2 5.8V4a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 4v4.7A1.5 1.5 0 0 0 4 10.2h1.8" /></>,
     paste: <><rect x="3.5" y="4.5" width="9" height="9" rx="1.5" /><path d="M6 4.5V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5" /></>,
     trash: <><path d="M3 4.5h10" /><path d="M6 4.5V3.2A1.2 1.2 0 0 1 7.2 2h1.6A1.2 1.2 0 0 1 10 3.2v1.3" /><path d="M4.5 4.5 5.2 13a1 1 0 0 0 1 .9h3.6a1 1 0 0 0 1-.9l.7-8.5" /></>,
   }

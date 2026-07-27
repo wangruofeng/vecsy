@@ -11,7 +11,7 @@ import useEditorDocument from './hooks/useEditorDocument.js'
 import useCanvasInteraction from './hooks/useCanvasInteraction.js'
 import { getAncestorGroupIds, getColor, getSvgColorTokens, getVisibleLayerItems, isElementHidden, setElementVisibility } from './editor/svg-parser.js'
 import { getSvgDimensions, getTopLevelSelectedIds } from './editor/svg-geometry.js'
-import { compactSvgTranslateTransforms, copyLayerMarkup, createCollectionSvgLayerMarkup, createImageLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, getPolygonSides, getTextGradientConfig, highlightSvgSource, insertClonedLayer, minifySvg, removeLayers, reorderSiblingElements, replaceSvgColorToken, sanitizeForExport, syncTextLineLayout, translateElements, translateElementsById, updateElementAttributes, updatePolygonSides as updatePolygonSidesMarkup, updateTextGradient, withExplicitSize } from './editor/svg-transforms.js'
+import { compactSvgTranslateTransforms, copyLayerMarkup, createCollectionSvgLayerMarkup, createImageLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, getElementPaint, getPolygonSides, getTextGradientConfig, groupLayers, highlightSvgSource, insertClonedLayer, minifySvg, removeLayers, reorderSiblingElements, replaceSvgColorToken, sanitizeForExport, syncTextLineLayout, translateElements, translateElementsById, updateElementAttributes, updatePolygonSides as updatePolygonSidesMarkup, updateTextGradient, withExplicitSize } from './editor/svg-transforms.js'
 
 const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480">
   <g id="background" data-name="Background">
@@ -73,6 +73,8 @@ function App() {
   const [exportLayerIds, setExportLayerIds] = useState([])
   const [exportBounds, setExportBounds] = useState(null)
   const [exportSizes, setExportSizes] = useState(null)
+  const [exportPreviewOpen, setExportPreviewOpen] = useState(false)
+  const [exportPreviewZoom, setExportPreviewZoom] = useState(1)
   const [contextMenu, setContextMenu] = useState(null)
   const [renamingLayerId, setRenamingLayerId] = useState('')
   const [renameDraft, setRenameDraft] = useState('')
@@ -104,6 +106,10 @@ function App() {
   const fileDragCounterRef = useRef(0)
   const renameInputRef = useRef(null)
   const textEditIdRef = useRef('')
+  const arrowKeyHoldRef = useRef({ key: '', startedAt: 0 })
+  const exportPreviewZoomRef = useRef(1)
+  const exportPreviewPointersRef = useRef(new Map())
+  const exportPreviewPinchRef = useRef(null)
   const copy = COPY[language]
 
   useLayoutEffect(() => {
@@ -145,6 +151,7 @@ function App() {
       items: [
         ['Shift + Click', copy.shortcutRangeSelect],
         ['⌘ + Click', copy.shortcutToggleSelect],
+        ['⌘ G', copy.shortcutGroup],
       ],
     },
   ]
@@ -173,6 +180,7 @@ function App() {
   const handleResizePointerDown = (event, handle) => canvasInteraction.handleResizePointerDown(event, handle)
   const renderedMarkup = transientMarkup || svgMarkup
   const getSelectedPaint = (attribute) => {
+    if (selected?.tag === 'text') return getColor(getElementPaint(svgMarkup, selected.id, attribute))
     const directValue = selectedAttrs?.getAttribute(attribute)
     if (directValue) return getColor(directValue)
     if (selected?.tag !== 'g') return ''
@@ -646,6 +654,14 @@ function App() {
     showToast(copy.toastDelete)
   }
 
+  const groupSelectedLayers = (event) => {
+    const grouped = groupLayers(svgMarkup, selectedIds)
+    if (grouped.markup === svgMarkup) return
+    event?.preventDefault()
+    commitDocument(grouped.markup, { nextSelectedId: grouped.nextSelectedId, nextSelectedIds: [grouped.nextSelectedId] })
+    showToast(copy.toastGrouped)
+  }
+
   const cyclePanels = () => {
     if (isLayersOpen && isInspectorOpen) {
       setIsLayersOpen(false)
@@ -676,6 +692,10 @@ function App() {
           return
         }
         if (exportOpen) {
+          if (exportPreviewOpen) {
+            closeExportPreview()
+            return
+          }
           setExportOpen(false)
           return
         }
@@ -730,6 +750,11 @@ function App() {
         selectLayerIds(elements.map((item) => item.id), selectedId)
         return
       }
+      if (modifier && key === 'g') {
+        event.preventDefault()
+        groupSelectedLayers(event)
+        return
+      }
       if (modifier && key === 'c') {
         copySelectedLayer(event)
         return
@@ -739,7 +764,11 @@ function App() {
         return
       }
       if (!modifier && !event.altKey && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
-        const step = event.shiftKey ? 10 : 1
+        const now = performance.now()
+        if (!event.repeat || arrowKeyHoldRef.current.key !== event.key) arrowKeyHoldRef.current = { key: event.key, startedAt: now }
+        const heldFor = now - arrowKeyHoldRef.current.startedAt
+        const multiplier = heldFor >= 850 ? 8 : heldFor >= 450 ? 3 : 1
+        const step = (event.shiftKey ? 10 : 1) * multiplier
         const moves = { ArrowUp: [0, -step], ArrowDown: [0, step], ArrowLeft: [-step, 0], ArrowRight: [step, 0] }
         event.preventDefault()
         moveSelectedLayers(...moves[event.key])
@@ -747,9 +776,18 @@ function App() {
       }
       if (key === 'delete' || key === 'backspace') deleteSelectedLayer(event)
     }
+    const resetArrowKeyHold = (event) => {
+      if (!event || event.key === arrowKeyHoldRef.current.key) arrowKeyHoldRef.current = { key: '', startedAt: 0 }
+    }
     window.addEventListener('keydown', handleEditorShortcuts)
-    return () => window.removeEventListener('keydown', handleEditorShortcuts)
-  }, [selectedId, selectedIds, elements, svgMarkup, fileName, dirty, history, isLayersOpen, isInspectorOpen, showShortcuts, svgScale, contextMenu, exportOpen, renamingLayerId, showSvgCollection])
+    window.addEventListener('keyup', resetArrowKeyHold)
+    window.addEventListener('blur', resetArrowKeyHold)
+    return () => {
+      window.removeEventListener('keydown', handleEditorShortcuts)
+      window.removeEventListener('keyup', resetArrowKeyHold)
+      window.removeEventListener('blur', resetArrowKeyHold)
+    }
+  }, [selectedId, selectedIds, elements, svgMarkup, fileName, dirty, history, isLayersOpen, isInspectorOpen, showShortcuts, svgScale, contextMenu, exportOpen, exportPreviewOpen, renamingLayerId, showSvgCollection])
 
   const syncSourceScroll = (event) => {
     if (!sourceHighlightRef.current) return
@@ -834,9 +872,53 @@ function App() {
 
   const selectedExportMarkup = filterSvgToLayerIds(svgMarkup, exportLayerIds)
   const exportMarkup = exportSelectedOnly && exportLayerIds.length ? cropSvgToBounds(selectedExportMarkup, exportBounds) : svgMarkup
+  const exportLayerCount = exportSelectedOnly && exportLayerIds.length ? exportLayerIds.length : elements.length
   const exportPreviewDimensions = useMemo(() => getSvgDimensions(new DOMParser().parseFromString(exportMarkup, 'image/svg+xml')), [exportMarkup])
   const exportPreviewWidth = Math.min(280, 170 * exportPreviewDimensions.width / exportPreviewDimensions.height)
   const exportPreviewStyle = { width: `${exportPreviewWidth}px`, height: `${exportPreviewWidth * exportPreviewDimensions.height / exportPreviewDimensions.width}px` }
+  const exportPreviewExpandedScale = Math.min(640 / exportPreviewDimensions.width, 520 / exportPreviewDimensions.height)
+  const exportPreviewExpandedStyle = { width: `${exportPreviewDimensions.width * exportPreviewExpandedScale}px`, height: `${exportPreviewDimensions.height * exportPreviewExpandedScale}px`, transform: `scale(${exportPreviewZoom})` }
+
+  const closeExportPreview = () => {
+    exportPreviewPointersRef.current.clear()
+    exportPreviewPinchRef.current = null
+    setExportPreviewOpen(false)
+  }
+
+  const openExportPreview = () => {
+    exportPreviewZoomRef.current = 1
+    setExportPreviewZoom(1)
+    setExportPreviewOpen(true)
+  }
+
+  const updateExportPreviewPinch = () => {
+    const pointers = [...exportPreviewPointersRef.current.values()]
+    if (pointers.length !== 2 || !exportPreviewPinchRef.current) return
+    const distance = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y)
+    const zoom = Math.min(3, Math.max(1, exportPreviewPinchRef.current.startZoom * distance / exportPreviewPinchRef.current.startDistance))
+    exportPreviewZoomRef.current = zoom
+    setExportPreviewZoom(zoom)
+  }
+
+  const handleExportPreviewPointerDown = (event) => {
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId)
+    } catch {}
+    exportPreviewPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
+    const pointers = [...exportPreviewPointersRef.current.values()]
+    if (pointers.length === 2) exportPreviewPinchRef.current = { startDistance: Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y), startZoom: exportPreviewZoomRef.current }
+  }
+
+  const handleExportPreviewPointerMove = (event) => {
+    if (!exportPreviewPointersRef.current.has(event.pointerId)) return
+    exportPreviewPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
+    updateExportPreviewPinch()
+  }
+
+  const handleExportPreviewPointerEnd = (event) => {
+    exportPreviewPointersRef.current.delete(event.pointerId)
+    if (exportPreviewPointersRef.current.size < 2) exportPreviewPinchRef.current = null
+  }
 
   useEffect(() => {
     if (!exportOpen) return undefined
@@ -941,7 +1023,7 @@ function App() {
     event.stopPropagation()
     if (targetId && !selectedIds.includes(targetId)) selectLayerIds([targetId], targetId)
     const menuWidth = 180
-    const menuHeight = 210
+    const menuHeight = 254
     setContextMenu({
       x: Math.min(event.clientX, window.innerWidth - menuWidth - 8),
       y: Math.min(event.clientY, window.innerHeight - menuHeight - 8),
@@ -991,12 +1073,19 @@ function App() {
     renameInputRef.current?.select()
   }, [renamingLayerId])
 
-  const fill = getDraftedAttribute('fill', getSelectedPaint('fill'))
+  const draftFill = attributeDrafts.targetId === selected?.id ? attributeDrafts.values.fill : undefined
+  const fill = selected?.tag === 'text' && textGradient?.enabled
+    ? draftFill ?? (selectedAttrs?.getAttribute('data-editor-solid-fill') || textGradient.startColor)
+    : draftFill ?? getSelectedPaint('fill')
   const stroke = getDraftedAttribute('stroke', getSelectedPaint('stroke'))
   const opacity = Number(getDraftedAttribute('opacity', '1'))
   const strokeWidth = Number(getDraftedAttribute('stroke-width', '0'))
   const rectWidthValue = getDraftedAttribute('width', selectedAttrs?.getAttribute('width') || '200')
   const rectHeightValue = getDraftedAttribute('height', selectedAttrs?.getAttribute('height') || '200')
+  const lineStartX = getDraftedAttribute('x1', selectedAttrs?.getAttribute('x1') || '0')
+  const lineStartY = getDraftedAttribute('y1', selectedAttrs?.getAttribute('y1') || '0')
+  const lineEndX = getDraftedAttribute('x2', selectedAttrs?.getAttribute('x2') || '0')
+  const lineEndY = getDraftedAttribute('y2', selectedAttrs?.getAttribute('y2') || '0')
   const rectWidth = Number(rectWidthValue) || 200
   const rectHeight = Number(rectHeightValue) || 200
   const cornerRadiusMax = Math.max(1, Math.floor(Math.min(rectWidth, rectHeight) / 2))
@@ -1148,6 +1237,10 @@ function App() {
           handleTextAttributeKeyDown={handleTextAttributeKeyDown}
           rectWidthValue={rectWidthValue}
           rectHeightValue={rectHeightValue}
+          lineStartX={lineStartX}
+          lineStartY={lineStartY}
+          lineEndX={lineEndX}
+          lineEndY={lineEndY}
           updateRectAspectRatio={updateRectAspectRatio}
           polygonSides={polygonSides}
           updatePolygonSides={updatePolygonSides}
@@ -1182,11 +1275,11 @@ function App() {
         <div className="shortcuts-modal export-modal" role="dialog" aria-modal="true" aria-label={copy.exportDialogTitle} onClick={(event) => event.stopPropagation()}>
           <div className="shortcuts-header"><span>{copy.exportDialogTitle}</span><button className="mini-button" type="button" title={copy.close} aria-label={copy.close} onClick={() => setExportOpen(false)}><Icon name="x" size={14} /></button></div>
           <div className="export-body">
+            {exportFormat === 'svg' && <label className="export-check"><input type="checkbox" checked={exportOptimize} onChange={(event) => setExportOptimize(event.target.checked)} /><span>{copy.exportOptimize}</span></label>}
             <div className="export-row"><span className="export-label">{copy.exportFormat}</span><div className="view-tabs"><button type="button" className={exportFormat === 'svg' ? 'active' : ''} onClick={() => setExportFormat('svg')}>SVG</button><button type="button" className={exportFormat === 'png' ? 'active' : ''} onClick={() => setExportFormat('png')}>PNG</button><button type="button" className={exportFormat === 'webp' ? 'active' : ''} onClick={() => setExportFormat('webp')}>WebP</button></div></div>
             {exportFormat !== 'svg' && <>
               <div className="export-row"><span className="export-label">{copy.exportScale}</span><div className="view-tabs">{[1, 2, 3].map((scale) => <button key={scale} type="button" className={exportScale === scale ? 'active' : ''} onClick={() => setExportScale(scale)}>{scale}x</button>)}</div></div>
             </>}
-            {exportFormat === 'svg' && <label className="export-check"><input type="checkbox" checked={exportOptimize} onChange={(event) => setExportOptimize(event.target.checked)} /><span>{copy.exportOptimize}</span></label>}
             <div className="export-row">
               <span className="export-label">{copy.exportScope}</span>
               <div className="view-tabs" role="radiogroup" aria-label={copy.exportScope}>
@@ -1194,15 +1287,23 @@ function App() {
                 <button type="button" role="radio" aria-checked={exportSelectedOnly} className={exportSelectedOnly ? 'active' : ''} disabled={!exportLayerIds.length} onClick={() => setExportSelectedOnly(true)}>{copy.exportSelectedLayers}</button>
               </div>
             </div>
-            <div className="export-preview"><span className="export-label">{copy.exportPreview}</span><div className="export-preview-canvas" style={exportPreviewStyle} dangerouslySetInnerHTML={{ __html: exportMarkup }} /></div>
+            <div className="export-row"><span className="export-label">{copy.exportLayerCount}</span><span className="export-layer-count" aria-live="polite">{exportLayerCount}</span></div>
+            <div className="export-preview"><span className="export-label">{copy.exportPreview}</span><button className="export-preview-canvas" type="button" style={exportPreviewStyle} onClick={openExportPreview} aria-label={copy.expandExportPreview} title={copy.expandExportPreview} dangerouslySetInnerHTML={{ __html: exportMarkup }} /></div>
             <div className="export-size" aria-live="polite"><span className="export-label">{copy.exportEstimatedSize}</span><div className="export-size-values"><span>SVG {exportSizes?.svg || '—'}</span><span>PNG {exportSizes?.png || '—'}</span><span>WebP {exportSizes?.webp || '—'}</span></div></div>
           </div>
           <div className="export-footer"><button className="button button-accent" type="button" onClick={exportDocument}><Icon name="upload" /> {copy.exportShort}</button></div>
         </div>
       </div>}
+      {exportPreviewOpen && <div className="shortcuts-overlay export-preview-overlay" onClick={closeExportPreview}>
+        <div className="export-preview-dialog" role="dialog" aria-modal="true" aria-label={copy.expandExportPreview} onClick={(event) => event.stopPropagation()}>
+          <button className="mini-button export-preview-close" type="button" title={copy.close} aria-label={copy.close} onClick={closeExportPreview}><Icon name="x" size={14} /></button>
+          <div className="export-preview-zoom-stage" onPointerDown={handleExportPreviewPointerDown} onPointerMove={handleExportPreviewPointerMove} onPointerUp={handleExportPreviewPointerEnd} onPointerCancel={handleExportPreviewPointerEnd}><div className="export-preview-zoom-canvas" style={exportPreviewExpandedStyle} dangerouslySetInnerHTML={{ __html: exportMarkup }} /></div>
+        </div>
+      </div>}
       {contextMenu && contextMenuTarget && <div className="context-menu" role="menu" style={{ left: contextMenu.x, top: contextMenu.y }} onPointerDown={(event) => event.stopPropagation()}>
         <button type="button" role="menuitem" onClick={() => startRename(contextMenu.targetId)}><Icon name="edit" size={13} /><span>{copy.menuRename}</span></button>
         <button type="button" role="menuitem" onClick={() => { copySelectedLayer(); setContextMenu(null) }}><Icon name="copy" size={13} /><span>{copy.shortcutCopy}</span></button>
+        <button type="button" role="menuitem" disabled={selectedIds.length < 2} onClick={() => { groupSelectedLayers(); setContextMenu(null) }}><Icon name="layers" size={13} /><span>{copy.menuGroup}</span></button>
         <button type="button" role="menuitem" disabled={!clipboardLayerRef.current} onClick={() => { pasteLayer(); setContextMenu(null) }}><Icon name="paste" size={13} /><span>{copy.shortcutPaste}</span></button>
         <button type="button" role="menuitem" onClick={(event) => { toggleVisibility(contextMenuTarget, event); setContextMenu(null) }}><Icon name="eye" size={13} /><span>{isElementHidden(contextMenuTarget.node) ? copy.show : copy.hide}</span></button>
         <span className="menu-divider" />
