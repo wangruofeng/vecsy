@@ -54,10 +54,10 @@
 
 | 快捷键 | 功能 |
 |--------|------|
-| `Cmd/Ctrl + Z` | 撤销 |
-| `Cmd/Ctrl + Shift + Z` | 重做 |
-| `Cmd/Ctrl + C` / `V` | 复制 / 粘贴图层 |
-| `Delete` / `Backspace` | 删除选中图层 |
+| <kbd>⌘</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Z</kbd> | 撤销 |
+| <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | 重做 |
+| <kbd>⌘</kbd> + <kbd>C</kbd> / <kbd>V</kbd> / <kbd>Ctrl</kbd> + <kbd>C</kbd> / <kbd>V</kbd> | 复制 / 粘贴图层 |
+| <kbd>Delete</kbd> / <kbd>Backspace</kbd> | 删除选中图层 |
 
 ## 技术栈
 
