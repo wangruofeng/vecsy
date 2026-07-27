@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Icon from './Icon.jsx'
 import { highlightSelectedMarkup, highlightSvgSource } from '../editor/svg-transforms.js'
 import { getElementAndDescendantIds } from '../editor/svg-parser.js'
@@ -109,8 +109,20 @@ export default function CanvasPanel(props) {
   const { copy, activeTab, setActiveTab, formatSource, simplifySource, sourceDisplayMode, setSourceDisplayMode, expandedGroups, toggleGroup, selectedIds, selectLayerIds, alignSelection, zoomBy, fitToScreen, svgScale, setSvgScale, setSvgPosition, canvasRef, handleCanvasClick, handleSvgDoubleClick, openContextMenu, handleCanvasPointerDown, handleCanvasPointerMove, handleCanvasPointerUp, hoveredLayerId, setHoveredLayerId, elements, isDraggingSvg, isDraggingElement, isPinchingSvg, svgRef, svgPosition, renderedMarkup, editingTextId, selectedId, selected, selectionBox, lineEndpoints, textDraft, setTextDraft, commitTextEdit, cancelTextEdit, language, selectionGroupBox, multiSelectionBoxes, isResizingElement, handleResizePointerMove, handleResizePointerUp, handleResizePointerDown, sourceHighlightRef, highlightedSource, sourceDraft, setSourceDraft, syncSourceScroll, commitDocument, showToast, loadDemo, toast, toastTimerRef, selectedDisplayName, setToast } = props
   const [hasAnimation, setHasAnimation] = useState(false)
   const [isAnimationPaused, setIsAnimationPaused] = useState(false)
+  const sourceRowRefs = useRef(new Map())
   const sourceRows = getSourceRows(sourceDraft, elements, expandedGroups)
   const selectSourceItem = (item) => selectLayerIds(getElementAndDescendantIds(elements, item.id), item.id)
+
+  // 源码树形模式下，选中图层时自动滚动到对应源码行（仿照 main.jsx 的图层列表滚动逻辑）。
+  // 依赖 sourceRows 而非 sourceRows.length：选中折叠组内元素时，自动展开 effect 先运行，
+  // 下一次渲染 sourceRows 才会包含该行，因此需要这里再次触发滚动。
+  useEffect(() => {
+    if (activeTab !== 'source' || sourceDisplayMode !== 'tree' || !selectedId) return
+    const row = sourceRowRefs.current.get(selectedId)
+    if (!row) return
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    row.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' })
+  }, [selectedId, sourceRows, activeTab, sourceDisplayMode])
 
   const setAnimationPlayback = (paused) => {
     const svg = svgRef.current?.querySelector('svg')
@@ -172,7 +184,7 @@ export default function CanvasPanel(props) {
           ) : (
             <div className={`source-editor-wrap ${sourceDisplayMode === 'tree' ? 'source-tree-mode' : ''}`}>
               {sourceDisplayMode === 'tree' ? <div className="source-tree" role="tree" aria-label={copy.sourceTree}>
-                {sourceRows.map((row) => row.type === 'fold' ? <div key={`fold-${row.lineIndex}`} className="source-fold-row"><span className="source-line-number">…</span><span>{copy.collapsedContent}</span></div> : <div key={row.lineIndex} className={`source-code-row ${row.item && selectedIds.includes(row.item.id) ? 'selected' : ''}`} role={row.item ? 'treeitem' : undefined} onClick={() => row.item && selectSourceItem(row.item)}>
+                {sourceRows.map((row) => row.type === 'fold' ? <div key={`fold-${row.lineIndex}`} className="source-fold-row"><span className="source-line-number">…</span><span>{copy.collapsedContent}</span></div> : <div key={row.lineIndex} className={`source-code-row ${row.item && selectedIds.includes(row.item.id) ? 'selected' : ''}`} ref={(node) => { if (!row.item) return; if (node) sourceRowRefs.current.set(row.item.id, node); else sourceRowRefs.current.delete(row.item.id) }} role={row.item ? 'treeitem' : undefined} onClick={() => row.item && selectSourceItem(row.item)}>
                   <span className="source-line-number">{row.lineIndex + 1}</span><button className="source-fold-button" type="button" tabIndex={row.item?.tag === 'g' ? 0 : -1} aria-label={row.item?.tag === 'g' ? (expandedGroups[row.item.id] === false ? copy.expandGroup : copy.collapseGroup) : undefined} onClick={(event) => { if (!row.item || row.item.tag !== 'g') return; event.stopPropagation(); toggleGroup(row.item, event) }}>{row.item?.tag === 'g' ? <Icon name="chevron" size={12} /> : null}</button><code dangerouslySetInnerHTML={{ __html: highlightSvgSource(row.line) }} />
                 </div>)}
               </div> : <><pre ref={sourceHighlightRef} className="source-highlight" aria-hidden="true" dangerouslySetInnerHTML={{ __html: highlightedSource }} /><textarea className="source-editor" value={sourceDraft} onChange={(event) => setSourceDraft(event.target.value)} onScroll={syncSourceScroll} onBlur={() => { if (!sourceDraft.trim()) return; try { commitDocument(sourceDraft, { nextSelectedId: selectedId }); setSourceDisplayMode('tree') } catch { showToast(copy.invalidSvg, 'error') } }} spellCheck="false" /></>}
