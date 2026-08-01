@@ -2,7 +2,6 @@ node_modules/
 dist/
 .playwright-mcp/
 .DS_Store
-vector-forge-home.png
 
 # AI
 .zcode/
