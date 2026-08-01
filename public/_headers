@@ -1,4 +1,4 @@
-# Vector Forge — Cloudflare Pages 响应头配置
+# Vecsy — Cloudflare Pages 响应头配置
 # 文件名带内容哈希，可永久缓存；HTML 仍走 must-revalidate。
 
 /assets/*

@@ -3,9 +3,9 @@
 <p align="center">
   <img src="/public/favicon.svg" width="138" alt="logo">
 </p>
-<h1 align="center">Vector Forge</h1>
+<h1 align="center">Vecsy</h1>
 
-<p align="center"><strong>Vector Forge is a browser-based SVG editor that lets you drag in SVG files, inspect, select, and tweak layers in real time.</strong></p>
+<p align="center"><strong>Vecsy is a browser-based SVG editor that lets you drag in SVG files, inspect, select, and tweak layers in real time.</strong></p>
 
 <div align="center">
   <a href="https://reactjs.org/"><img src="https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB" alt="React"></a>
@@ -14,7 +14,7 @@
 </div>
 
 <div align="center">
-    <a href="https://vector-forge.wangruofeng007.com/" target="_blank">Try it live</a>
+    <a href="https://vecsy.top/" target="_blank">Try it live</a>
 </div>
 
 ## Features

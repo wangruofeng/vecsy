@@ -3,9 +3,9 @@
 <p align="center">
   <img src="/public/favicon.svg" width="138" alt="logo">
 </p>
-<h1 align="center">Vector Forge</h1>
+<h1 align="center">Vecsy</h1>
 
-<p align="center"><strong>Vector Forge 是一个运行在浏览器中的 SVG 编辑器，支持拖入 SVG 文件后实时查看、选择和调整内部图层。</strong></p>
+<p align="center"><strong>Vecsy 是一个运行在浏览器中的 SVG 编辑器，支持拖入 SVG 文件后实时查看、选择和调整内部图层。</strong></p>
 
 <div align="center">
   <a href="https://reactjs.org/"><img src="https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB" alt="React"></a>

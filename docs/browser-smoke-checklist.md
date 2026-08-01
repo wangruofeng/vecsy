@@ -1,11 +1,11 @@
-# Vector Forge 浏览器冒烟清单
+# Vecsy 浏览器冒烟清单
 
 用于每次架构重构 checkpoint 的本地回归验证。启动 `npm run dev` 后，在浏览器访问 `http://127.0.0.1:5173/`。
 
 ## 基础加载
 
-- [ ] 页面标题为 `Vector Forge — SVG editor`。
-- [ ] 首屏出现 VECTOR FORGE、Layers、Preview、Inspector 和示例 SVG。
+- [ ] 页面标题为 `Vecsy — SVG editor`。
+- [ ] 首屏出现 VECSY、Layers、Preview、Inspector 和示例 SVG。
 - [ ] 页面没有 Vite/React 错误覆盖层，控制台没有 error/warn。
 
 ## 图层与画布

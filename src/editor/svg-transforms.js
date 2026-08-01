@@ -202,7 +202,7 @@ export function replaceSvgColorToken(rawMarkup, sourceColor, nextColor) {
 }
 
 function getTextGradientId(targetId) {
-  return `vector-forge-text-gradient-${targetId}`
+  return `vecsy-text-gradient-${targetId}`
 }
 
 function getFillGradientId(node) {

@@ -1,4 +1,4 @@
-# AGENTS.md — Vector Forge
+# AGENTS.md — Vecsy
 
 浏览器端 SVG 编辑器。React + Vite 单页应用，部署到 Cloudflare Pages。
 
@@ -24,7 +24,7 @@ Cloudflare Pages Direct Upload（项目内无 CI 配置，手动部署）：
 
 ```bash
 npm run build
-npx wrangler pages deploy dist --project-name vector-forge --branch main
+npx wrangler pages deploy dist --project-name vecsy --branch main
 ```
 
 ## 红线
@@ -36,4 +36,4 @@ npx wrangler pages deploy dist --project-name vector-forge --branch main
 ## 项目状态
 
 - 版本 `0.1.0`，仍在功能迭代中（近期：SVG 素材库、内联文字编辑、2D 画布多选预览、模块化重构）。
-- 在线 demo：<https://vector-forge.wangruofeng007.com/>
+- 在线 demo：<https://vecsy.top/>

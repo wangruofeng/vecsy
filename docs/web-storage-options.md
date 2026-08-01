@@ -1,6 +1,6 @@
 # Web 数据轻量持久化方案
 
-> 收录于 2026-07-19 ｜ 背景：Vector Forge 当前用 `localStorage` 存文档 + 50 条历史快照，存在 review #10 性能问题（每次 commit 全量序列化）。本文整理除 localStorage 外的可选方案。
+> 收录于 2026-07-19 ｜ 背景：Vecsy 当前用 `localStorage` 存文档 + 50 条历史快照，存在 review #10 性能问题（每次 commit 全量序列化）。本文整理除 localStorage 外的可选方案。
 
 ## 一、同域本地存储（无后端）
 
@@ -16,7 +16,7 @@
 - **能存**：JS 对象（结构化克隆）、Blob、ArrayBuffer、File
 - **API**：原生 API 偏繁琐（请求式 + 事件），需自行封装
 
-**对 Vector Forge 的意义**：
+**对 Vecsy 的意义**：
 ```js
 // 可以存这些 localStorage 存不下的东西
 idb.put('documents', {
@@ -34,7 +34,7 @@ idb.put('documents', {
 ```js
 function openDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open('vector-forge', 1)
+    const req = indexedDB.open('vecsy', 1)
     req.onupgradeneeded = () => req.result.createObjectStore('documents', { keyPath: 'id' })
     req.onsuccess = () => resolve(req.result)
     req.onerror = () => reject(req.error)
@@ -57,10 +57,10 @@ async function save(doc) {
 - **初衷**：缓存 HTTP 请求/响应（PWA 离线资源）
 - **也能存**：任意 `Response` 对象（body 可以是任意文本/Blob）
 - **不适合**：频繁读写的业务数据（没有事务、键值查询不友好）
-- **适合 Vector Forge 的场景**：缓存**导入过的 SVG 原始文件**或**导出的结果**，配合 SW 做离线可用
+- **适合 Vecsy 的场景**：缓存**导入过的 SVG 原始文件**或**导出的结果**，配合 SW 做离线可用
 
 ```js
-const cache = await caches.open('vector-forge-v1')
+const cache = await caches.open('vecsy-v1')
 await cache.put('/user-doc/abc', new Response(svgMarkup, {
   headers: { 'Content-Type': 'image/svg+xml' }
 }))
@@ -72,7 +72,7 @@ await cache.put('/user-doc/abc', new Response(svgMarkup, {
 - **容量**：同 IndexedDB 配额（很大）
 - **API**：`navigator.storage.getDirectory()` → `getFileHandle()` → `createWritable()`
 
-**对 Vector Forge 的意义**：
+**对 Vecsy 的意义**：
 - 存**大体积 SVG 工作区**、**自动保存的草稿文件**、**导出历史**
 - 用户可把它当「虚拟 U 盘」：导入/导出真实文件，而不是塞在 JSON 里
 
@@ -90,7 +90,7 @@ await writable.close()
 ### 5. File System Access API
 - **本质**：让用户**显式授权访问本地文件**（Chrome/Edge 支持，Safari 部分支持）
 - **不是「持久化」**——是把数据落到用户文件系统，但可保留 `FileSystemFileHandle` 到 IndexedDB，下次直接重打开（不用重新选文件）
-- **对 Vector Forge**：可做「**另存为 / 自动保存到本地文件**」这种桌面级体验
+- **对 Vecsy**：可做「**另存为 / 自动保存到本地文件**」这种桌面级体验
 
 ### 6. Web SQL Database ❌
 - **已废弃**，不要选（只有旧 Chrome/Safari 支持，标准已死）
@@ -111,11 +111,11 @@ await writable.close()
 | **Cloudflare Durable Objects** | 中 | 强一致协作编辑 |
 | **GitHub Gist API** | 零 | 把 SVG 存成 Gist，免费、可分享 |
 
-> Vector Forge 目前尚未实现跨设备分享（见 `product-roadmap.md` P1/P3）。如果未来要做分享链接，**Cloudflare KV** 是最契合现有部署的选择。
+> Vecsy 目前尚未实现跨设备分享（见 `product-roadmap.md` P1/P3）。如果未来要做分享链接，**Cloudflare KV** 是最契合现有部署的选择。
 
 ---
 
-## 三、对 Vector Forge 的具体建议
+## 三、对 Vecsy 的具体建议
 
 基于项目现状（零依赖、Cloudflare Pages、文档 + 历史最大 50 条）：
 

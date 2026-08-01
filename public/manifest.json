@@ -1,7 +1,7 @@
 {
-  "name": "Vector Forge — SVG Editor",
-  "short_name": "Vector Forge",
-  "description": "Free browser-based SVG editor. Import any SVG, inspect and rearrange layers, edit fills and strokes live, and export optimized markup.",
+  "name": "Vecsy — SVG Editor",
+  "short_name": "Vecsy",
+  "description": "Vecsy is a free browser-based SVG editor. Import any SVG, inspect and rearrange layers, edit fills and strokes live, and export optimized markup.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

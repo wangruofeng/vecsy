@@ -23,10 +23,11 @@ const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480
     <circle cx="360" cy="194" r="92" fill="#F2A93B" />
     <path d="M300 222c30-104 180-108 182-5 1 55-44 87-101 87-54 0-88-29-81-82Z" fill="#23211D" />
   </g>
-  <text id="wordmark" data-name="Wordmark" x="360" y="370" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="54" letter-spacing="5" fill="#1A1815">VECTOR</text>
+  <text id="wordmark" data-name="Wordmark" x="360" y="370" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="54" letter-spacing="5" fill="#1A1815">VECSY</text>
 </svg>`
 
-const STORAGE_KEY = 'vector-forge:document'
+const STORAGE_KEY = 'vecsy:document'
+const LEGACY_STORAGE_KEY = 'vectsy:document'
 const HISTORY_LIMIT = 50
 
 function formatFileSize(bytes) {
@@ -57,7 +58,7 @@ function renderRasterExport(markup, width, height, format) {
 }
 
 function App() {
-  const { language, setLanguage, svgMarkup, sourceDraft, setSourceDraft, elements, selectedId, setSelectedId, selectedIds, setSelectedIds, fileName, dirty, setDirty, history, storageError, setStorageError, selectLayerIds, currentSnapshot, commitDocument, undo, redo, loadDocument, recentDocuments, removeRecentDocument } = useEditorDocument({ initialMarkup: SAMPLE_SVG, storageKey: STORAGE_KEY, historyLimit: HISTORY_LIMIT })
+  const { language, setLanguage, svgMarkup, sourceDraft, setSourceDraft, elements, selectedId, setSelectedId, selectedIds, setSelectedIds, fileName, dirty, setDirty, history, storageError, setStorageError, selectLayerIds, currentSnapshot, commitDocument, undo, redo, loadDocument, recentDocuments, removeRecentDocument } = useEditorDocument({ initialMarkup: SAMPLE_SVG, storageKey: STORAGE_KEY, legacyStorageKey: LEGACY_STORAGE_KEY, historyLimit: HISTORY_LIMIT })
   const [activeTab, setActiveTab] = useState('preview')
   const [isLayersOpen, setIsLayersOpen] = useState(true)
   const [isInspectorOpen, setIsInspectorOpen] = useState(true)
@@ -1117,7 +1118,7 @@ function App() {
   return (
     <main className="app-shell" onDragEnter={handleFileDragEnter} onDragOver={handleFileDragOver} onDragLeave={handleFileDragLeave} onDrop={handleDrop}>
       <header className="topbar">
-        <div className="brand"><svg className="brand-mark" viewBox="0 0 1024 1024" aria-hidden="true"><defs><linearGradient id="vf-brand-orange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FBA13A" /><stop offset="52%" stopColor="#F59836" /><stop offset="100%" stopColor="#F39230" /></linearGradient></defs><rect x="37" y="34" width="949" height="954" rx="160" fill="url(#vf-brand-orange)" /><path d="M210 254 H325 C333 254 340 258 344 266 L512 600 L681 266 C685 258 692 254 701 254 H816 C827 254 834 266 829 276 L541 838 C535 849 524 854 513 854 C501 854 490 849 484 838 L196 276 C191 266 199 254 210 254 Z" fill="#FFFFFF" /></svg><span>VECTOR FORGE</span><a className="brand-github-link" href="https://github.com/wangruofeng/vector-forge" target="_blank" rel="noreferrer" title={copy.githubRepository} aria-label={copy.githubRepository}><Icon name="github" size={17} /></a></div>
+        <div className="brand"><svg className="brand-mark" viewBox="0 0 1024 1024" aria-hidden="true"><defs><linearGradient id="vecsy-brand-orange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FBA13A" /><stop offset="52%" stopColor="#F59836" /><stop offset="100%" stopColor="#F39230" /></linearGradient></defs><rect x="37" y="34" width="949" height="954" rx="160" fill="url(#vecsy-brand-orange)" /><path d="M210 254 H325 C333 254 340 258 344 266 L512 600 L681 266 C685 258 692 254 701 254 H816 C827 254 834 266 829 276 L541 838 C535 849 524 854 513 854 C501 854 490 849 484 838 L196 276 C191 266 199 254 210 254 Z" fill="#FFFFFF" /></svg><span>VECSY</span><a className="brand-github-link" href="https://github.com/wangruofeng/vecsy" target="_blank" rel="noreferrer" title={copy.githubRepository} aria-label={copy.githubRepository}><Icon name="github" size={17} /></a></div>
         <div className="topbar-actions">
           <button className="icon-button" title={`${copy.undo} (⌘Z)`} aria-keyshortcuts="Meta+Z" onClick={undo} disabled={!history.past.length}><Icon name="undo" /></button>
           <button className="icon-button" title={`${copy.redo} (⌘⇧Z)`} aria-keyshortcuts="Meta+Shift+Z" onClick={redo} disabled={!history.future.length}><Icon name="redo" /></button>

@@ -1,4 +1,4 @@
-# Vector Forge — robots.txt
+# Vecsy — robots.txt
 # 项目自有文件，覆盖 Cloudflare Pages 托管的默认内容。
 # 策略：搜索引擎（Google/Bing 等）全部允许；AI 训练/AI 检索爬虫封禁。
 
@@ -72,4 +72,4 @@ User-agent: FacebookExternalHit
 Disallow: /
 
 # --- 站点地图 ---
-Sitemap: https://vector-forge.wangruofeng007.com/sitemap.xml
+Sitemap: https://vecsy.top/sitemap.xml

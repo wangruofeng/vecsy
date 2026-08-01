@@ -2,12 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { LANGUAGES } from '../app/copy.js'
 import { parseSvg } from '../editor/svg-parser.js'
 
-export default function useEditorDocument({ initialMarkup, storageKey, historyLimit = 50 }) {
+export default function useEditorDocument({ initialMarkup, storageKey, legacyStorageKey, historyLimit = 50 }) {
   const recentStorageKey = `${storageKey}:recent-documents`
+  const legacyRecentStorageKey = legacyStorageKey ? `${legacyStorageKey}:recent-documents` : null
   const initial = useMemo(() => parseSvg(initialMarkup), [initialMarkup])
   const [persisted] = useState(() => {
     try {
-      const stored = window.localStorage.getItem(storageKey)
+      const stored = window.localStorage.getItem(storageKey) || (legacyStorageKey ? window.localStorage.getItem(legacyStorageKey) : null)
       return stored ? JSON.parse(stored) : null
     } catch {
       return null
@@ -38,7 +39,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, historyLi
   const [fileName, setFileName] = useState(persisted?.fileName || 'untitled.svg')
   const [recentDocuments, setRecentDocuments] = useState(() => {
     try {
-      const stored = JSON.parse(window.localStorage.getItem(recentStorageKey) || '[]')
+      const stored = JSON.parse(window.localStorage.getItem(recentStorageKey) || (legacyRecentStorageKey ? window.localStorage.getItem(legacyRecentStorageKey) : null) || '[]')
       return Array.isArray(stored)
         ? stored.filter((item) => item?.fileName && item?.svgMarkup).slice(0, 20)
         : []
