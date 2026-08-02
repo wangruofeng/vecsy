@@ -129,7 +129,7 @@ function App() {
         ['⌘ S', copy.shortcutExport],
         ['⌘ A', copy.shortcutSelectAll],
         ['⌘ C', copy.shortcutCopy],
-        ['⌘ V', copy.shortcutPaste],
+        ['⌘ V', copy.shortcutPasteSvg],
         ['⌫', copy.shortcutDelete],
         ['⌘ \\', copy.shortcutPanels],
         ['?', copy.shortcutHelp],
@@ -658,6 +658,32 @@ function App() {
     showToast(copy.toastPaste)
   }
 
+  useEffect(() => {
+    const handleSvgPaste = (event) => {
+      if (event.target?.closest?.('input, textarea, select, [contenteditable="true"]')) return
+      const markup = event.clipboardData?.getData('image/svg+xml') || event.clipboardData?.getData('text/plain') || ''
+      if (/^(?:\uFEFF?\s*)?(?:<\?xml[\s\S]*?\?>\s*)?<svg(?:\s|>)/i.test(markup)) {
+        try {
+          commitDocument(markup, { nextSelectedId: '', nextSelectedIds: [] })
+          event.preventDefault()
+          setSvgPosition({ x: 0, y: 0 })
+          setSvgScale(1)
+          setExpandedGroups({})
+          setSourceDisplayMode('edit')
+          setActiveTab('preview')
+          showToast(`${copy.toastImported} SVG`)
+        } catch {
+          event.preventDefault()
+          showToast(copy.invalidSvg, 'error')
+        }
+        return
+      }
+      pasteLayer(event)
+    }
+    window.addEventListener('paste', handleSvgPaste)
+    return () => window.removeEventListener('paste', handleSvgPaste)
+  }, [copy.invalidSvg, copy.toastImported, selected, svgMarkup])
+
   const deleteSelectedLayer = (event) => {
     if (!selectedIds.length) return
     const removed = removeLayers(svgMarkup, selectedIds)
@@ -774,10 +800,6 @@ function App() {
       }
       if (modifier && key === 'c') {
         copySelectedLayer(event)
-        return
-      }
-      if (modifier && key === 'v') {
-        pasteLayer(event)
         return
       }
       if (!modifier && !event.altKey && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {

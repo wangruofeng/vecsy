@@ -211,6 +211,12 @@ h1 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: clamp(25px, 
 .drop-overlay-card { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 42px 64px; border: 2px dashed rgba(242,169,59,.6); border-radius: 14px; color: var(--amber); background: rgba(19,19,22,.94); font-size: 14px; font-weight: 700; letter-spacing: .04em; }
 .shortcuts-overlay { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(6,6,8,.7); }
 .shortcuts-modal { width: min(560px, 100%); max-height: min(600px, 86vh); overflow-y: auto; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--panel-raised); box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+.svg-name-confirm-overlay { position: fixed; z-index: 60; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(6,6,8,.72); }
+.svg-name-confirm-modal { width: min(420px, 100%); padding: 22px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--panel-raised); box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+.svg-name-confirm-title { color: #f0ede6; font-size: 15px; font-weight: 700; }
+.svg-name-confirm-modal p { margin: 12px 0 8px; color: #cfcbc2; font-size: 13px; line-height: 1.55; }
+.svg-name-confirm-modal code { display: block; overflow: hidden; padding: 9px 10px; border: 1px solid var(--border); border-radius: 5px; color: var(--amber); background: rgba(0,0,0,.18); font: 12px 'DM Mono', monospace; text-overflow: ellipsis; white-space: nowrap; }
+.svg-name-confirm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 .shortcuts-header { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--panel-raised); color: #f0ede6; font-size: 15px; font-weight: 700; }
 .shortcuts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 18px; }
 .shortcuts-group .section-label { margin-bottom: 10px; }

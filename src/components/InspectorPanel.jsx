@@ -87,17 +87,48 @@ function LayerTypeRow({ tag, count, language }) {
 function DocumentNameField({ copy, fileName, onRename }) {
   const [draft, setDraft] = useState(fileName)
   const [editing, setEditing] = useState(false)
+  const [pendingSvgFileName, setPendingSvgFileName] = useState('')
   useEffect(() => setDraft(fileName), [fileName])
+  useEffect(() => {
+    if (!pendingSvgFileName) return
+    const handleConfirmationKey = (event) => {
+      if (event.key !== 'Escape' && event.key !== 'Enter') return
+      event.preventDefault()
+      event.stopPropagation()
+      if (event.key === 'Enter') setDraft(pendingSvgFileName)
+      setPendingSvgFileName('')
+    }
+    window.addEventListener('keydown', handleConfirmationKey, true)
+    return () => window.removeEventListener('keydown', handleConfirmationKey, true)
+  }, [pendingSvgFileName])
+  const getSvgFileNameFromUrl = (value) => {
+    try {
+      const url = new URL(value.trim())
+      if (!/^https?:$/.test(url.protocol)) return ''
+      const name = decodeURIComponent(url.pathname.split('/').filter(Boolean).pop() || '')
+      return /\.svg$/i.test(name) ? name : ''
+    } catch {
+      return ''
+    }
+  }
+  const startEditing = async () => {
+    setEditing(true)
+    try {
+      const svgFileName = getSvgFileNameFromUrl(await navigator.clipboard.readText())
+      if (svgFileName && svgFileName !== fileName) setPendingSvgFileName(svgFileName)
+    } catch {}
+  }
   const commit = () => {
+    if (pendingSvgFileName) return
     const nextName = draft.trim() || fileName
     setDraft(nextName)
     setEditing(false)
     if (nextName !== fileName) onRename(nextName)
   }
-  return <div className="document-name-field">
+  return <><div className="document-name-field">
     <label>{copy.svgName}</label>
-    {editing ? <input autoFocus value={draft} aria-label={copy.svgName} onChange={(event) => setDraft(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setDraft(fileName); setEditing(false) } }} /> : <button type="button" onClick={() => setEditing(true)} title={copy.editSvgName}><span>{fileName}</span><Icon name="edit" size={13} /></button>}
-  </div>
+    {editing ? <input autoFocus value={draft} aria-label={copy.svgName} onChange={(event) => setDraft(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setDraft(fileName); setEditing(false) } }} /> : <button type="button" onClick={startEditing} title={copy.editSvgName}><span>{fileName}</span><Icon name="edit" size={13} /></button>}
+  </div>{pendingSvgFileName && <div className="svg-name-confirm-overlay" onMouseDown={() => setPendingSvgFileName('')}><div className="svg-name-confirm-modal" role="dialog" aria-modal="true" aria-label={copy.svgName} onMouseDown={(event) => event.stopPropagation()}><div className="svg-name-confirm-title">{copy.svgName}</div><p>{copy.confirmSvgUrlName.replace('{name}', pendingSvgFileName)}</p><code>{pendingSvgFileName}</code><div className="svg-name-confirm-actions"><button className="button button-quiet" type="button" onClick={() => setPendingSvgFileName('')}>{copy.cancel}</button><button className="button button-accent" type="button" onClick={() => { setDraft(pendingSvgFileName); setPendingSvgFileName('') }}>{copy.useSvgUrlName}</button></div></div></div>}</>
 }
 
 export default function InspectorPanel(props) {
