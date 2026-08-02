@@ -624,7 +624,7 @@ function App() {
 
   const addSvgCollectionItem = async (item) => {
     try {
-      const sourceMarkup = item.inlineSvgMarkup || await fetch(item.editableUrl || item.url).then((response) => {
+      const sourceMarkup = item.svgMarkup || item.inlineSvgMarkup || await fetch(item.editableUrl || item.url).then((response) => {
         if (!response.ok) throw new Error('Unable to load SVG collection item.')
         return response.text()
       })
