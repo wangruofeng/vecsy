@@ -1,3 +1,7 @@
+// 文案按「key 聚合 + 功能分组」组织：每条文案的四语言写在一起，
+// buildCopy 在运行时拍平成 { en, "zh-CN", "zh-TW", ja } 各一份 { key: text }。
+// 新增/修改文案：在对应功能分组里加/改一条 { en, "zh-CN", "zh-TW", ja }，四语言相邻、不会漏。
+
 export const LANGUAGES = [
   { code: 'zh-CN', label: '简体中文', short: '简' },
   { code: 'zh-TW', label: '繁體中文', short: '繁' },
@@ -5,106 +9,1324 @@ export const LANGUAGES = [
   { code: 'ja', label: '日本語', short: '日' },
 ]
 
-export const COPY = {
-  en: {
-    languageSwitch: 'Language', githubRepository: 'View source on GitHub', saved: 'All changes saved', unsaved: 'Changes not exported', open: 'Import SVG', export: 'Export SVG',
-    layers: 'Layers', addLayer: 'Add layer', addElement: 'Add element', fromImage: 'Add from image', fromSvgCollection: 'Add from SVG collection', commonShapes: 'Common', svgCollectionTitle: 'SVG collection', svgCollectionThemes: 'SVG themes', svgCollectionCompanyLogos: 'Company logos', svgCollectionSocialMedia: 'Social media', svgCollectionPopularLogos: 'Popular logos', svgCollectionGoogle2026: 'Google 2026', svgCollectionAnimationExamples: 'Animation examples', svgCollectionAnimationPack: 'Animation pack', svgCollectionLoadingCases: 'Loading cases', svgCollectionSvgSpinners: 'SVG Spinners', svgCollectionUniqueAnimations: 'Unique animations', svgCollectionCustom: 'My SVGs', svgCollectionAddCustom: 'Add SVG', svgCollectionCustomName: 'Name (optional)', svgCollectionCustomMarkup: 'Paste SVG markup', svgCollectionSaveCustom: 'Save SVG', svgCollectionRemoveCustom: 'Remove', svgCollectionCustomDefaultName: 'Custom SVG', svgCollectionInvalidCustom: 'Paste a valid SVG markup.', svgCollectionItems: 'items', svgCollectionSource: 'View source', svgCollectionAdd: 'Add', loadDemo: 'Load demo SVG', textContent: 'Text content', editText: 'Edit text content', fontSize: 'Font size', letterSpacing: 'Character spacing', fontFamily: 'Font family', fontFamilyDefault: 'SVG default', fontFamilyPlaceholder: 'e.g. Arial, sans-serif', bold: 'Bold',
-    preview: 'Preview', source: 'Source', format: 'Format', simplify: 'Simplify', copySource: 'Copy', editSource: 'Edit', sourceTree: 'SVG source tree', collapsedContent: 'Collapsed content', resetView: 'Reset view and center', collapseLayers: 'Collapse layers', expandLayers: 'Expand layers', collapseInspector: 'Collapse properties', expandInspector: 'Expand properties', dropHint: 'Drop an SVG anywhere to begin', inspector: 'Inspector', appearance: 'Appearance',
-    fill: 'Fill', stroke: 'Stroke', opacity: 'Opacity', strokeWidth: 'Stroke width', cornerRadius: 'Corner radius', polygonSides: 'Sides', width: 'Width', height: 'Height', lineStartX: 'Start X', lineStartY: 'Start Y', lineEndX: 'End X', lineEndY: 'End Y', aspectRatio: 'Aspect ratio', aspectRatioOriginal: 'Original', gradient: 'Gradient', gradientStart: 'Start color', gradientEnd: 'End color', gradientAngle: 'Angle', layerTypes: 'Layer types', colorTokens: 'Color tokens', colorTokenUsage: 'uses', colorTokensEmpty: 'No color tokens found in this SVG.', copyColor: 'Copy color', editColor: 'Edit color', copied: 'Copied', elementDetails: 'Element details', layer: 'Layer', visibility: 'Visibility',
-    visible: 'Visible', hidden: 'Hidden', livePreview: 'Live preview', statusReady: 'elements • SVG ready', changesInstant: 'Changes apply instantly', exportShort: 'Export', selected: 'Selected', resizeLineStart: 'Adjust line start', resizeLineEnd: 'Adjust line end', playAnimation: 'Play animation', pauseAnimation: 'Pause animation',
-    elementSuffix: 'element', show: 'Show', hide: 'Hide', noSelection: 'Select a layer to edit its properties.', invalidSvg: 'This file does not contain a valid SVG.',
-    undo: 'Undo', redo: 'Redo', close: 'Close',
-    toastExported: 'SVG exported', toastImported: 'Imported', toastCopy: 'Layer copied', toastPaste: 'Layer pasted', toastDelete: 'Layer deleted — press ⌘Z to undo', toastFormatted: 'Source formatted', toastSimplified: 'Consecutive translations simplified', toastSourceCopied: 'Source copied', toastSourceCopyFailed: 'Could not copy source', toastInvalidFile: 'Please drop or choose an SVG file.', toastInvalidImageFile: 'Please choose a supported image file.', toastCollectionImportFailed: 'Could not import this SVG collection item.',
-    dropOverlayTitle: 'Drop to import SVG',
-    zoomIn: 'Zoom in', zoomOut: 'Zoom out', zoomFit: 'Fit to screen',
-    shortcutsTitle: 'Keyboard shortcuts', shortcutsGeneral: 'General', shortcutsLayers: 'Layers', shortcutsCanvas: 'Canvas', shortcutsHint: 'Press ? to toggle this panel',
-    shortcutUndo: 'Undo', shortcutRedo: 'Redo', shortcutExport: 'Export SVG', shortcutSelectAll: 'Select all layers', shortcutCopy: 'Copy layer', shortcutPaste: 'Paste layer', shortcutPasteSvg: 'Paste SVG or layer', shortcutDelete: 'Delete layer', shortcutPanels: 'Cycle panels', shortcutHelp: 'Toggle shortcuts panel', shortcutRangeSelect: 'Select layer range', shortcutToggleSelect: 'Add or remove layer from selection', shortcutPan: 'Pan canvas', shortcutZoom: 'Zoom in / out', shortcutEditText: 'Edit text content', shortcutResizeProportional: 'Resize proportionally', shortcutMove: 'Move selected layers (Shift: 10px)', shortcutDeselect: 'Clear selection', shortcutZoomIn: 'Zoom in', shortcutZoomOut: 'Zoom out', shortcutZoomFit: 'Fit to screen',
-    shortcutKeyDrag: 'Drag', shortcutKeyScroll: '⌘ + Scroll', shortcutKeyDoubleClick: 'Double-click',
-    exportDialogTitle: 'Export', exportFormat: 'Format', exportScope: 'Export scope', exportAllLayers: 'Export all layers', exportSelectedLayers: 'Export selected layers', exportScale: 'Scale', exportOptimize: 'Optimize & minify SVG', exportPreview: 'Preview', exportEstimatedSize: 'Est. size', exportLayerCount: 'Layers to export', expandExportPreview: 'Expand export preview', exportFailed: 'Export failed',
-    alignLeft: 'Align left', alignCenterX: 'Align horizontal centers', alignRight: 'Align right', alignTop: 'Align top', alignCenterY: 'Align vertical centers', alignBottom: 'Align bottom', distributeX: 'Distribute horizontally', distributeY: 'Distribute vertically',
-    collapseGroup: 'Collapse group', expandGroup: 'Expand group', resizeTopLeft: 'Resize from top left', resizeBottomRight: 'Resize from bottom right', newLayerText: 'New text', documentTitle: 'Vecsy — SVG editor',
-    menuRename: 'Rename', renamePlaceholder: 'Layer name', svgName: 'SVG name', editSvgName: 'Rename SVG', confirmSvgUrlName: 'Use “{name}” from the SVG URL in your clipboard?', cancel: 'Cancel', useSvgUrlName: 'Use name', recentSvgs: 'Recent SVGs', recentSvgsEmpty: 'No edited SVGs yet.', recentSvgPreview: 'SVG preview', expandRecentSvgPreview: 'Expand SVG preview', removeRecentSvg: 'Remove from recent SVGs',
-    storageFull: 'Local storage is full — changes may not be saved',
-    menuGroup: 'Group', toastGrouped: 'Layers grouped', shortcutGroup: 'Group selected layers',
+const LANGS = ['en', 'zh-CN', 'zh-TW', 'ja']
+
+const SECTIONS = {
+  chrome: {
+    languageSwitch: {
+      'en': 'Language',
+      'zh-CN': '语言',
+      'zh-TW': '語言',
+      'ja': '言語',
+    },
+    githubRepository: {
+      'en': 'View source on GitHub',
+      'zh-CN': '在 GitHub 查看源码',
+      'zh-TW': '在 GitHub 查看原始碼',
+      'ja': 'GitHub でソースを見る',
+    },
+    saved: {
+      'en': 'All changes saved',
+      'zh-CN': '所有更改已保存',
+      'zh-TW': '所有更改已儲存',
+      'ja': 'すべての変更が保存されました',
+    },
+    unsaved: {
+      'en': 'Changes not exported',
+      'zh-CN': '更改尚未导出',
+      'zh-TW': '更改尚未匯出',
+      'ja': '変更はまだエクスポートされていません',
+    },
+    open: {
+      'en': 'Import SVG',
+      'zh-CN': '导入 SVG',
+      'zh-TW': '匯入 SVG',
+      'ja': 'SVG を読み込む',
+    },
+    export: {
+      'en': 'Export SVG',
+      'zh-CN': '导出',
+      'zh-TW': '匯出',
+      'ja': 'エクスポート',
+    },
+    exportShort: {
+      'en': 'Export',
+      'zh-CN': '导出',
+      'zh-TW': '匯出',
+      'ja': 'エクスポート',
+    },
+    documentTitle: {
+      'en': 'Vecsy — SVG editor',
+      'zh-CN': 'Vecsy — SVG 编辑器',
+      'zh-TW': 'Vecsy — SVG 編輯器',
+      'ja': 'Vecsy — SVG エディター',
+    },
   },
-  'zh-CN': {
-    languageSwitch: '语言', githubRepository: '在 GitHub 查看源码', saved: '所有更改已保存', unsaved: '更改尚未导出', open: '导入 SVG', export: '导出',
-    layers: '图层', addLayer: '添加图层', addElement: '添加元素', fromImage: '图片', fromSvgCollection: '收藏', commonShapes: '常用', svgCollectionTitle: '收藏', svgCollectionThemes: 'SVG 主题', svgCollectionCompanyLogos: '公司 Logo', svgCollectionSocialMedia: '社交媒体', svgCollectionPopularLogos: '热门 Logo', svgCollectionGoogle2026: 'Google 2026', svgCollectionAnimationExamples: '动画示例', svgCollectionAnimationPack: '动画组合', svgCollectionLoadingCases: '加载动画', svgCollectionSvgSpinners: '旋转加载', svgCollectionUniqueAnimations: '创意动画', svgCollectionCustom: '我的 SVG', svgCollectionAddCustom: '添加 SVG', svgCollectionCustomName: '名称（可选）', svgCollectionCustomMarkup: '粘贴 SVG 源码', svgCollectionSaveCustom: '保存 SVG', svgCollectionRemoveCustom: '删除', svgCollectionCustomDefaultName: '自定义 SVG', svgCollectionInvalidCustom: '请粘贴有效的 SVG 源码。', svgCollectionItems: '个项目', svgCollectionSource: '查看来源', svgCollectionAdd: '添加', loadDemo: '加载 Demo SVG', textContent: '文字内容', editText: '编辑文字内容', fontSize: '字体大小', letterSpacing: '字符间距', fontFamily: '字体家族', fontFamilyDefault: 'SVG 默认字体', fontFamilyPlaceholder: '例如 Arial, sans-serif', bold: '加粗',
-    preview: '预览', source: '源码', format: '格式化', simplify: '简化', copySource: '复制', editSource: '编辑', sourceTree: 'SVG 源码树', collapsedContent: '已折叠内容', resetView: '重置视图并居中', collapseLayers: '折叠图层面板', expandLayers: '展开图层面板', collapseInspector: '折叠属性面板', expandInspector: '展开属性面板', dropHint: '将 SVG 拖到这里开始', inspector: '检查器', appearance: '外观',
-    fill: '填充', stroke: '描边', opacity: '不透明度', strokeWidth: '描边宽度', cornerRadius: '圆角半径', polygonSides: '边数', width: '宽度', height: '高度', lineStartX: '起点 X', lineStartY: '起点 Y', lineEndX: '终点 X', lineEndY: '终点 Y', aspectRatio: '图层比例', aspectRatioOriginal: '原始', gradient: '渐变色', gradientStart: '起始颜色', gradientEnd: '结束颜色', gradientAngle: '角度', layerTypes: '图层类型', colorTokens: '颜色 Token', colorTokenUsage: '次使用', colorTokensEmpty: '当前 SVG 中没有颜色 Token。', copyColor: '复制颜色', editColor: '编辑颜色', copied: '已复制', elementDetails: '元素详情', layer: 'Layer', visibility: '可见性',
-    visible: '可见', hidden: '已隐藏', livePreview: '实时预览', statusReady: '个元素 · SVG 就绪', changesInstant: '更改会即时生效', exportShort: '导出', selected: '已选中', resizeLineStart: '调整线条起点', resizeLineEnd: '调整线条终点', playAnimation: '播放动画', pauseAnimation: '暂停动画',
-    elementSuffix: '元素', show: '显示', hide: '隐藏', noSelection: '选择一个图层来编辑它的属性。', invalidSvg: '该文件不包含有效的 SVG。',
-    undo: '撤销', redo: '重做', close: '关闭',
-    toastExported: 'SVG 已导出', toastImported: '已导入', toastCopy: '已复制图层', toastPaste: '已粘贴图层', toastDelete: '已删除图层 — 按 ⌘Z 撤销', toastFormatted: '源码已格式化', toastSimplified: '已简化连续平移', toastSourceCopied: '源码已复制', toastSourceCopyFailed: '无法复制源码', toastInvalidFile: '请拖入或选择一个 SVG 文件。', toastInvalidImageFile: '请选择受支持的图片文件。', toastCollectionImportFailed: '无法导入此 SVG 收藏图标。',
-    dropOverlayTitle: '松开以导入 SVG',
-    zoomIn: '放大', zoomOut: '缩小', zoomFit: '适应屏幕',
-    shortcutsTitle: '键盘快捷键', shortcutsGeneral: '通用', shortcutsLayers: '图层', shortcutsCanvas: '画布', shortcutsHint: '按 ? 可打开或关闭此面板',
-    shortcutUndo: '撤销', shortcutRedo: '重做', shortcutExport: '导出 SVG', shortcutSelectAll: '全选图层', shortcutCopy: '复制图层', shortcutPaste: '粘贴图层', shortcutPasteSvg: '粘贴 SVG 或图层', shortcutDelete: '删除图层', shortcutPanels: '循环切换面板', shortcutHelp: '打开/关闭快捷键面板', shortcutRangeSelect: '选中图层范围', shortcutToggleSelect: '添加或取消单个图层', shortcutPan: '平移画布', shortcutZoom: '放大 / 缩小', shortcutEditText: '编辑文字内容', shortcutResizeProportional: '等比例调整大小', shortcutMove: '移动选中的图层（Shift：10px）', shortcutDeselect: '取消选择', shortcutZoomIn: '放大', shortcutZoomOut: '缩小', shortcutZoomFit: '适应屏幕',
-    shortcutKeyDrag: '拖拽', shortcutKeyScroll: '⌘ + 滚轮', shortcutKeyDoubleClick: '双击',
-    exportDialogTitle: '导出', exportFormat: '格式', exportScope: '导出范围', exportAllLayers: '导出整个图层', exportSelectedLayers: '导出选择图层', exportScale: '倍率', exportOptimize: '优化并压缩 SVG', exportPreview: '预览', exportEstimatedSize: '预计大小', exportLayerCount: '待导出图层', expandExportPreview: '放大导出预览', exportFailed: '导出失败',
-    alignLeft: '左对齐', alignCenterX: '水平居中', alignRight: '右对齐', alignTop: '顶对齐', alignCenterY: '垂直居中', alignBottom: '底对齐', distributeX: '水平等距分布', distributeY: '垂直等距分布',
-    collapseGroup: '折叠分组', expandGroup: '展开分组', resizeTopLeft: '从左上角调整大小', resizeBottomRight: '从右下角调整大小', newLayerText: '新文本', documentTitle: 'Vecsy — SVG 编辑器',
-    menuRename: '重命名', renamePlaceholder: '图层名称', svgName: 'SVG 名称', editSvgName: '编辑 SVG 名称', confirmSvgUrlName: '检测到剪贴板中的 SVG 链接，使用“{name}”作为名称吗？', cancel: '取消', useSvgUrlName: '使用名称', recentSvgs: '历史 SVG 列表', recentSvgsEmpty: '暂时没有编辑过的 SVG。', recentSvgPreview: 'SVG 预览', expandRecentSvgPreview: '放大 SVG 预览', removeRecentSvg: '删除历史 SVG',
-    storageFull: '本地存储已满，更改可能无法保存',
-    menuGroup: '创建分组', toastGrouped: '已创建分组', shortcutGroup: '创建分组',
+  layers: {
+    layers: {
+      'en': 'Layers',
+      'zh-CN': '图层',
+      'zh-TW': '圖層',
+      'ja': 'レイヤー',
+    },
+    addLayer: {
+      'en': 'Add layer',
+      'zh-CN': '添加图层',
+      'zh-TW': '新增圖層',
+      'ja': 'レイヤーを追加',
+    },
+    addElement: {
+      'en': 'Add element',
+      'zh-CN': '添加元素',
+      'zh-TW': '新增元素',
+      'ja': '要素を追加',
+    },
+    fromImage: {
+      'en': 'Add from image',
+      'zh-CN': '图片',
+      'zh-TW': '圖片',
+      'ja': '画像',
+    },
+    fromSvgCollection: {
+      'en': 'Add from SVG collection',
+      'zh-CN': '收藏',
+      'zh-TW': 'SVG 收藏',
+      'ja': 'SVG コレクション',
+    },
+    commonShapes: {
+      'en': 'Common',
+      'zh-CN': '常用',
+      'zh-TW': '常用',
+      'ja': '図形',
+    },
+    loadDemo: {
+      'en': 'Load demo SVG',
+      'zh-CN': '加载 Demo SVG',
+      'zh-TW': '載入 Demo SVG',
+      'ja': 'デモ SVG を読み込む',
+    },
+    newLayerText: {
+      'en': 'New text',
+      'zh-CN': '新文本',
+      'zh-TW': '新文字',
+      'ja': '新しいテキスト',
+    },
   },
-  'zh-TW': {
-    languageSwitch: '語言', githubRepository: '在 GitHub 查看原始碼', saved: '所有更改已儲存', unsaved: '更改尚未匯出', open: '匯入 SVG', export: '匯出',
-    layers: '圖層', addLayer: '新增圖層', addElement: '新增元素', fromImage: '圖片', fromSvgCollection: 'SVG 收藏', commonShapes: '常用', svgCollectionTitle: 'SVG 收藏', svgCollectionThemes: 'SVG 主題', svgCollectionCompanyLogos: '公司 Logo', svgCollectionSocialMedia: '社交媒體', svgCollectionPopularLogos: '熱門 Logo', svgCollectionGoogle2026: 'Google 2026', svgCollectionAnimationExamples: '動畫範例', svgCollectionAnimationPack: '動畫組合', svgCollectionLoadingCases: '載入動畫', svgCollectionSvgSpinners: 'SVG 旋轉載入', svgCollectionUniqueAnimations: '創意動畫', svgCollectionCustom: '我的 SVG', svgCollectionAddCustom: '新增 SVG', svgCollectionCustomName: '名稱（可選）', svgCollectionCustomMarkup: '貼上 SVG 原始碼', svgCollectionSaveCustom: '儲存 SVG', svgCollectionRemoveCustom: '刪除', svgCollectionCustomDefaultName: '自訂 SVG', svgCollectionInvalidCustom: '請貼上有效的 SVG 原始碼。', svgCollectionItems: '個項目', svgCollectionSource: '查看來源', svgCollectionAdd: '新增', loadDemo: '載入 Demo SVG', textContent: '文字內容', editText: '編輯文字內容', fontSize: '字體大小', letterSpacing: '字元間距', fontFamily: '字體家族', fontFamilyDefault: 'SVG 預設字體', fontFamilyPlaceholder: '例如 Arial, sans-serif', bold: '粗體',
-    preview: '預覽', source: '原始碼', format: '格式化', simplify: '簡化', copySource: '複製', editSource: '編輯', sourceTree: 'SVG 原始碼樹', collapsedContent: '已摺疊內容', resetView: '重置視圖並置中', collapseLayers: '摺疊圖層面板', expandLayers: '展開圖層面板', collapseInspector: '摺疊屬性面板', expandInspector: '展開屬性面板', dropHint: '將 SVG 拖到這裡開始', inspector: '檢查器', appearance: '外觀',
-    fill: '填色', stroke: '描邊', opacity: '不透明度', strokeWidth: '描邊寬度', cornerRadius: '圓角半徑', polygonSides: '邊數', width: '寬度', height: '高度', lineStartX: '起點 X', lineStartY: '起點 Y', lineEndX: '終點 X', lineEndY: '終點 Y', aspectRatio: '圖層比例', aspectRatioOriginal: '原始', gradient: '漸層色', gradientStart: '起始顏色', gradientEnd: '結束顏色', gradientAngle: '角度', layerTypes: '圖層類型', colorTokens: '顏色 Token', colorTokenUsage: '次使用', colorTokensEmpty: '目前 SVG 中沒有顏色 Token。', copyColor: '複製顏色', editColor: '編輯顏色', copied: '已複製', elementDetails: '元素詳情', layer: 'Layer', visibility: '可見性',
-    visible: '可見', hidden: '已隱藏', livePreview: '即時預覽', statusReady: '個元素 · SVG 就緒', changesInstant: '更改會即時生效', exportShort: '匯出', selected: '已選取', resizeLineStart: '調整線條起點', resizeLineEnd: '調整線條終點', playAnimation: '播放動畫', pauseAnimation: '暫停動畫',
-    elementSuffix: '元素', show: '顯示', hide: '隱藏', noSelection: '選取一個圖層來編輯它的屬性。', invalidSvg: '此檔案不包含有效的 SVG。',
-    undo: '復原', redo: '重做', close: '關閉',
-    toastExported: 'SVG 已匯出', toastImported: '已匯入', toastCopy: '已複製圖層', toastPaste: '已貼上圖層', toastDelete: '已刪除圖層 — 按 ⌘Z 復原', toastFormatted: '原始碼已格式化', toastSimplified: '已簡化連續平移', toastSourceCopied: '原始碼已複製', toastSourceCopyFailed: '無法複製原始碼', toastInvalidFile: '請拖入或選擇一個 SVG 檔案。', toastInvalidImageFile: '請選擇支援的圖片檔案。', toastCollectionImportFailed: '無法匯入此 SVG 收藏圖示。',
-    dropOverlayTitle: '放開以匯入 SVG',
-    zoomIn: '放大', zoomOut: '縮小', zoomFit: '適應螢幕',
-    shortcutsTitle: '鍵盤快捷鍵', shortcutsGeneral: '一般', shortcutsLayers: '圖層', shortcutsCanvas: '畫布', shortcutsHint: '按 ? 可開啟或關閉此面板',
-    shortcutUndo: '復原', shortcutRedo: '重做', shortcutExport: '匯出 SVG', shortcutSelectAll: '全選圖層', shortcutCopy: '複製圖層', shortcutPaste: '貼上圖層', shortcutPasteSvg: '貼上 SVG 或圖層', shortcutDelete: '刪除圖層', shortcutPanels: '循環切換面板', shortcutHelp: '開啟/關閉快捷鍵面板', shortcutRangeSelect: '選取圖層範圍', shortcutToggleSelect: '加入或取消單個圖層', shortcutPan: '平移畫布', shortcutZoom: '放大 / 縮小', shortcutEditText: '編輯文字內容', shortcutResizeProportional: '等比例調整大小', shortcutMove: '移動選取的圖層（Shift：10px）', shortcutDeselect: '取消選取', shortcutZoomIn: '放大', shortcutZoomOut: '縮小', shortcutZoomFit: '適應螢幕',
-    shortcutKeyDrag: '拖曳', shortcutKeyScroll: '⌘ + 滾輪', shortcutKeyDoubleClick: '雙擊',
-    exportDialogTitle: '匯出', exportFormat: '格式', exportScope: '匯出範圍', exportAllLayers: '匯出整個圖層', exportSelectedLayers: '匯出選取圖層', exportScale: '倍率', exportOptimize: '最佳化並壓縮 SVG', exportPreview: '預覽', exportEstimatedSize: '預計大小', exportLayerCount: '待匯出圖層', expandExportPreview: '放大匯出預覽', exportFailed: '匯出失敗',
-    alignLeft: '靠左對齊', alignCenterX: '水平置中', alignRight: '靠右對齊', alignTop: '靠上對齊', alignCenterY: '垂直置中', alignBottom: '靠下對齊', distributeX: '水平等距分佈', distributeY: '垂直等距分佈',
-    collapseGroup: '摺疊群組', expandGroup: '展開群組', resizeTopLeft: '從左上角調整大小', resizeBottomRight: '從右下角調整大小', newLayerText: '新文字', documentTitle: 'Vecsy — SVG 編輯器',
-    menuRename: '重新命名', renamePlaceholder: '圖層名稱', svgName: 'SVG 名稱', editSvgName: '編輯 SVG 名稱', confirmSvgUrlName: '偵測到剪貼簿中的 SVG 連結，要使用「{name}」作為名稱嗎？', cancel: '取消', useSvgUrlName: '使用名稱', recentSvgs: '歷史 SVG 列表', recentSvgsEmpty: '暫時沒有編輯過的 SVG。', recentSvgPreview: 'SVG 預覽', expandRecentSvgPreview: '放大 SVG 預覽', removeRecentSvg: '刪除歷史 SVG',
-    storageFull: '本機儲存空間已滿，更改可能無法儲存',
-    menuGroup: '建立群組', toastGrouped: '已建立群組', shortcutGroup: '建立群組',
+  collection: {
+    svgCollectionTitle: {
+      'en': 'SVG collection',
+      'zh-CN': '收藏',
+      'zh-TW': 'SVG 收藏',
+      'ja': 'SVG コレクション',
+    },
+    svgCollectionThemes: {
+      'en': 'SVG themes',
+      'zh-CN': 'SVG 主题',
+      'zh-TW': 'SVG 主題',
+      'ja': 'SVG テーマ',
+    },
+    svgCollectionCompanyLogos: {
+      'en': 'Company logos',
+      'zh-CN': '公司 Logo',
+      'zh-TW': '公司 Logo',
+      'ja': '企業ロゴ',
+    },
+    svgCollectionSocialMedia: {
+      'en': 'Social media',
+      'zh-CN': '社交媒体',
+      'zh-TW': '社交媒體',
+      'ja': 'ソーシャルメディア',
+    },
+    svgCollectionPopularLogos: {
+      'en': 'Popular logos',
+      'zh-CN': '热门 Logo',
+      'zh-TW': '熱門 Logo',
+      'ja': '人気ロゴ',
+    },
+    svgCollectionGoogle2026: {
+      'en': 'Google 2026',
+      'zh-CN': 'Google 2026',
+      'zh-TW': 'Google 2026',
+      'ja': 'Google 2026',
+    },
+    svgCollectionAnimationExamples: {
+      'en': 'Animation examples',
+      'zh-CN': '动画示例',
+      'zh-TW': '動畫範例',
+      'ja': 'アニメーション例',
+    },
+    svgCollectionAnimationPack: {
+      'en': 'Animation pack',
+      'zh-CN': '动画组合',
+      'zh-TW': '動畫組合',
+      'ja': 'アニメーションパック',
+    },
+    svgCollectionLoadingCases: {
+      'en': 'Loading cases',
+      'zh-CN': '加载动画',
+      'zh-TW': '載入動畫',
+      'ja': 'ローディング',
+    },
+    svgCollectionSvgSpinners: {
+      'en': 'SVG Spinners',
+      'zh-CN': '旋转加载',
+      'zh-TW': 'SVG 旋轉載入',
+      'ja': 'SVG スピナー',
+    },
+    svgCollectionUniqueAnimations: {
+      'en': 'Unique animations',
+      'zh-CN': '创意动画',
+      'zh-TW': '創意動畫',
+      'ja': 'ユニークアニメーション',
+    },
+    svgCollectionCustom: {
+      'en': 'My SVGs',
+      'zh-CN': '我的 SVG',
+      'zh-TW': '我的 SVG',
+      'ja': 'マイ SVG',
+    },
+    svgCollectionAddCustom: {
+      'en': 'Add SVG',
+      'zh-CN': '添加 SVG',
+      'zh-TW': '新增 SVG',
+      'ja': 'SVG を追加',
+    },
+    svgCollectionCustomName: {
+      'en': 'Name (optional)',
+      'zh-CN': '名称（可选）',
+      'zh-TW': '名稱（可選）',
+      'ja': '名前（任意）',
+    },
+    svgCollectionCustomMarkup: {
+      'en': 'Paste SVG markup',
+      'zh-CN': '粘贴 SVG 源码',
+      'zh-TW': '貼上 SVG 原始碼',
+      'ja': 'SVG マークアップを貼り付け',
+    },
+    svgCollectionSaveCustom: {
+      'en': 'Save SVG',
+      'zh-CN': '保存 SVG',
+      'zh-TW': '儲存 SVG',
+      'ja': 'SVG を保存',
+    },
+    svgCollectionRemoveCustom: {
+      'en': 'Remove',
+      'zh-CN': '删除',
+      'zh-TW': '刪除',
+      'ja': '削除',
+    },
+    svgCollectionCustomDefaultName: {
+      'en': 'Custom SVG',
+      'zh-CN': '自定义 SVG',
+      'zh-TW': '自訂 SVG',
+      'ja': 'カスタム SVG',
+    },
+    svgCollectionInvalidCustom: {
+      'en': 'Paste a valid SVG markup.',
+      'zh-CN': '请粘贴有效的 SVG 源码。',
+      'zh-TW': '請貼上有效的 SVG 原始碼。',
+      'ja': '有効な SVG マークアップを貼り付けてください。',
+    },
+    svgCollectionItems: {
+      'en': 'items',
+      'zh-CN': '个项目',
+      'zh-TW': '個項目',
+      'ja': '個のアイテム',
+    },
+    svgCollectionSource: {
+      'en': 'View source',
+      'zh-CN': '查看来源',
+      'zh-TW': '查看來源',
+      'ja': 'ソースを見る',
+    },
+    svgCollectionAdd: {
+      'en': 'Add',
+      'zh-CN': '添加',
+      'zh-TW': '新增',
+      'ja': '追加',
+    },
   },
-  ja: {
-    languageSwitch: '言語', githubRepository: 'GitHub でソースを見る', saved: 'すべての変更が保存されました', unsaved: '変更はまだエクスポートされていません', open: 'SVG を読み込む', export: 'エクスポート',
-    layers: 'レイヤー', addLayer: 'レイヤーを追加', addElement: '要素を追加', fromImage: '画像', fromSvgCollection: 'SVG コレクション', commonShapes: '図形', svgCollectionTitle: 'SVG コレクション', svgCollectionThemes: 'SVG テーマ', svgCollectionCompanyLogos: '企業ロゴ', svgCollectionSocialMedia: 'ソーシャルメディア', svgCollectionPopularLogos: '人気ロゴ', svgCollectionGoogle2026: 'Google 2026', svgCollectionAnimationExamples: 'アニメーション例', svgCollectionAnimationPack: 'アニメーションパック', svgCollectionLoadingCases: 'ローディング', svgCollectionSvgSpinners: 'SVG スピナー', svgCollectionUniqueAnimations: 'ユニークアニメーション', svgCollectionCustom: 'マイ SVG', svgCollectionAddCustom: 'SVG を追加', svgCollectionCustomName: '名前（任意）', svgCollectionCustomMarkup: 'SVG マークアップを貼り付け', svgCollectionSaveCustom: 'SVG を保存', svgCollectionRemoveCustom: '削除', svgCollectionCustomDefaultName: 'カスタム SVG', svgCollectionInvalidCustom: '有効な SVG マークアップを貼り付けてください。', svgCollectionItems: '個のアイテム', svgCollectionSource: 'ソースを見る', svgCollectionAdd: '追加', loadDemo: 'デモ SVG を読み込む', textContent: 'テキスト内容', editText: 'テキストを編集', fontSize: 'フォントサイズ', letterSpacing: '文字間隔', fontFamily: 'フォントファミリー', fontFamilyDefault: 'SVG のデフォルト', fontFamilyPlaceholder: '例: Arial, sans-serif', bold: '太字',
-    preview: 'プレビュー', source: 'ソース', format: '整形', simplify: '簡略化', copySource: 'コピー', editSource: '編集', sourceTree: 'SVG ソースツリー', collapsedContent: '折りたたまれた内容', resetView: 'ビューをリセットして中央に', collapseLayers: 'レイヤーパネルを折りたたむ', expandLayers: 'レイヤーパネルを展開', collapseInspector: 'プロパティパネルを折りたたむ', expandInspector: 'プロパティパネルを展開', dropHint: 'SVG をここにドロップして開始', inspector: 'インスペクター', appearance: '外観',
-    fill: '塗りつぶし', stroke: 'ストローク', opacity: '不透明度', strokeWidth: 'ストローク幅', cornerRadius: '角丸半径', polygonSides: '辺の数', width: '幅', height: '高さ', lineStartX: '始点 X', lineStartY: '始点 Y', lineEndX: '終点 X', lineEndY: '終点 Y', aspectRatio: 'アスペクト比', aspectRatioOriginal: '元の比率', gradient: 'グラデーション', gradientStart: '開始色', gradientEnd: '終了色', gradientAngle: '角度', layerTypes: 'レイヤーの種類', colorTokens: 'カラートークン', colorTokenUsage: '回使用', colorTokensEmpty: 'この SVG にはカラートークンがありません。', copyColor: '色をコピー', editColor: '色を編集', copied: 'コピーしました', elementDetails: '要素の詳細', layer: 'レイヤー', visibility: '表示状態',
-    visible: '表示', hidden: '非表示', livePreview: 'ライブプレビュー', statusReady: '個の要素 • SVG 準備完了', changesInstant: '変更は即時反映されます', exportShort: 'エクスポート', selected: '選択中', resizeLineStart: '線の始点を調整', resizeLineEnd: '線の終点を調整', playAnimation: 'アニメーションを再生', pauseAnimation: 'アニメーションを一時停止',
-    elementSuffix: '要素', show: '表示', hide: '非表示', noSelection: 'レイヤーを選択してプロパティを編集します。', invalidSvg: 'このファイルには有効な SVG が含まれていません。',
-    undo: '取り消し', redo: 'やり直し', close: '閉じる',
-    toastExported: 'SVG をエクスポートしました', toastImported: '読み込みました', toastCopy: 'レイヤーをコピーしました', toastPaste: 'レイヤーを貼り付けました', toastDelete: 'レイヤーを削除しました — ⌘Z で取り消し', toastFormatted: 'ソースを整形しました', toastSimplified: '連続した移動を簡略化しました', toastSourceCopied: 'ソースをコピーしました', toastSourceCopyFailed: 'ソースをコピーできませんでした', toastInvalidFile: 'SVG ファイルをドロップまたは選択してください。', toastInvalidImageFile: '対応している画像ファイルを選択してください。', toastCollectionImportFailed: 'この SVG コレクション項目を読み込めませんでした。',
-    dropOverlayTitle: 'ドロップして SVG を読み込む',
-    zoomIn: '拡大', zoomOut: '縮小', zoomFit: '画面に合わせる',
-    shortcutsTitle: 'キーボードショートカット', shortcutsGeneral: '一般', shortcutsLayers: 'レイヤー', shortcutsCanvas: 'キャンバス', shortcutsHint: '? キーでこのパネルを開閉',
-    shortcutUndo: '取り消し', shortcutRedo: 'やり直し', shortcutExport: 'SVG をエクスポート', shortcutSelectAll: 'すべてのレイヤーを選択', shortcutCopy: 'レイヤーをコピー', shortcutPaste: 'レイヤーを貼り付け', shortcutPasteSvg: 'SVG またはレイヤーを貼り付け', shortcutDelete: 'レイヤーを削除', shortcutPanels: 'パネルを切り替え', shortcutHelp: 'ショートカットパネルの開閉', shortcutRangeSelect: 'レイヤーを範囲選択', shortcutToggleSelect: 'レイヤーの選択を切り替え', shortcutPan: 'キャンバスをパン', shortcutZoom: '拡大 / 縮小', shortcutEditText: 'テキストを編集', shortcutResizeProportional: '比率を維持してリサイズ', shortcutMove: '選択したレイヤーを移動（Shift: 10px）', shortcutDeselect: '選択を解除', shortcutZoomIn: '拡大', shortcutZoomOut: '縮小', shortcutZoomFit: '画面に合わせる',
-    shortcutKeyDrag: 'ドラッグ', shortcutKeyScroll: '⌘ + スクロール', shortcutKeyDoubleClick: 'ダブルクリック',
-    exportDialogTitle: 'エクスポート', exportFormat: 'フォーマット', exportScope: 'エクスポート範囲', exportAllLayers: 'すべてのレイヤー', exportSelectedLayers: '選択したレイヤー', exportScale: '倍率', exportOptimize: 'SVG を最適化・圧縮', exportPreview: 'プレビュー', exportEstimatedSize: '推定サイズ', exportLayerCount: 'エクスポートするレイヤー', expandExportPreview: 'エクスポートプレビューを拡大', exportFailed: 'エクスポートに失敗しました',
-    alignLeft: '左揃え', alignCenterX: '水平方向中央揃え', alignRight: '右揃え', alignTop: '上揃え', alignCenterY: '垂直方向中央揃え', alignBottom: '下揃え', distributeX: '水平方向に等間隔配置', distributeY: '垂直方向に等間隔配置',
-    collapseGroup: 'グループを折りたたむ', expandGroup: 'グループを展開', resizeTopLeft: '左上からリサイズ', resizeBottomRight: '右下からリサイズ', newLayerText: '新しいテキスト', documentTitle: 'Vecsy — SVG エディター',
-    menuRename: '名前を変更', renamePlaceholder: 'レイヤー名', svgName: 'SVG 名', editSvgName: 'SVG 名を編集', confirmSvgUrlName: 'クリップボード内の SVG URL から「{name}」を名前に使いますか？', cancel: 'キャンセル', useSvgUrlName: '名前を使用', recentSvgs: 'SVG 履歴', recentSvgsEmpty: '編集した SVG はまだありません。', recentSvgPreview: 'SVG プレビュー', expandRecentSvgPreview: 'SVG プレビューを拡大', removeRecentSvg: 'SVG 履歴から削除',
-    storageFull: 'ローカルストレージがいっぱいです — 変更が保存されない場合があります',
-    menuGroup: 'グループ化', toastGrouped: 'グループを作成しました', shortcutGroup: '選択したレイヤーをグループ化',
+  text: {
+    textContent: {
+      'en': 'Text content',
+      'zh-CN': '文字内容',
+      'zh-TW': '文字內容',
+      'ja': 'テキスト内容',
+    },
+    editText: {
+      'en': 'Edit text content',
+      'zh-CN': '编辑文字内容',
+      'zh-TW': '編輯文字內容',
+      'ja': 'テキストを編集',
+    },
+    fontSize: {
+      'en': 'Font size',
+      'zh-CN': '字体大小',
+      'zh-TW': '字體大小',
+      'ja': 'フォントサイズ',
+    },
+    letterSpacing: {
+      'en': 'Character spacing',
+      'zh-CN': '字符间距',
+      'zh-TW': '字元間距',
+      'ja': '文字間隔',
+    },
+    fontFamily: {
+      'en': 'Font family',
+      'zh-CN': '字体家族',
+      'zh-TW': '字體家族',
+      'ja': 'フォントファミリー',
+    },
+    fontFamilyDefault: {
+      'en': 'SVG default',
+      'zh-CN': 'SVG 默认字体',
+      'zh-TW': 'SVG 預設字體',
+      'ja': 'SVG のデフォルト',
+    },
+    fontFamilyPlaceholder: {
+      'en': 'e.g. Arial, sans-serif',
+      'zh-CN': '例如 Arial, sans-serif',
+      'zh-TW': '例如 Arial, sans-serif',
+      'ja': '例: Arial, sans-serif',
+    },
+    bold: {
+      'en': 'Bold',
+      'zh-CN': '加粗',
+      'zh-TW': '粗體',
+      'ja': '太字',
+    },
+  },
+  source: {
+    preview: {
+      'en': 'Preview',
+      'zh-CN': '预览',
+      'zh-TW': '預覽',
+      'ja': 'プレビュー',
+    },
+    source: {
+      'en': 'Source',
+      'zh-CN': '源码',
+      'zh-TW': '原始碼',
+      'ja': 'ソース',
+    },
+    format: {
+      'en': 'Format',
+      'zh-CN': '格式化',
+      'zh-TW': '格式化',
+      'ja': '整形',
+    },
+    simplify: {
+      'en': 'Simplify',
+      'zh-CN': '简化',
+      'zh-TW': '簡化',
+      'ja': '簡略化',
+    },
+    copySource: {
+      'en': 'Copy',
+      'zh-CN': '复制',
+      'zh-TW': '複製',
+      'ja': 'コピー',
+    },
+    editSource: {
+      'en': 'Edit',
+      'zh-CN': '编辑',
+      'zh-TW': '編輯',
+      'ja': '編集',
+    },
+    sourceTree: {
+      'en': 'SVG source tree',
+      'zh-CN': 'SVG 源码树',
+      'zh-TW': 'SVG 原始碼樹',
+      'ja': 'SVG ソースツリー',
+    },
+    collapsedContent: {
+      'en': 'Collapsed content',
+      'zh-CN': '已折叠内容',
+      'zh-TW': '已摺疊內容',
+      'ja': '折りたたまれた内容',
+    },
+  },
+  view: {
+    resetView: {
+      'en': 'Reset view and center',
+      'zh-CN': '重置视图并居中',
+      'zh-TW': '重置視圖並置中',
+      'ja': 'ビューをリセットして中央に',
+    },
+    collapseLayers: {
+      'en': 'Collapse layers',
+      'zh-CN': '折叠图层面板',
+      'zh-TW': '摺疊圖層面板',
+      'ja': 'レイヤーパネルを折りたたむ',
+    },
+    expandLayers: {
+      'en': 'Expand layers',
+      'zh-CN': '展开图层面板',
+      'zh-TW': '展開圖層面板',
+      'ja': 'レイヤーパネルを展開',
+    },
+    collapseInspector: {
+      'en': 'Collapse properties',
+      'zh-CN': '折叠属性面板',
+      'zh-TW': '摺疊屬性面板',
+      'ja': 'プロパティパネルを折りたたむ',
+    },
+    expandInspector: {
+      'en': 'Expand properties',
+      'zh-CN': '展开属性面板',
+      'zh-TW': '展開屬性面板',
+      'ja': 'プロパティパネルを展開',
+    },
+    dropHint: {
+      'en': 'Drop an SVG anywhere to begin',
+      'zh-CN': '将 SVG 拖到这里开始',
+      'zh-TW': '將 SVG 拖到這裡開始',
+      'ja': 'SVG をここにドロップして開始',
+    },
+    inspector: {
+      'en': 'Inspector',
+      'zh-CN': '检查器',
+      'zh-TW': '檢查器',
+      'ja': 'インスペクター',
+    },
+    appearance: {
+      'en': 'Appearance',
+      'zh-CN': '外观',
+      'zh-TW': '外觀',
+      'ja': '外観',
+    },
+    dropOverlayTitle: {
+      'en': 'Drop to import SVG',
+      'zh-CN': '松开以导入 SVG',
+      'zh-TW': '放開以匯入 SVG',
+      'ja': 'ドロップして SVG を読み込む',
+    },
+  },
+  inspector: {
+    fill: {
+      'en': 'Fill',
+      'zh-CN': '填充',
+      'zh-TW': '填色',
+      'ja': '塗りつぶし',
+    },
+    stroke: {
+      'en': 'Stroke',
+      'zh-CN': '描边',
+      'zh-TW': '描邊',
+      'ja': 'ストローク',
+    },
+    opacity: {
+      'en': 'Opacity',
+      'zh-CN': '不透明度',
+      'zh-TW': '不透明度',
+      'ja': '不透明度',
+    },
+    strokeWidth: {
+      'en': 'Stroke width',
+      'zh-CN': '描边宽度',
+      'zh-TW': '描邊寬度',
+      'ja': 'ストローク幅',
+    },
+    cornerRadius: {
+      'en': 'Corner radius',
+      'zh-CN': '圆角半径',
+      'zh-TW': '圓角半徑',
+      'ja': '角丸半径',
+    },
+    polygonSides: {
+      'en': 'Sides',
+      'zh-CN': '边数',
+      'zh-TW': '邊數',
+      'ja': '辺の数',
+    },
+    width: {
+      'en': 'Width',
+      'zh-CN': '宽度',
+      'zh-TW': '寬度',
+      'ja': '幅',
+    },
+    height: {
+      'en': 'Height',
+      'zh-CN': '高度',
+      'zh-TW': '高度',
+      'ja': '高さ',
+    },
+    lineStartX: {
+      'en': 'Start X',
+      'zh-CN': '起点 X',
+      'zh-TW': '起點 X',
+      'ja': '始点 X',
+    },
+    lineStartY: {
+      'en': 'Start Y',
+      'zh-CN': '起点 Y',
+      'zh-TW': '起點 Y',
+      'ja': '始点 Y',
+    },
+    lineEndX: {
+      'en': 'End X',
+      'zh-CN': '终点 X',
+      'zh-TW': '終點 X',
+      'ja': '終点 X',
+    },
+    lineEndY: {
+      'en': 'End Y',
+      'zh-CN': '终点 Y',
+      'zh-TW': '終點 Y',
+      'ja': '終点 Y',
+    },
+    aspectRatio: {
+      'en': 'Aspect ratio',
+      'zh-CN': '图层比例',
+      'zh-TW': '圖層比例',
+      'ja': 'アスペクト比',
+    },
+    aspectRatioOriginal: {
+      'en': 'Original',
+      'zh-CN': '原始',
+      'zh-TW': '原始',
+      'ja': '元の比率',
+    },
+    gradient: {
+      'en': 'Gradient',
+      'zh-CN': '渐变色',
+      'zh-TW': '漸層色',
+      'ja': 'グラデーション',
+    },
+    gradientStart: {
+      'en': 'Start color',
+      'zh-CN': '起始颜色',
+      'zh-TW': '起始顏色',
+      'ja': '開始色',
+    },
+    gradientEnd: {
+      'en': 'End color',
+      'zh-CN': '结束颜色',
+      'zh-TW': '結束顏色',
+      'ja': '終了色',
+    },
+    gradientAngle: {
+      'en': 'Angle',
+      'zh-CN': '角度',
+      'zh-TW': '角度',
+      'ja': '角度',
+    },
+    layerTypes: {
+      'en': 'Layer types',
+      'zh-CN': '图层类型',
+      'zh-TW': '圖層類型',
+      'ja': 'レイヤーの種類',
+    },
+    colorTokens: {
+      'en': 'Color tokens',
+      'zh-CN': '颜色 Token',
+      'zh-TW': '顏色 Token',
+      'ja': 'カラートークン',
+    },
+    colorTokenUsage: {
+      'en': 'uses',
+      'zh-CN': '次使用',
+      'zh-TW': '次使用',
+      'ja': '回使用',
+    },
+    colorTokensEmpty: {
+      'en': 'No color tokens found in this SVG.',
+      'zh-CN': '当前 SVG 中没有颜色 Token。',
+      'zh-TW': '目前 SVG 中沒有顏色 Token。',
+      'ja': 'この SVG にはカラートークンがありません。',
+    },
+    copyColor: {
+      'en': 'Copy color',
+      'zh-CN': '复制颜色',
+      'zh-TW': '複製顏色',
+      'ja': '色をコピー',
+    },
+    editColor: {
+      'en': 'Edit color',
+      'zh-CN': '编辑颜色',
+      'zh-TW': '編輯顏色',
+      'ja': '色を編集',
+    },
+    copied: {
+      'en': 'Copied',
+      'zh-CN': '已复制',
+      'zh-TW': '已複製',
+      'ja': 'コピーしました',
+    },
+    elementDetails: {
+      'en': 'Element details',
+      'zh-CN': '元素详情',
+      'zh-TW': '元素詳情',
+      'ja': '要素の詳細',
+    },
+    layer: {
+      'en': 'Layer',
+      'zh-CN': 'Layer',
+      'zh-TW': 'Layer',
+      'ja': 'レイヤー',
+    },
+    visibility: {
+      'en': 'Visibility',
+      'zh-CN': '可见性',
+      'zh-TW': '可見性',
+      'ja': '表示状態',
+    },
+  },
+  selection: {
+    visible: {
+      'en': 'Visible',
+      'zh-CN': '可见',
+      'zh-TW': '可見',
+      'ja': '表示',
+    },
+    hidden: {
+      'en': 'Hidden',
+      'zh-CN': '已隐藏',
+      'zh-TW': '已隱藏',
+      'ja': '非表示',
+    },
+    livePreview: {
+      'en': 'Live preview',
+      'zh-CN': '实时预览',
+      'zh-TW': '即時預覽',
+      'ja': 'ライブプレビュー',
+    },
+    statusReady: {
+      'en': 'elements • SVG ready',
+      'zh-CN': '个元素 · SVG 就绪',
+      'zh-TW': '個元素 · SVG 就緒',
+      'ja': '個の要素 • SVG 準備完了',
+    },
+    changesInstant: {
+      'en': 'Changes apply instantly',
+      'zh-CN': '更改会即时生效',
+      'zh-TW': '更改會即時生效',
+      'ja': '変更は即時反映されます',
+    },
+    selected: {
+      'en': 'Selected',
+      'zh-CN': '已选中',
+      'zh-TW': '已選取',
+      'ja': '選択中',
+    },
+    resizeLineStart: {
+      'en': 'Adjust line start',
+      'zh-CN': '调整线条起点',
+      'zh-TW': '調整線條起點',
+      'ja': '線の始点を調整',
+    },
+    resizeLineEnd: {
+      'en': 'Adjust line end',
+      'zh-CN': '调整线条终点',
+      'zh-TW': '調整線條終點',
+      'ja': '線の終点を調整',
+    },
+    playAnimation: {
+      'en': 'Play animation',
+      'zh-CN': '播放动画',
+      'zh-TW': '播放動畫',
+      'ja': 'アニメーションを再生',
+    },
+    pauseAnimation: {
+      'en': 'Pause animation',
+      'zh-CN': '暂停动画',
+      'zh-TW': '暫停動畫',
+      'ja': 'アニメーションを一時停止',
+    },
+    elementSuffix: {
+      'en': 'element',
+      'zh-CN': '元素',
+      'zh-TW': '元素',
+      'ja': '要素',
+    },
+    show: {
+      'en': 'Show',
+      'zh-CN': '显示',
+      'zh-TW': '顯示',
+      'ja': '表示',
+    },
+    hide: {
+      'en': 'Hide',
+      'zh-CN': '隐藏',
+      'zh-TW': '隱藏',
+      'ja': '非表示',
+    },
+    noSelection: {
+      'en': 'Select a layer to edit its properties.',
+      'zh-CN': '选择一个图层来编辑它的属性。',
+      'zh-TW': '選取一個圖層來編輯它的屬性。',
+      'ja': 'レイヤーを選択してプロパティを編集します。',
+    },
+    invalidSvg: {
+      'en': 'This file does not contain a valid SVG.',
+      'zh-CN': '该文件不包含有效的 SVG。',
+      'zh-TW': '此檔案不包含有效的 SVG。',
+      'ja': 'このファイルには有効な SVG が含まれていません。',
+    },
+  },
+  actions: {
+    undo: {
+      'en': 'Undo',
+      'zh-CN': '撤销',
+      'zh-TW': '復原',
+      'ja': '取り消し',
+    },
+    redo: {
+      'en': 'Redo',
+      'zh-CN': '重做',
+      'zh-TW': '重做',
+      'ja': 'やり直し',
+    },
+    close: {
+      'en': 'Close',
+      'zh-CN': '关闭',
+      'zh-TW': '關閉',
+      'ja': '閉じる',
+    },
+    cancel: {
+      'en': 'Cancel',
+      'zh-CN': '取消',
+      'zh-TW': '取消',
+      'ja': 'キャンセル',
+    },
+  },
+  align: {
+    alignLeft: {
+      'en': 'Align left',
+      'zh-CN': '左对齐',
+      'zh-TW': '靠左對齊',
+      'ja': '左揃え',
+    },
+    alignCenterX: {
+      'en': 'Align horizontal centers',
+      'zh-CN': '水平居中',
+      'zh-TW': '水平置中',
+      'ja': '水平方向中央揃え',
+    },
+    alignRight: {
+      'en': 'Align right',
+      'zh-CN': '右对齐',
+      'zh-TW': '靠右對齊',
+      'ja': '右揃え',
+    },
+    alignTop: {
+      'en': 'Align top',
+      'zh-CN': '顶对齐',
+      'zh-TW': '靠上對齊',
+      'ja': '上揃え',
+    },
+    alignCenterY: {
+      'en': 'Align vertical centers',
+      'zh-CN': '垂直居中',
+      'zh-TW': '垂直置中',
+      'ja': '垂直方向中央揃え',
+    },
+    alignBottom: {
+      'en': 'Align bottom',
+      'zh-CN': '底对齐',
+      'zh-TW': '靠下對齊',
+      'ja': '下揃え',
+    },
+    distributeX: {
+      'en': 'Distribute horizontally',
+      'zh-CN': '水平等距分布',
+      'zh-TW': '水平等距分佈',
+      'ja': '水平方向に等間隔配置',
+    },
+    distributeY: {
+      'en': 'Distribute vertically',
+      'zh-CN': '垂直等距分布',
+      'zh-TW': '垂直等距分佈',
+      'ja': '垂直方向に等間隔配置',
+    },
+  },
+  transform: {
+    collapseGroup: {
+      'en': 'Collapse group',
+      'zh-CN': '折叠分组',
+      'zh-TW': '摺疊群組',
+      'ja': 'グループを折りたたむ',
+    },
+    expandGroup: {
+      'en': 'Expand group',
+      'zh-CN': '展开分组',
+      'zh-TW': '展開群組',
+      'ja': 'グループを展開',
+    },
+    resizeTopLeft: {
+      'en': 'Resize from top left',
+      'zh-CN': '从左上角调整大小',
+      'zh-TW': '從左上角調整大小',
+      'ja': '左上からリサイズ',
+    },
+    resizeBottomRight: {
+      'en': 'Resize from bottom right',
+      'zh-CN': '从右下角调整大小',
+      'zh-TW': '從右下角調整大小',
+      'ja': '右下からリサイズ',
+    },
+    menuGroup: {
+      'en': 'Group',
+      'zh-CN': '创建分组',
+      'zh-TW': '建立群組',
+      'ja': 'グループ化',
+    },
+    toastGrouped: {
+      'en': 'Layers grouped',
+      'zh-CN': '已创建分组',
+      'zh-TW': '已建立群組',
+      'ja': 'グループを作成しました',
+    },
+    shortcutGroup: {
+      'en': 'Group selected layers',
+      'zh-CN': '创建分组',
+      'zh-TW': '建立群組',
+      'ja': '選択したレイヤーをグループ化',
+    },
+  },
+  zoom: {
+    zoomIn: {
+      'en': 'Zoom in',
+      'zh-CN': '放大',
+      'zh-TW': '放大',
+      'ja': '拡大',
+    },
+    zoomOut: {
+      'en': 'Zoom out',
+      'zh-CN': '缩小',
+      'zh-TW': '縮小',
+      'ja': '縮小',
+    },
+    zoomFit: {
+      'en': 'Fit to screen',
+      'zh-CN': '适应屏幕',
+      'zh-TW': '適應螢幕',
+      'ja': '画面に合わせる',
+    },
+  },
+  exportDialog: {
+    exportDialogTitle: {
+      'en': 'Export',
+      'zh-CN': '导出',
+      'zh-TW': '匯出',
+      'ja': 'エクスポート',
+    },
+    exportFormat: {
+      'en': 'Format',
+      'zh-CN': '格式',
+      'zh-TW': '格式',
+      'ja': 'フォーマット',
+    },
+    exportScope: {
+      'en': 'Export scope',
+      'zh-CN': '导出范围',
+      'zh-TW': '匯出範圍',
+      'ja': 'エクスポート範囲',
+    },
+    exportAllLayers: {
+      'en': 'Export all layers',
+      'zh-CN': '导出整个图层',
+      'zh-TW': '匯出整個圖層',
+      'ja': 'すべてのレイヤー',
+    },
+    exportSelectedLayers: {
+      'en': 'Export selected layers',
+      'zh-CN': '导出选择图层',
+      'zh-TW': '匯出選取圖層',
+      'ja': '選択したレイヤー',
+    },
+    exportScale: {
+      'en': 'Scale',
+      'zh-CN': '倍率',
+      'zh-TW': '倍率',
+      'ja': '倍率',
+    },
+    exportOptimize: {
+      'en': 'Optimize & minify SVG',
+      'zh-CN': '优化并压缩 SVG',
+      'zh-TW': '最佳化並壓縮 SVG',
+      'ja': 'SVG を最適化・圧縮',
+    },
+    exportPreview: {
+      'en': 'Preview',
+      'zh-CN': '预览',
+      'zh-TW': '預覽',
+      'ja': 'プレビュー',
+    },
+    exportEstimatedSize: {
+      'en': 'Est. size',
+      'zh-CN': '预计大小',
+      'zh-TW': '預計大小',
+      'ja': '推定サイズ',
+    },
+    exportLayerCount: {
+      'en': 'Layers to export',
+      'zh-CN': '待导出图层',
+      'zh-TW': '待匯出圖層',
+      'ja': 'エクスポートするレイヤー',
+    },
+    expandExportPreview: {
+      'en': 'Expand export preview',
+      'zh-CN': '放大导出预览',
+      'zh-TW': '放大匯出預覽',
+      'ja': 'エクスポートプレビューを拡大',
+    },
+    exportFailed: {
+      'en': 'Export failed',
+      'zh-CN': '导出失败',
+      'zh-TW': '匯出失敗',
+      'ja': 'エクスポートに失敗しました',
+    },
+  },
+  shortcuts: {
+    shortcutsTitle: {
+      'en': 'Keyboard shortcuts',
+      'zh-CN': '键盘快捷键',
+      'zh-TW': '鍵盤快捷鍵',
+      'ja': 'キーボードショートカット',
+    },
+    shortcutsGeneral: {
+      'en': 'General',
+      'zh-CN': '通用',
+      'zh-TW': '一般',
+      'ja': '一般',
+    },
+    shortcutsLayers: {
+      'en': 'Layers',
+      'zh-CN': '图层',
+      'zh-TW': '圖層',
+      'ja': 'レイヤー',
+    },
+    shortcutsCanvas: {
+      'en': 'Canvas',
+      'zh-CN': '画布',
+      'zh-TW': '畫布',
+      'ja': 'キャンバス',
+    },
+    shortcutsHint: {
+      'en': 'Press ? to toggle this panel',
+      'zh-CN': '按 ? 可打开或关闭此面板',
+      'zh-TW': '按 ? 可開啟或關閉此面板',
+      'ja': '? キーでこのパネルを開閉',
+    },
+    shortcutUndo: {
+      'en': 'Undo',
+      'zh-CN': '撤销',
+      'zh-TW': '復原',
+      'ja': '取り消し',
+    },
+    shortcutRedo: {
+      'en': 'Redo',
+      'zh-CN': '重做',
+      'zh-TW': '重做',
+      'ja': 'やり直し',
+    },
+    shortcutExport: {
+      'en': 'Export SVG',
+      'zh-CN': '导出 SVG',
+      'zh-TW': '匯出 SVG',
+      'ja': 'SVG をエクスポート',
+    },
+    shortcutSelectAll: {
+      'en': 'Select all layers',
+      'zh-CN': '全选图层',
+      'zh-TW': '全選圖層',
+      'ja': 'すべてのレイヤーを選択',
+    },
+    shortcutCopy: {
+      'en': 'Copy layer',
+      'zh-CN': '复制图层',
+      'zh-TW': '複製圖層',
+      'ja': 'レイヤーをコピー',
+    },
+    shortcutPaste: {
+      'en': 'Paste layer',
+      'zh-CN': '粘贴图层',
+      'zh-TW': '貼上圖層',
+      'ja': 'レイヤーを貼り付け',
+    },
+    shortcutPasteSvg: {
+      'en': 'Paste SVG or layer',
+      'zh-CN': '粘贴 SVG 或图层',
+      'zh-TW': '貼上 SVG 或圖層',
+      'ja': 'SVG またはレイヤーを貼り付け',
+    },
+    shortcutDelete: {
+      'en': 'Delete layer',
+      'zh-CN': '删除图层',
+      'zh-TW': '刪除圖層',
+      'ja': 'レイヤーを削除',
+    },
+    shortcutPanels: {
+      'en': 'Cycle panels',
+      'zh-CN': '循环切换面板',
+      'zh-TW': '循環切換面板',
+      'ja': 'パネルを切り替え',
+    },
+    shortcutHelp: {
+      'en': 'Toggle shortcuts panel',
+      'zh-CN': '打开/关闭快捷键面板',
+      'zh-TW': '開啟/關閉快捷鍵面板',
+      'ja': 'ショートカットパネルの開閉',
+    },
+    shortcutRangeSelect: {
+      'en': 'Select layer range',
+      'zh-CN': '选中图层范围',
+      'zh-TW': '選取圖層範圍',
+      'ja': 'レイヤーを範囲選択',
+    },
+    shortcutToggleSelect: {
+      'en': 'Add or remove layer from selection',
+      'zh-CN': '添加或取消单个图层',
+      'zh-TW': '加入或取消單個圖層',
+      'ja': 'レイヤーの選択を切り替え',
+    },
+    shortcutPan: {
+      'en': 'Pan canvas',
+      'zh-CN': '平移画布',
+      'zh-TW': '平移畫布',
+      'ja': 'キャンバスをパン',
+    },
+    shortcutZoom: {
+      'en': 'Zoom in / out',
+      'zh-CN': '放大 / 缩小',
+      'zh-TW': '放大 / 縮小',
+      'ja': '拡大 / 縮小',
+    },
+    shortcutEditText: {
+      'en': 'Edit text content',
+      'zh-CN': '编辑文字内容',
+      'zh-TW': '編輯文字內容',
+      'ja': 'テキストを編集',
+    },
+    shortcutResizeProportional: {
+      'en': 'Resize proportionally',
+      'zh-CN': '等比例调整大小',
+      'zh-TW': '等比例調整大小',
+      'ja': '比率を維持してリサイズ',
+    },
+    shortcutMove: {
+      'en': 'Move selected layers (Shift: 10px)',
+      'zh-CN': '移动选中的图层（Shift：10px）',
+      'zh-TW': '移動選取的圖層（Shift：10px）',
+      'ja': '選択したレイヤーを移動（Shift: 10px）',
+    },
+    shortcutDeselect: {
+      'en': 'Clear selection',
+      'zh-CN': '取消选择',
+      'zh-TW': '取消選取',
+      'ja': '選択を解除',
+    },
+    shortcutZoomIn: {
+      'en': 'Zoom in',
+      'zh-CN': '放大',
+      'zh-TW': '放大',
+      'ja': '拡大',
+    },
+    shortcutZoomOut: {
+      'en': 'Zoom out',
+      'zh-CN': '缩小',
+      'zh-TW': '縮小',
+      'ja': '縮小',
+    },
+    shortcutZoomFit: {
+      'en': 'Fit to screen',
+      'zh-CN': '适应屏幕',
+      'zh-TW': '適應螢幕',
+      'ja': '画面に合わせる',
+    },
+    shortcutKeyDrag: {
+      'en': 'Drag',
+      'zh-CN': '拖拽',
+      'zh-TW': '拖曳',
+      'ja': 'ドラッグ',
+    },
+    shortcutKeyScroll: {
+      'en': '⌘ + Scroll',
+      'zh-CN': '⌘ + 滚轮',
+      'zh-TW': '⌘ + 滾輪',
+      'ja': '⌘ + スクロール',
+    },
+    shortcutKeyDoubleClick: {
+      'en': 'Double-click',
+      'zh-CN': '双击',
+      'zh-TW': '雙擊',
+      'ja': 'ダブルクリック',
+    },
+  },
+  toast: {
+    toastExported: {
+      'en': 'SVG exported',
+      'zh-CN': 'SVG 已导出',
+      'zh-TW': 'SVG 已匯出',
+      'ja': 'SVG をエクスポートしました',
+    },
+    toastImported: {
+      'en': 'Imported',
+      'zh-CN': '已导入',
+      'zh-TW': '已匯入',
+      'ja': '読み込みました',
+    },
+    toastCopy: {
+      'en': 'Layer copied',
+      'zh-CN': '已复制图层',
+      'zh-TW': '已複製圖層',
+      'ja': 'レイヤーをコピーしました',
+    },
+    toastPaste: {
+      'en': 'Layer pasted',
+      'zh-CN': '已粘贴图层',
+      'zh-TW': '已貼上圖層',
+      'ja': 'レイヤーを貼り付けました',
+    },
+    toastDelete: {
+      'en': 'Layer deleted — press ⌘Z to undo',
+      'zh-CN': '已删除图层 — 按 ⌘Z 撤销',
+      'zh-TW': '已刪除圖層 — 按 ⌘Z 復原',
+      'ja': 'レイヤーを削除しました — ⌘Z で取り消し',
+    },
+    toastFormatted: {
+      'en': 'Source formatted',
+      'zh-CN': '源码已格式化',
+      'zh-TW': '原始碼已格式化',
+      'ja': 'ソースを整形しました',
+    },
+    toastSimplified: {
+      'en': 'Consecutive translations simplified',
+      'zh-CN': '已简化连续平移',
+      'zh-TW': '已簡化連續平移',
+      'ja': '連続した移動を簡略化しました',
+    },
+    toastSourceCopied: {
+      'en': 'Source copied',
+      'zh-CN': '源码已复制',
+      'zh-TW': '原始碼已複製',
+      'ja': 'ソースをコピーしました',
+    },
+    toastSourceCopyFailed: {
+      'en': 'Could not copy source',
+      'zh-CN': '无法复制源码',
+      'zh-TW': '無法複製原始碼',
+      'ja': 'ソースをコピーできませんでした',
+    },
+    toastInvalidFile: {
+      'en': 'Please drop or choose an SVG file.',
+      'zh-CN': '请拖入或选择一个 SVG 文件。',
+      'zh-TW': '請拖入或選擇一個 SVG 檔案。',
+      'ja': 'SVG ファイルをドロップまたは選択してください。',
+    },
+    toastInvalidImageFile: {
+      'en': 'Please choose a supported image file.',
+      'zh-CN': '请选择受支持的图片文件。',
+      'zh-TW': '請選擇支援的圖片檔案。',
+      'ja': '対応している画像ファイルを選択してください。',
+    },
+    toastCollectionImportFailed: {
+      'en': 'Could not import this SVG collection item.',
+      'zh-CN': '无法导入此 SVG 收藏图标。',
+      'zh-TW': '無法匯入此 SVG 收藏圖示。',
+      'ja': 'この SVG コレクション項目を読み込めませんでした。',
+    },
+    storageFull: {
+      'en': 'Local storage is full — changes may not be saved',
+      'zh-CN': '本地存储已满，更改可能无法保存',
+      'zh-TW': '本機儲存空間已滿，更改可能無法儲存',
+      'ja': 'ローカルストレージがいっぱいです — 変更が保存されない場合があります',
+    },
+  },
+  rename: {
+    menuRename: {
+      'en': 'Rename',
+      'zh-CN': '重命名',
+      'zh-TW': '重新命名',
+      'ja': '名前を変更',
+    },
+    renamePlaceholder: {
+      'en': 'Layer name',
+      'zh-CN': '图层名称',
+      'zh-TW': '圖層名稱',
+      'ja': 'レイヤー名',
+    },
+    svgName: {
+      'en': 'SVG name',
+      'zh-CN': 'SVG 名称',
+      'zh-TW': 'SVG 名稱',
+      'ja': 'SVG 名',
+    },
+    editSvgName: {
+      'en': 'Rename SVG',
+      'zh-CN': '编辑 SVG 名称',
+      'zh-TW': '編輯 SVG 名稱',
+      'ja': 'SVG 名を編集',
+    },
+    confirmSvgUrlName: {
+      'en': 'Use “{name}” from the SVG URL in your clipboard?',
+      'zh-CN': '检测到剪贴板中的 SVG 链接，使用“{name}”作为名称吗？',
+      'zh-TW': '偵測到剪貼簿中的 SVG 連結，要使用「{name}」作為名稱嗎？',
+      'ja': 'クリップボード内の SVG URL から「{name}」を名前に使いますか？',
+    },
+    useSvgUrlName: {
+      'en': 'Use name',
+      'zh-CN': '使用名称',
+      'zh-TW': '使用名稱',
+      'ja': '名前を使用',
+    },
+    recentSvgs: {
+      'en': 'Recent SVGs',
+      'zh-CN': '历史 SVG 列表',
+      'zh-TW': '歷史 SVG 列表',
+      'ja': 'SVG 履歴',
+    },
+    recentSvgsEmpty: {
+      'en': 'No edited SVGs yet.',
+      'zh-CN': '暂时没有编辑过的 SVG。',
+      'zh-TW': '暫時沒有編輯過的 SVG。',
+      'ja': '編集した SVG はまだありません。',
+    },
+    recentSvgPreview: {
+      'en': 'SVG preview',
+      'zh-CN': 'SVG 预览',
+      'zh-TW': 'SVG 預覽',
+      'ja': 'SVG プレビュー',
+    },
+    expandRecentSvgPreview: {
+      'en': 'Expand SVG preview',
+      'zh-CN': '放大 SVG 预览',
+      'zh-TW': '放大 SVG 預覽',
+      'ja': 'SVG プレビューを拡大',
+    },
+    removeRecentSvg: {
+      'en': 'Remove from recent SVGs',
+      'zh-CN': '删除历史 SVG',
+      'zh-TW': '刪除歷史 SVG',
+      'ja': 'SVG 履歴から削除',
+    },
   },
 }
 
-export const TAG_NAMES = {
-  'zh-CN': { rect: '矩形', circle: '圆形', ellipse: '椭圆', line: '直线', polyline: '折线', polygon: '多边形', heart: '爱心', star: '五角星', path: '路径', text: '文字', g: '分组', image: '图片' },
-  'zh-TW': { rect: '矩形', circle: '圓形', ellipse: '橢圓', line: '直線', polyline: '折線', polygon: '多邊形', heart: '愛心', star: '五角星', path: '路徑', text: '文字', g: '群組', image: '圖片' },
-  ja: { rect: '矩形', circle: '円', ellipse: '楕円', line: '直線', polyline: '折れ線', polygon: '多角形', heart: 'ハート', star: '星', path: 'パス', text: 'テキスト', g: 'グループ', image: '画像' },
+function buildCopy(sections) {
+  const byLang = { en: {}, "zh-CN": {}, "zh-TW": {}, ja: {} }
+  for (const section of Object.values(sections)) {
+    for (const [key, texts] of Object.entries(section)) {
+      if (import.meta.env.DEV) {
+        const missing = LANGS.filter((l) => texts[l] == null)
+        if (missing.length) console.warn(`[copy] "${key}" 缺少语言: ${missing.join(", ")}`)
+      }
+      for (const lang of LANGS) {
+        if (texts[lang] != null) byLang[lang][key] = texts[lang]
+      }
+    }
+  }
+  return byLang
 }
 
-export const LAYER_NAMES = {
-  'zh-CN': { Background: '背景', 'Logo mark': '标志图形', Wordmark: '文字标志', Heart: '爱心', Star: '五角星' },
-  'zh-TW': { Background: '背景', 'Logo mark': '標誌圖形', Wordmark: '文字標誌', Heart: '愛心', Star: '五角星' },
-  ja: { Background: '背景', 'Logo mark': 'ロゴマーク', Wordmark: 'ワードマーク', Heart: 'ハート', Star: '星' },
+export const COPY = buildCopy(SECTIONS)
+
+const TAG_ENTRIES = {
+    rect: {
+      'zh-CN': '矩形',
+      'zh-TW': '矩形',
+      'ja': '矩形',
+    },
+    circle: {
+      'zh-CN': '圆形',
+      'zh-TW': '圓形',
+      'ja': '円',
+    },
+    ellipse: {
+      'zh-CN': '椭圆',
+      'zh-TW': '橢圓',
+      'ja': '楕円',
+    },
+    line: {
+      'zh-CN': '直线',
+      'zh-TW': '直線',
+      'ja': '直線',
+    },
+    polyline: {
+      'zh-CN': '折线',
+      'zh-TW': '折線',
+      'ja': '折れ線',
+    },
+    polygon: {
+      'zh-CN': '多边形',
+      'zh-TW': '多邊形',
+      'ja': '多角形',
+    },
+    heart: {
+      'zh-CN': '爱心',
+      'zh-TW': '愛心',
+      'ja': 'ハート',
+    },
+    star: {
+      'zh-CN': '五角星',
+      'zh-TW': '五角星',
+      'ja': '星',
+    },
+    path: {
+      'zh-CN': '路径',
+      'zh-TW': '路徑',
+      'ja': 'パス',
+    },
+    text: {
+      'zh-CN': '文字',
+      'zh-TW': '文字',
+      'ja': 'テキスト',
+    },
+    g: {
+      'zh-CN': '分组',
+      'zh-TW': '群組',
+      'ja': 'グループ',
+    },
+    image: {
+      'zh-CN': '图片',
+      'zh-TW': '圖片',
+      'ja': '画像',
+    },
 }
 
-export const ADD_LAYER_TAGS = ['rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'heart', 'star', 'path', 'text']
+const LAYER_ENTRIES = {
+    Background: {
+      'zh-CN': '背景',
+      'zh-TW': '背景',
+      'ja': '背景',
+    },
+    'Logo mark': {
+      'zh-CN': '标志图形',
+      'zh-TW': '標誌圖形',
+      'ja': 'ロゴマーク',
+    },
+    Wordmark: {
+      'zh-CN': '文字标志',
+      'zh-TW': '文字標誌',
+      'ja': 'ワードマーク',
+    },
+    Heart: {
+      'zh-CN': '爱心',
+      'zh-TW': '愛心',
+      'ja': 'ハート',
+    },
+    Star: {
+      'zh-CN': '五角星',
+      'zh-TW': '五角星',
+      'ja': '星',
+    },
+}
+
+function buildByLanguage(entries) {
+  const byLang = {}
+  for (const [key, texts] of Object.entries(entries)) {
+    for (const [lang, text] of Object.entries(texts)) {
+      ;(byLang[lang] ??= {})[key] = text
+    }
+  }
+  return byLang
+}
+
+export const TAG_NAMES = buildByLanguage(TAG_ENTRIES)
+export const LAYER_NAMES = buildByLanguage(LAYER_ENTRIES)
+
+export const ADD_LAYER_TAGS = ["rect","circle","ellipse","line","polyline","polygon","heart","star","path","text"]
 
 export function getLayerDisplayName(item, language) {
   const layerNames = LAYER_NAMES[language]
@@ -112,7 +1334,7 @@ export function getLayerDisplayName(item, language) {
   if (layerNames[item.name]) return layerNames[item.name]
   const match = item.name.match(/^([a-z]+)(\s+\d+)?$/i)
   if (!match) return item.name
-  return `${TAG_NAMES[language]?.[match[1].toLowerCase()] || match[1]}${match[2] || ''}`
+  return `${TAG_NAMES[language]?.[match[1].toLowerCase()] || match[1]}${match[2] || ""}`
 }
 
 export function getTagDisplayName(tag, language) {
