@@ -473,7 +473,14 @@ export function createCollectionSvgLayerMarkup(rawMarkup, { name, svgMarkup, pre
   const x = bounds.x + (bounds.width - sourceWidth * scale) / 2 - (viewBox[0] || 0) * scale
   const y = bounds.y + (bounds.height - sourceHeight * scale) / 2 - (viewBox[1] || 0) * scale
   node.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${scale.toFixed(4)})`)
-  if (!preserveAppearance) node.setAttribute('fill', '#23211D')
+  if (!preserveAppearance) {
+    node.setAttribute('fill', '#23211D')
+  } else if (sourceRoot.hasAttribute('fill')) {
+    // 迁移源 <svg> 根上的 fill 到外层 <g>，避免 simple-icons 类图标
+    // （fill 写在根上、子元素无 fill）丢失颜色后回退成默认黑色
+    node.setAttribute('fill', sourceRoot.getAttribute('fill'))
+    if (sourceRoot.hasAttribute('fill-opacity')) node.setAttribute('fill-opacity', sourceRoot.getAttribute('fill-opacity'))
+  }
   node.setAttribute('data-editor-id', newId)
   node.setAttribute('data-editor-collection-icon', '')
   node.setAttribute('data-name', name)
