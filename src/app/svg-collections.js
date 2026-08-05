@@ -54,6 +54,43 @@ function animationName(file) {
   return file.replace(/\.svg$/, '').replace(/^\d+-/, '').split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join(' ')
 }
 
+// 品牌名大小写固定，不走 Title Case 推导
+const SOCIAL_MEDIA_DIRECTORY = 'social-media'
+const SOCIAL_MEDIA_FILES = [
+  '01-xiaohongshu.svg',
+  '02-douyin.svg',
+  '03-wechat-official-account.svg',
+  '04-wechat-channels.svg',
+  '05-instagram.svg',
+  '06-youtube.svg',
+  '07-x.svg',
+]
+const SOCIAL_MEDIA_NAMES = {
+  '01-xiaohongshu': 'Xiaohongshu',
+  '02-douyin': 'Douyin',
+  '03-wechat-official-account': 'WeChat Official Account',
+  '04-wechat-channels': 'WeChat Channels',
+  '05-instagram': 'Instagram',
+  '06-youtube': 'YouTube',
+  '07-x': 'X',
+}
+
+function socialMediaName(file) {
+  return SOCIAL_MEDIA_NAMES[file.replace(/\.svg$/, '')] || animationName(file)
+}
+
+const POPULAR_DIRECTORY = 'popular'
+const POPULAR_FILES = [
+  'amazon.svg', 'android.svg', 'apple-light.svg', 'aws.svg', 'chrome.svg', 'claude.svg', 'cloudflare.svg', 'digitalocean.svg', 'discord.svg', 'figma.svg', 'firebase.svg', 'firefox.svg', 'github-copilot.svg', 'github.svg', 'google.svg', 'linux.svg', 'meta.svg', 'microsoft.svg', 'mongodb.svg', 'netflix.svg', 'nextdotjs.svg', 'nodejs.svg', 'notion.svg', 'openai.svg', 'postgresql.svg', 'python.svg', 'react.svg', 'redis.svg', 'rust.svg', 'safari.svg', 'slack.svg', 'spotify.svg', 'stripe.svg', 'supabase.svg', 'swift.svg', 'tailwindcss.svg', 'typescript.svg', 'vercel.svg', 'visual-studio-code.svg',
+]
+const POPULAR_NAMES = {
+  'apple-light': 'Apple', aws: 'AWS', 'github-copilot': 'GitHub Copilot', github: 'GitHub', mongodb: 'MongoDB', nextdotjs: 'Next.js', nodejs: 'Node.js', openai: 'OpenAI', postgresql: 'PostgreSQL', tailwindcss: 'Tailwind CSS', typescript: 'TypeScript', vercel: 'Vercel', 'visual-studio-code': 'VS Code', digitalocean: 'DigitalOcean', cloudflare: 'Cloudflare', microsoft: 'Microsoft', firebase: 'Firebase', spotify: 'Spotify', stripe: 'Stripe', supabase: 'Supabase', netflix: 'Netflix', notion: 'Notion', redis: 'Redis', python: 'Python', react: 'React', linux: 'Linux', safari: 'Safari', swift: 'Swift', figma: 'Figma', google: 'Google', chrome: 'Chrome', firefox: 'Firefox', claude: 'Claude', discord: 'Discord', slack: 'Slack', meta: 'Meta', android: 'Android', rust: 'Rust',
+}
+
+function popularName(file) {
+  return POPULAR_NAMES[file.replace(/\.svg$/, '')] || animationName(file)
+}
+
 // svg-spinners 的名字里数字前缀（如 90-ring、180-ring）是名称语义的一部分，不可剥离
 function spinnerName(file) {
   return file.replace(/\.svg$/, '').split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join(' ')
@@ -63,7 +100,7 @@ function getCollectionAssetUrl(directory, file) {
   return `${import.meta.env.BASE_URL}svg-collections/${directory}/${file}`
 }
 
-function createAnimationCollection({ id, labelKey, directory, files, sourceUrl, nameFn = animationName }) {
+function createSvgCollection({ id, labelKey, directory, files, sourceUrl, nameFn = animationName }) {
   const collection = {
     id,
     labelKey,
@@ -86,4 +123,16 @@ export const SVG_COLLECTIONS = [{
     editableUrl: getEditableUrl(name),
     inlineSvgMarkup: INLINE_LOGOS[name],
   })),
-}, ...ANIMATION_COLLECTIONS.map(createAnimationCollection)]
+}, createSvgCollection({
+  id: 'social-media',
+  labelKey: 'svgCollectionSocialMedia',
+  directory: SOCIAL_MEDIA_DIRECTORY,
+  files: SOCIAL_MEDIA_FILES,
+  nameFn: socialMediaName,
+}), createSvgCollection({
+  id: 'popular-logos',
+  labelKey: 'svgCollectionPopularLogos',
+  directory: POPULAR_DIRECTORY,
+  files: POPULAR_FILES,
+  nameFn: popularName,
+}), ...ANIMATION_COLLECTIONS.map(createSvgCollection)]

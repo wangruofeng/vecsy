@@ -1,0 +1,17 @@
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+      <title id="title">WeChat Channels logo</title>
+      <desc id="desc">Current orange butterfly-style WeChat Channels mark rebuilt as vector paths.</desc>
+
+<path d="M64 64
+         C53 42 43 22 34 20
+         C24 17 25 38 31 59
+         C36 79 44 94 52 91
+         C58 88 61 75 64 64
+         C67 75 70 88 76 91
+         C84 94 92 79 97 59
+         C103 38 104 17 94 20
+         C85 22 75 42 64 64Z"
+      fill="none" stroke="#FA9D3B" stroke-width="8"
+      stroke-linecap="round" stroke-linejoin="round"/>
+
+    </svg>
