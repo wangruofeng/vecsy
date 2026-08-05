@@ -870,12 +870,10 @@ function App() {
   }
 
   const handleFileDragOver = (event) => {
-    if (!hasDraggedFiles(event)) return
     event.preventDefault()
   }
 
   const handleFileDragLeave = (event) => {
-    if (!hasDraggedFiles(event)) return
     fileDragCounterRef.current = Math.max(0, fileDragCounterRef.current - 1)
     if (fileDragCounterRef.current === 0) setIsFileDragOver(false)
   }
