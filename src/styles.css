@@ -143,7 +143,7 @@ h1 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: clamp(25px, 
 .source-code-row { cursor: pointer; }
 .source-code-row:hover { background: rgba(255,255,255,.045); }
 .source-code-row.selected { background: rgba(242,169,59,.1); box-shadow: inset 2px 0 var(--amber); }
-.source-code-row code { color: inherit; font: inherit; line-height: inherit; }
+.source-code-row code { color: inherit; font: inherit; line-height: inherit; user-select: none; }
 .source-line-number { flex: 0 0 48px; padding-right: 12px; color: #615e58; line-height: inherit; text-align: right; user-select: none; }
 .source-fold-button { width: 18px; height: 20px; flex: 0 0 18px; display: grid; place-items: center; padding: 0; color: #8e8b84; background: transparent; }
 .source-fold-button:not(:has(.icon)) { cursor: default; }
