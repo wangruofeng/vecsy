@@ -91,6 +91,10 @@ function popularName(file) {
   return POPULAR_NAMES[file.replace(/\.svg$/, '')] || animationName(file)
 }
 
+// Google 2026 品牌刷新后的各服务图标（本地静态资源，保留品牌贴色）
+const GOOGLE_2026_DIRECTORY = 'google-2026'
+const GOOGLE_2026_FILES = ['gmail-2026.svg', 'google-calendar-2026.svg', 'google-chat-2026.svg', 'google-docs-2026.svg', 'google-drive-2026.svg', 'google-forms-2026.svg', 'google-keep-2026.svg', 'google-meet-2026.svg', 'google-sheets-2026.svg', 'google-sites-2026.svg', 'google-slides-2026.svg', 'google-tasks-2026.svg', 'google-vids-2026.svg', 'google-voice-2026.svg']
+
 // svg-spinners 的名字里数字前缀（如 90-ring、180-ring）是名称语义的一部分，不可剥离
 function spinnerName(file) {
   return file.replace(/\.svg$/, '').split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join(' ')
@@ -135,4 +139,9 @@ export const SVG_COLLECTIONS = [{
   directory: POPULAR_DIRECTORY,
   files: POPULAR_FILES,
   nameFn: popularName,
+}), createSvgCollection({
+  id: 'google-2026',
+  labelKey: 'svgCollectionGoogle2026',
+  directory: GOOGLE_2026_DIRECTORY,
+  files: GOOGLE_2026_FILES,
 }), ...ANIMATION_COLLECTIONS.map(createSvgCollection)]
