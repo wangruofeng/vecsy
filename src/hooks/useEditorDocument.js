@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { LANGUAGES } from '../app/copy.js'
 import { parseSvg } from '../editor/svg-parser.js'
+import { processSvgInput } from '../editor/process-svg-input.js'
+import { deleteDocument, listRecentDocuments, openDocumentDatabase, readDocument, readMeta, saveCurrentDocument, saveRecentDocuments } from '../storage/document-db.js'
 
 export default function useEditorDocument({ initialMarkup, storageKey, legacyStorageKey, historyLimit = 50 }) {
   const recentStorageKey = `${storageKey}:recent-documents`
@@ -54,8 +56,83 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
   }))
   const [storageError, setStorageError] = useState(false)
   const storageWarnedRef = useRef(false)
+  const databaseRef = useRef(null)
+  const saveChainRef = useRef(Promise.resolve())
+  const saveRevisionRef = useRef(0)
+  const [databaseReady, setDatabaseReady] = useState(false)
 
   useEffect(() => {
+    let closed = false
+    openDocumentDatabase().then(async (database) => {
+      if (closed) return database.close()
+      databaseRef.current = database
+      let [storedDocument, storedLanguage, storedRecents] = await Promise.all([readDocument(database, 'current'), readMeta(database, 'language'), listRecentDocuments(database)])
+      if (!storedDocument && persisted?.svgMarkup) {
+        const migrated = processSvgInput(persisted.svgMarkup)
+        if (migrated.status !== 'rejected') {
+          await saveCurrentDocument(database, {
+            id: 'current', fileName: persisted.fileName || 'untitled.svg', svgMarkup: migrated.markup,
+            selectedId: persisted.selectedId || '', selectedIds: Array.isArray(persisted.selectedIds) ? persisted.selectedIds : [],
+            dirty: Boolean(persisted.dirty), revision: 1, createdAt: Date.now(), updatedAt: Date.now(),
+          }, { lastDocumentId: 'current', language: language, migrationState: 'idb-primary' })
+          storedDocument = await readDocument(database, 'current')
+          storedRecents = await listRecentDocuments(database)
+        }
+      }
+      if (!storedRecents.length && recentDocuments.length) {
+        await saveRecentDocuments(database, recentDocuments)
+        storedRecents = await listRecentDocuments(database)
+      }
+      if (!closed && storedDocument?.svgMarkup) {
+        const restored = processSvgInput(storedDocument.svgMarkup)
+        if (restored.status === 'rejected') throw new Error('Stored document is invalid')
+        const parsed = parseSvg(restored.markup)
+        setSvgMarkup(parsed.markup)
+        setSourceDraft(parsed.markup)
+        setElements(parsed.elements)
+        setSelectedId(storedDocument.selectedId || parsed.elements[0]?.id || '')
+        setSelectedIds(Array.isArray(storedDocument.selectedIds) ? storedDocument.selectedIds : [])
+        setFileName(storedDocument.fileName || 'untitled.svg')
+        setDirty(Boolean(storedDocument.dirty))
+        if (LANGUAGES.some((item) => item.code === storedLanguage?.value)) setLanguage(storedLanguage.value)
+      }
+      if (!closed && storedRecents.length) setRecentDocuments(storedRecents.map(({ fileName, svgMarkup, updatedAt }) => ({ fileName, svgMarkup, updatedAt })))
+      setDatabaseReady(true)
+    }).catch(() => setStorageError(true))
+    return () => { closed = true; databaseRef.current?.close(); databaseRef.current = null }
+  }, [])
+
+  useEffect(() => {
+    if (!databaseReady || !databaseRef.current) return undefined
+    const revision = ++saveRevisionRef.current
+    const save = () => {
+      saveChainRef.current = saveChainRef.current.then(() => {
+        if (revision !== saveRevisionRef.current || !databaseRef.current) return
+        return saveCurrentDocument(databaseRef.current, {
+          id: 'current', fileName, svgMarkup, selectedId, selectedIds, dirty, revision, updatedAt: Date.now(),
+        }, { lastDocumentId: 'current', language })
+      }).catch(() => setStorageError(true))
+    }
+    const timeout = window.setTimeout(save, 750)
+    const flushWhenHidden = () => {
+      if (document.visibilityState !== 'hidden') return
+      window.clearTimeout(timeout)
+      save()
+    }
+    document.addEventListener('visibilitychange', flushWhenHidden)
+    return () => { window.clearTimeout(timeout); document.removeEventListener('visibilitychange', flushWhenHidden) }
+  }, [databaseReady, svgMarkup, fileName, selectedId, selectedIds, dirty, language])
+
+  useEffect(() => {
+    if (!databaseReady || !databaseRef.current) return undefined
+    const timeout = window.setTimeout(() => {
+      saveChainRef.current = saveChainRef.current.then(() => databaseRef.current && saveRecentDocuments(databaseRef.current, recentDocuments)).catch(() => setStorageError(true))
+    }, 750)
+    return () => window.clearTimeout(timeout)
+  }, [databaseReady, recentDocuments])
+
+  useEffect(() => {
+    if (databaseReady) return undefined
     const timeout = window.setTimeout(() => {
       try {
         window.localStorage.setItem(storageKey, JSON.stringify({
@@ -69,9 +146,10 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
       }
     }, 350)
     return () => window.clearTimeout(timeout)
-  }, [storageKey, svgMarkup, fileName, selectedId, selectedIds, dirty, history, language])
+  }, [databaseReady, storageKey, svgMarkup, fileName, selectedId, selectedIds, dirty, history, language])
 
   useEffect(() => {
+    if (databaseReady) return undefined
     const timeout = window.setTimeout(() => {
       try {
         window.localStorage.setItem(recentStorageKey, JSON.stringify(recentDocuments))
@@ -83,7 +161,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
       }
     }, 350)
     return () => window.clearTimeout(timeout)
-  }, [recentDocuments, recentStorageKey])
+  }, [databaseReady, recentDocuments, recentStorageKey])
 
   const recordRecentDocument = (markup, name) => {
     setRecentDocuments((current) => [
@@ -94,6 +172,9 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
 
   const removeRecentDocument = (fileName) => {
     setRecentDocuments((current) => current.filter((item) => item.fileName !== fileName))
+    if (databaseReady && databaseRef.current) {
+      saveChainRef.current = saveChainRef.current.then(() => databaseRef.current && deleteDocument(databaseRef.current, `recent:${fileName}`)).catch(() => setStorageError(true))
+    }
   }
 
   const selectLayerIds = (nextIds, primaryId = nextIds[nextIds.length - 1] || '') => {

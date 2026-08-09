@@ -13,7 +13,9 @@ import useEditorDocument from './hooks/useEditorDocument.js'
 import useCanvasInteraction from './hooks/useCanvasInteraction.js'
 import { getAncestorGroupIds, getColor, getSvgColorTokens, getVisibleLayerItems, isElementHidden, setElementVisibility } from './editor/svg-parser.js'
 import { getSvgDimensions, getTopLevelSelectedIds } from './editor/svg-geometry.js'
-import { compactSvgTranslateTransforms, copyLayerMarkup, createCollectionSvgLayerMarkup, createImageLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, getElementPaint, getPolygonSides, getTextGradientConfig, groupLayers, highlightSvgSource, insertClonedLayer, minifySvg, removeLayers, reorderSiblingElements, replaceSvgColorToken, sanitizeForExport, syncTextLineLayout, translateElements, translateElementsById, updateElementAttributes, updatePolygonSides as updatePolygonSidesMarkup, updateTextGradient, withExplicitSize } from './editor/svg-transforms.js'
+import { processSvgInput } from './editor/process-svg-input.js'
+import { editSvgDocument } from './editor/edit-svg-document.js'
+import { compactSvgTranslateTransforms, copyLayerMarkup, createCollectionSvgLayerMarkup, createImageLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, getElementPaint, getPolygonSides, getTextGradientConfig, highlightSvgSource, insertClonedLayer, minifySvg, reorderSiblingElements, replaceSvgColorToken, sanitizeForExport, syncTextLineLayout, updatePolygonSides as updatePolygonSidesMarkup, updateTextGradient, withExplicitSize } from './editor/svg-transforms.js'
 
 const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480">
   <g id="background" data-name="Background">
@@ -115,6 +117,21 @@ function App() {
   const exportPreviewPointersRef = useRef(new Map())
   const exportPreviewPinchRef = useRef(null)
   const copy = COPY[language]
+
+  const showSecurityFeedback = (result) => {
+    if (result.status !== 'sanitized') return
+    const labels = {
+      'blocked-element': copy.svgSafetyBlockedElement,
+      'event-handler': copy.svgSafetyEventHandler,
+      'external-url': copy.svgSafetyExternalUrl,
+      'style-element': copy.svgSafetyStyleElement,
+      'unsafe-style': copy.svgSafetyUnsafeStyle,
+      'processing-instruction': copy.svgSafetyProcessingInstruction,
+      link: copy.svgSafetyLink,
+    }
+    const details = Object.entries(result.removedFeatures).map(([feature, count]) => `${labels[feature] || feature} × ${count}`).join('， ')
+    showToast(`${copy.svgSafetySanitized} ${details}`)
+  }
 
   useLayoutEffect(() => {
     document.getElementById('root')?.removeAttribute('data-booting')
@@ -293,7 +310,7 @@ function App() {
       attributePreviewFrameRef.current = 0
       const next = pendingAttributeUpdatesRef.current
       if (!next) return
-      updateTransientMarkup(updateElementAttributes(svgMarkup, next.targetId, next.updates))
+      updateTransientMarkup(editSvgDocument(svgMarkup, { type: 'set-attributes', targetId: next.targetId, updates: next.updates }).markup)
     })
   }
 
@@ -305,10 +322,10 @@ function App() {
     if (attributePreviewFrameRef.current) cancelAnimationFrame(attributePreviewFrameRef.current)
     attributePreviewFrameRef.current = 0
     pendingAttributeUpdatesRef.current = null
-    const nextMarkup = updateElementAttributes(svgMarkup, pending.targetId, pending.updates)
+    const transaction = editSvgDocument(svgMarkup, { type: 'set-attributes', targetId: pending.targetId, updates: pending.updates })
     clearTransientMarkup()
     setAttributeDrafts({ targetId: '', values: {} })
-    commitDocument(nextMarkup, { nextSelectedId: pending.targetId })
+    commitDocument(transaction.markup, { nextSelectedId: transaction.nextSelectedId })
   }
 
   // Preview an attribute change and auto-commit after a short idle window. Needed
@@ -395,15 +412,20 @@ function App() {
     }
   }
 
-  const loadSvg = (raw, name = 'untitled.svg', { silent = false } = {}) => {
+  const loadSvg = (raw, name = 'untitled.svg', { silent = false, source = 'untrusted' } = {}) => {
     try {
-      loadDocument(raw, name)
+      const result = processSvgInput(raw, { source })
+      if (result.status === 'rejected') throw new Error('Invalid SVG')
+      loadDocument(result.markup, name)
       setSvgPosition({ x: 0, y: 0 })
       setSvgScale(1)
       setExpandedGroups({})
       setSourceDisplayMode('edit')
       setActiveTab('preview')
-      if (!silent) showToast(`${copy.toastImported} ${name}`)
+      if (!silent) {
+        showSecurityFeedback(result)
+        if (result.status === 'accepted') showToast(`${copy.toastImported} ${name}`)
+      }
     } catch {
       showToast(copy.invalidSvg, 'error')
     }
@@ -416,6 +438,13 @@ function App() {
   const openRecentDocument = (document) => {
     loadSvg(document.svgMarkup, document.fileName, { silent: true })
     setShowRecentSvgs(false)
+  }
+
+  const commitSourceMarkup = (rawMarkup) => {
+    const result = processSvgInput(rawMarkup)
+    if (result.status === 'rejected') throw new Error('Invalid SVG')
+    commitDocument(result.markup, { nextSelectedId: selectedId })
+    showSecurityFeedback(result)
   }
 
   useEffect(() => {
@@ -458,8 +487,8 @@ function App() {
       'data-editor-original-height': null,
     } : null
     if (!updates) return
-    const nextMarkup = updateElementAttributes(svgMarkup, selected.id, updates)
-    if (nextMarkup !== svgMarkup) commitDocument(nextMarkup, { nextSelectedId: selected.id })
+    const transaction = editSvgDocument(svgMarkup, { type: 'set-attributes', targetId: selected.id, updates })
+    if (transaction.changed) commitDocument(transaction.markup, { nextSelectedId: transaction.nextSelectedId })
   }
 
   const updatePolygonSides = (value) => {
@@ -629,8 +658,11 @@ function App() {
         if (!response.ok) throw new Error('Unable to load SVG collection item.')
         return response.text()
       })
-      const created = createCollectionSvgLayerMarkup(svgMarkup, { name: item.name, svgMarkup: sourceMarkup, preserveAppearance: item.preserveAppearance })
+      const result = processSvgInput(sourceMarkup, { source: item.source || 'app-owned' })
+      if (result.status === 'rejected') throw new Error('Invalid SVG collection item.')
+      const created = createCollectionSvgLayerMarkup(svgMarkup, { name: item.name, svgMarkup: result.markup, preserveAppearance: item.preserveAppearance })
       commitDocument(created.markup, { nextSelectedId: created.id })
+      showSecurityFeedback(result)
       setShowSvgCollection(false)
       setActiveTab('preview')
     } catch {
@@ -665,14 +697,17 @@ function App() {
       const markup = event.clipboardData?.getData('image/svg+xml') || event.clipboardData?.getData('text/plain') || ''
       if (/^(?:\uFEFF?\s*)?(?:<\?xml[\s\S]*?\?>\s*)?<svg(?:\s|>)/i.test(markup)) {
         try {
-          commitDocument(markup, { nextSelectedId: '', nextSelectedIds: [] })
+          const result = processSvgInput(markup)
+          if (result.status === 'rejected') throw new Error('Invalid SVG')
+          commitDocument(result.markup, { nextSelectedId: '', nextSelectedIds: [] })
           event.preventDefault()
           setSvgPosition({ x: 0, y: 0 })
           setSvgScale(1)
           setExpandedGroups({})
           setSourceDisplayMode('edit')
           setActiveTab('preview')
-          showToast(`${copy.toastImported} SVG`)
+          showSecurityFeedback(result)
+          if (result.status === 'accepted') showToast(`${copy.toastImported} SVG`)
         } catch {
           event.preventDefault()
           showToast(copy.invalidSvg, 'error')
@@ -687,18 +722,18 @@ function App() {
 
   const deleteSelectedLayer = (event) => {
     if (!selectedIds.length) return
-    const removed = removeLayers(svgMarkup, selectedIds)
-    if (removed.markup === svgMarkup) return
+    const transaction = editSvgDocument(svgMarkup, { type: 'remove', targetIds: selectedIds })
+    if (!transaction.changed) return
     event?.preventDefault()
-    commitDocument(removed.markup, { nextSelectedId: removed.nextSelectedId })
+    commitDocument(transaction.markup, { nextSelectedId: transaction.nextSelectedId, nextSelectedIds: transaction.nextSelectedIds })
     showToast(copy.toastDelete)
   }
 
   const groupSelectedLayers = (event) => {
-    const grouped = groupLayers(svgMarkup, selectedIds)
-    if (grouped.markup === svgMarkup) return
+    const transaction = editSvgDocument(svgMarkup, { type: 'group', targetIds: selectedIds })
+    if (!transaction.changed) return
     event?.preventDefault()
-    commitDocument(grouped.markup, { nextSelectedId: grouped.nextSelectedId, nextSelectedIds: [grouped.nextSelectedId] })
+    commitDocument(transaction.markup, { nextSelectedId: transaction.nextSelectedId, nextSelectedIds: transaction.nextSelectedIds })
     showToast(copy.toastGrouped)
   }
 
@@ -717,8 +752,8 @@ function App() {
   const moveSelectedLayers = (dx, dy) => {
     if (!selectedIds.length) return
     const targetIds = getTopLevelSelectedIds(svgMarkup, selectedIds)
-    const nextMarkup = translateElements(svgMarkup, targetIds, { x: dx, y: dy })
-    if (nextMarkup !== svgMarkup) commitDocument(nextMarkup, { nextSelectedId: selectedId, nextSelectedIds: selectedIds })
+    const transaction = editSvgDocument(svgMarkup, { type: 'translate', targetIds, selectedId, selectedIds, delta: { x: dx, y: dy } })
+    if (transaction.changed) commitDocument(transaction.markup, { nextSelectedId: transaction.nextSelectedId, nextSelectedIds: transaction.nextSelectedIds })
   }
 
   useEffect(() => {
@@ -868,7 +903,7 @@ function App() {
     }
   }
 
-  const loadDemo = () => loadSvg(SAMPLE_SVG, 'demo.svg')
+  const loadDemo = () => loadSvg(SAMPLE_SVG, 'demo.svg', { source: 'app-owned' })
 
   const hasDraggedFiles = (event) => Array.from(event.dataTransfer?.types || []).includes('Files')
 
@@ -1061,8 +1096,8 @@ function App() {
           : { id: item.id, dx: 0, dy: target - item.box.cy }
       })
     }
-    const nextMarkup = translateElementsById(svgMarkup, moves)
-    if (nextMarkup !== svgMarkup) commitDocument(nextMarkup, { nextSelectedId: selectedId, nextSelectedIds: selectedIds })
+    const transaction = editSvgDocument(svgMarkup, { type: 'translate-by-id', moves, selectedId, selectedIds })
+    if (transaction.changed) commitDocument(transaction.markup, { nextSelectedId: transaction.nextSelectedId, nextSelectedIds: transaction.nextSelectedIds })
   }
 
   const openContextMenu = (event, targetId) => {
@@ -1253,7 +1288,7 @@ function App() {
           sourceDraft={sourceDraft}
           setSourceDraft={setSourceDraft}
           syncSourceScroll={syncSourceScroll}
-          commitDocument={commitDocument}
+          commitSourceMarkup={commitSourceMarkup}
           showToast={showToast}
           loadDemo={loadDemo}
           toast={toast}
@@ -1320,7 +1355,7 @@ function App() {
           <p className="shortcuts-hint">{copy.shortcutsHint}</p>
         </div>
       </div>}
-      {showSvgCollection && <SvgCollectionModal copy={copy} onClose={() => setShowSvgCollection(false)} onSelect={addSvgCollectionItem} />}
+      {showSvgCollection && <SvgCollectionModal copy={copy} onClose={() => setShowSvgCollection(false)} onSelect={addSvgCollectionItem} processCustomSvg={processSvgInput} showSecurityFeedback={showSecurityFeedback} />}
       {showRecentSvgs && <RecentSvgModal copy={copy} documents={recentDocuments} onClose={() => setShowRecentSvgs(false)} onOpen={openRecentDocument} onRemove={removeRecentDocument} />}
       {exportOpen && <div className="shortcuts-overlay" onClick={() => setExportOpen(false)}>
         <div className="shortcuts-modal export-modal" role="dialog" aria-modal="true" aria-label={copy.exportDialogTitle} onClick={(event) => event.stopPropagation()}>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { SVG_COLLECTIONS } from '../app/svg-collections.js'
+import { processSvgInput } from '../editor/process-svg-input.js'
 import Icon from './Icon.jsx'
 
 const CUSTOM_COLLECTION_ID = 'custom'
@@ -8,13 +9,17 @@ const CUSTOM_SVGS_STORAGE_KEY = 'vecsy:custom-svg-collection'
 function loadCustomItems() {
   try {
     const stored = JSON.parse(window.localStorage.getItem(CUSTOM_SVGS_STORAGE_KEY) || '[]')
-    return Array.isArray(stored) ? stored.filter((item) => item?.id && item?.name && item?.svgMarkup) : []
+    return Array.isArray(stored) ? stored.map((item) => {
+      if (!item?.id || !item?.name || !item?.svgMarkup) return null
+      const result = processSvgInput(item.svgMarkup)
+      return result.status === 'rejected' ? null : { ...item, svgMarkup: result.markup, source: 'untrusted' }
+    }).filter(Boolean) : []
   } catch {
     return []
   }
 }
 
-export default function SvgCollectionModal({ copy, onClose, onSelect }) {
+export default function SvgCollectionModal({ copy, onClose, onSelect, processCustomSvg, showSecurityFeedback }) {
   const [activeCollectionId, setActiveCollectionId] = useState(SVG_COLLECTIONS[0].id)
   const [customItems, setCustomItems] = useState(loadCustomItems)
   const [isAddingCustomItem, setIsAddingCustomItem] = useState(false)
@@ -47,12 +52,13 @@ export default function SvgCollectionModal({ copy, onClose, onSelect }) {
   const addCustomItem = (event) => {
     event.preventDefault()
     const markup = customMarkup.trim()
-    const root = new DOMParser().parseFromString(markup, 'image/svg+xml').documentElement
-    if (!markup || root?.tagName !== 'svg') {
+    const result = processCustomSvg(markup)
+    if (result.status === 'rejected') {
       setCustomError(copy.svgCollectionInvalidCustom)
       return
     }
-    if (!saveCustomItems([...customItems, { id: `custom-${Date.now()}`, name: customName.trim() || copy.svgCollectionCustomDefaultName, svgMarkup: markup, preserveAppearance: true }])) return
+    if (!saveCustomItems([...customItems, { id: `custom-${Date.now()}`, name: customName.trim() || copy.svgCollectionCustomDefaultName, svgMarkup: result.markup, preserveAppearance: true, source: 'untrusted' }])) return
+    showSecurityFeedback(result)
     setCustomName('')
     setCustomMarkup('')
     setCustomError('')

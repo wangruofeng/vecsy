@@ -707,6 +707,33 @@ const SECTIONS = {
     },
   },
   actions: {
+    svgSafetySanitized: {
+      'en': 'Unsafe SVG content was removed:',
+      'zh-CN': '已移除不安全的 SVG 内容：',
+      'zh-TW': '已移除不安全的 SVG 內容：',
+      'ja': '安全でない SVG コンテンツを削除しました:',
+    },
+    svgSafetyBlockedElement: {
+      'en': 'blocked element', 'zh-CN': '受限元素', 'zh-TW': '受限元素', 'ja': '制限された要素',
+    },
+    svgSafetyEventHandler: {
+      'en': 'event handler', 'zh-CN': '事件处理器', 'zh-TW': '事件處理器', 'ja': 'イベントハンドラー',
+    },
+    svgSafetyExternalUrl: {
+      'en': 'external URL', 'zh-CN': '外部 URL', 'zh-TW': '外部 URL', 'ja': '外部 URL',
+    },
+    svgSafetyStyleElement: {
+      'en': 'style element', 'zh-CN': '样式元素', 'zh-TW': '樣式元素', 'ja': 'style 要素',
+    },
+    svgSafetyUnsafeStyle: {
+      'en': 'unsafe style', 'zh-CN': '不安全样式', 'zh-TW': '不安全樣式', 'ja': '安全でない style',
+    },
+    svgSafetyProcessingInstruction: {
+      'en': 'processing instruction', 'zh-CN': '处理指令', 'zh-TW': '處理指令', 'ja': '処理命令',
+    },
+    svgSafetyLink: {
+      'en': 'link', 'zh-CN': '链接', 'zh-TW': '連結', 'ja': 'リンク',
+    },
     undo: {
       'en': 'Undo',
       'zh-CN': '撤销',

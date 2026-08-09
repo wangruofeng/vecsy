@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { clampScale, getElementPointerDelta, getNodeRect, getSvgPoint, getTopLevelSelectedIds, pointerCenter, pointerDistance } from '../editor/svg-geometry.js'
-import { bakeRectTranslateScaleTransform, getEditableTextContent, resizeBackgroundLayer, translateElementsById, updateElementAttributes, updateElementTransform } from '../editor/svg-transforms.js'
+import { clampScale, getElementPointerDelta, getNodeRect, getSvgPoint, getTopLevelSelectedIds, pointerCenter, pointerDistance, shouldCommitGesture } from '../editor/svg-geometry.js'
+import { bakeRectTranslateScaleTransform, getEditableTextContent, resizeBackgroundLayer } from '../editor/svg-transforms.js'
+import { editSvgDocument } from '../editor/edit-svg-document.js'
 
 function getProportionalScale(scaleX, scaleY) {
   return Math.abs(scaleX - 1) >= Math.abs(scaleY - 1) ? scaleX : scaleY
@@ -263,10 +264,10 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
         const delta = getElementPointerDelta(svgRef.current, node, start, current)
         return { id, dx: delta.x, dy: delta.y }
       })
-      const nextMarkup = translateElementsById(elementDrag.baseMarkup, moves)
-      elementDrag.previewMarkup = nextMarkup
+      const transaction = editSvgDocument(elementDrag.baseMarkup, { type: 'translate-by-id', moves, selectedId: elementDrag.selectionIds[0], selectedIds: elementDrag.selectionIds })
+      elementDrag.previewMarkup = transaction.markup
       elementDrag.moved = true
-      updateTransientMarkup(nextMarkup)
+      updateTransientMarkup(transaction.markup)
       setIsDraggingElement(true)
       return
     }
@@ -300,7 +301,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
           if (target) startTextEdit(target, textItem, setTextDraft, setEditingTextId)
         }
       }
-      if (cancelled || !elementDrag.moved) clearTransientMarkup()
+      if (!shouldCommitGesture({ cancelled, moved: elementDrag.moved })) clearTransientMarkup()
       else {
         clearTransientMarkup()
         commitDocument(elementDrag.previewMarkup, { nextSelectedId: elementDrag.selectionIds[0], nextSelectedIds: elementDrag.selectionIds, historySnapshot: elementDrag.baseSnapshot, forceHistory: true })
@@ -356,10 +357,10 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     if (resize.kind === 'line') {
       const point = getSvgPoint(svgRef.current, event.clientX, event.clientY)
       const endpointUpdates = resize.lineEndpoint === 'x1' ? { x1: point.x.toFixed(2), y1: point.y.toFixed(2) } : { x2: point.x.toFixed(2), y2: point.y.toFixed(2) }
-      const nextMarkup = updateElementAttributes(resize.baseMarkup, resize.targetId, endpointUpdates)
-      resize.previewMarkup = nextMarkup
+      const transaction = editSvgDocument(resize.baseMarkup, { type: 'set-attributes', targetId: resize.targetId, updates: endpointUpdates })
+      resize.previewMarkup = transaction.markup
       resize.moved = true
-      updateTransientMarkup(nextMarkup)
+      updateTransientMarkup(transaction.markup)
       return
     }
     if (resize.kind === 'background') {
@@ -401,21 +402,21 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
       const nextHeight = resize.rect.height * scaleY
       const nextX = resize.handle === 'top-left' ? resize.rect.x + resize.rect.width - nextWidth : resize.rect.x
       const nextY = resize.handle === 'top-left' ? resize.rect.y + resize.rect.height - nextHeight : resize.rect.y
-      const nextMarkup = updateElementAttributes(resize.baseMarkup, resize.targetId, {
+      const transaction = editSvgDocument(resize.baseMarkup, { type: 'set-attributes', targetId: resize.targetId, updates: {
         x: nextX.toFixed(2), y: nextY.toFixed(2), width: nextWidth.toFixed(2), height: nextHeight.toFixed(2),
-      })
-      resize.previewMarkup = nextMarkup
+      } })
+      resize.previewMarkup = transaction.markup
       resize.moved = true
-      updateTransientMarkup(nextMarkup)
+      updateTransientMarkup(transaction.markup)
       return
     }
     const anchorPoint = getSvgPoint(svgRef.current, anchor.x, anchor.y)
     const resizeTransform = `translate(${anchorPoint.x.toFixed(2)} ${anchorPoint.y.toFixed(2)}) scale(${scaleX.toFixed(4)} ${scaleY.toFixed(4)}) translate(${-anchorPoint.x.toFixed(2)} ${-anchorPoint.y.toFixed(2)})`
     const nextTransform = resize.baseTransform ? `${resizeTransform} ${resize.baseTransform}` : resizeTransform
-    const nextMarkup = updateElementTransform(resize.baseMarkup, resize.targetId, nextTransform)
-    resize.previewMarkup = nextMarkup
+    const transaction = editSvgDocument(resize.baseMarkup, { type: 'set-transform', targetId: resize.targetId, transform: nextTransform })
+    resize.previewMarkup = transaction.markup
     resize.moved = true
-    updateTransientMarkup(nextMarkup)
+    updateTransientMarkup(transaction.markup)
   }
 
   const handleResizePointerUp = (event, cancelled = false) => {
@@ -427,8 +428,8 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     window.removeEventListener('mousemove', handleResizePointerMove)
     window.removeEventListener('mouseup', handleResizePointerUp)
     suppressCanvasClickRef.current = true
-    if (cancelled) clearTransientMarkup()
-    else if (resize.moved) {
+    if (!shouldCommitGesture({ cancelled, moved: resize.moved })) clearTransientMarkup()
+    else {
       clearTransientMarkup()
       commitDocument(resize.previewMarkup, { nextSelectedId: resize.targetId, historySnapshot: resize.baseSnapshot, forceHistory: true })
     }

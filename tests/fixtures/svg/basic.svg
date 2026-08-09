@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="120">
+  <rect id="background" width="240" height="120" fill="#ffffff" />
+  <g id="logo" transform="translate(12 8)">
+    <circle id="mark" cx="32" cy="32" r="20" fill="#2563eb" />
+  </g>
+</svg>
