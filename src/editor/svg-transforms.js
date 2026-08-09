@@ -173,6 +173,16 @@ export function updateElementAttributes(rawMarkup, targetId, updates) {
   return new XMLSerializer().serializeToString(doc.documentElement)
 }
 
+// 把 3/4/6 位 hex 标准化为 6 位 #RRGGBB（4 位的 alpha 丢弃——fill 编辑不支持 alpha，半透明由 fill-opacity 单独承载）。非 hex（命名色、rgb() 等）返回 ''。
+export function normalizeHexColor(value) {
+  if (typeof value !== 'string') return ''
+  const v = value.trim()
+  if (/^#[0-9a-f]{6}$/i.test(v)) return v.toUpperCase()
+  const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i.exec(v)
+  if (short) return ('#' + short[1] + short[1] + short[2] + short[2] + short[3] + short[3]).toUpperCase()
+  return ''
+}
+
 function normalizeColorToken(value) {
   const color = String(value || '').trim()
   if (!color || color === 'none' || color.startsWith('url(')) return ''
@@ -478,7 +488,7 @@ export function createCollectionSvgLayerMarkup(rawMarkup, { name, svgMarkup, pre
   } else if (sourceRoot.hasAttribute('fill')) {
     // 迁移源 <svg> 根上的 fill 到外层 <g>，避免 simple-icons 类图标
     // （fill 写在根上、子元素无 fill）丢失颜色后回退成默认黑色
-    node.setAttribute('fill', sourceRoot.getAttribute('fill'))
+    node.setAttribute('fill', normalizeHexColor(sourceRoot.getAttribute('fill')) || sourceRoot.getAttribute('fill'))
     if (sourceRoot.hasAttribute('fill-opacity')) node.setAttribute('fill-opacity', sourceRoot.getAttribute('fill-opacity'))
   }
   node.setAttribute('data-editor-id', newId)

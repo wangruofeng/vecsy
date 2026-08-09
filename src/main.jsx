@@ -120,6 +120,7 @@ function App() {
     document.getElementById('root')?.removeAttribute('data-booting')
   }, [])
 
+  const isShortcutCombo = (keys) => /⌘|Shift|Ctrl|Alt|\+/.test(keys)
   const shortcutGroups = [
     {
       title: copy.shortcutsGeneral,
@@ -158,7 +159,7 @@ function App() {
         ['⌘ G', copy.shortcutGroup],
       ],
     },
-  ]
+  ].map((group) => ({ ...group, items: [...group.items].sort((a, b) => Number(isShortcutCombo(a[0])) - Number(isShortcutCombo(b[0]))) }))
 
   const selected = elements.find((item) => item.id === selectedId)
   const selectedAttrs = selected ? selected.node : null
@@ -722,7 +723,16 @@ function App() {
 
   useEffect(() => {
     const handleEditorShortcuts = (event) => {
-      if (event.target?.closest?.('input, textarea, select, [contenteditable="true"]')) return
+      const target = event.target
+      const interactive = target?.closest?.('input, textarea, select, [contenteditable="true"]')
+      if (interactive) {
+        // 例外：Inspector 的颜色/数值调参框——Backspace 退到框首（无可删字符）后再按，则删图层。
+        // 其余输入框（搜索 / 重命名 / 源码 / 文本编辑）仍保留原生退格删字符。
+        const isDeleteKey = event.key === 'Backspace' || event.key === 'Delete'
+        const isInspectorValueInput = target?.tagName === 'INPUT' && (target.type === 'color' || !!target.closest?.('.color-field, .numeric-field'))
+        const noCharToDelete = target?.type === 'color' || (target?.selectionStart == null ? target?.value === '' : target.selectionStart === 0 && target.selectionEnd === 0)
+        if (!(isDeleteKey && isInspectorValueInput && noCharToDelete)) return
+      }
       const key = event.key.toLowerCase()
       const modifier = event.metaKey || event.ctrlKey
       if (key === 'escape') {
@@ -1140,14 +1150,14 @@ function App() {
       <header className="topbar">
         <div className="brand"><svg className="brand-mark" viewBox="0 0 1024 1024" aria-hidden="true"><defs><linearGradient id="vecsy-brand-orange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FBA13A" /><stop offset="52%" stopColor="#F59836" /><stop offset="100%" stopColor="#F39230" /></linearGradient></defs><rect x="37" y="34" width="949" height="954" rx="160" fill="url(#vecsy-brand-orange)" /><path d="M210 254 H325 C333 254 340 258 344 266 L512 600 L681 266 C685 258 692 254 701 254 H816 C827 254 834 266 829 276 L541 838 C535 849 524 854 513 854 C501 854 490 849 484 838 L196 276 C191 266 199 254 210 254 Z" fill="#FFFFFF" /></svg><span>VECSY</span><a className="brand-github-link" href="https://github.com/wangruofeng/vecsy" target="_blank" rel="noreferrer" title={copy.githubRepository} aria-label={copy.githubRepository}><Icon name="github" size={17} /></a></div>
         <div className="topbar-actions">
+          <span className="save-state"><span className={`status-dot ${dirty ? 'dirty' : ''}`} />{dirty ? copy.unsaved : copy.saved}</span>
           <button className="icon-button" title={`${copy.undo} (⌘Z)`} aria-keyshortcuts="Meta+Z" onClick={undo} disabled={!history.past.length}><Icon name="undo" /></button>
           <button className="icon-button" title={`${copy.redo} (⌘⇧Z)`} aria-keyshortcuts="Meta+Shift+Z" onClick={redo} disabled={!history.future.length}><Icon name="redo" /></button>
           <button className="icon-button" type="button" title={`${copy.shortcutsTitle} (?)`} aria-label={copy.shortcutsTitle} aria-pressed={showShortcuts} onClick={() => setShowShortcuts((current) => !current)}><Icon name="help" /></button>
           <button className="icon-button recent-svg-button" type="button" title={copy.recentSvgs} aria-label={copy.recentSvgs} aria-pressed={showRecentSvgs} onClick={() => setShowRecentSvgs(true)}><Icon name="history" /></button>
           <span className="divider" />
-          <span className="save-state"><span className={`status-dot ${dirty ? 'dirty' : ''}`} />{dirty ? copy.unsaved : copy.saved}</span>
           <div className="language-menu-wrap">
-            <button className="language-toggle" type="button" onClick={() => setLangMenuOpen((current) => !current)} aria-label={copy.languageSwitch} aria-haspopup="menu" aria-expanded={langMenuOpen} title={copy.languageSwitch}><Icon name="globe" size={13} /><span>{LANGUAGES.find((item) => item.code === language)?.short || 'EN'}</span></button>
+            <button className="language-toggle" type="button" onClick={() => setLangMenuOpen((current) => !current)} aria-label={copy.languageSwitch} aria-haspopup="menu" aria-expanded={langMenuOpen} title={copy.languageSwitch}><Icon name="globe" size={13} /></button>
             {langMenuOpen && <div className="language-menu" role="menu" aria-label={copy.languageSwitch}>{LANGUAGES.map((item) => <button key={item.code} type="button" role="menuitemradio" aria-checked={language === item.code} className={language === item.code ? 'is-active' : ''} onClick={() => { setLanguage(item.code); setLangMenuOpen(false) }}><span className="language-menu-check">{language === item.code && <Icon name="check" size={12} />}</span><span>{item.label}</span></button>)}</div>}
           </div>
           <button className="button button-quiet" onClick={() => fileInput.current?.click()}><Icon name="download" /> {copy.open}</button>
@@ -1316,11 +1326,6 @@ function App() {
         <div className="shortcuts-modal export-modal" role="dialog" aria-modal="true" aria-label={copy.exportDialogTitle} onClick={(event) => event.stopPropagation()}>
           <div className="shortcuts-header"><span>{copy.exportDialogTitle}</span><button className="mini-button" type="button" title={copy.close} aria-label={copy.close} onClick={() => setExportOpen(false)}><Icon name="x" size={14} /></button></div>
           <div className="export-body">
-            {exportFormat === 'svg' && <label className="export-check"><input type="checkbox" checked={exportOptimize} onChange={(event) => setExportOptimize(event.target.checked)} /><span>{copy.exportOptimize}</span></label>}
-            <div className="export-row"><span className="export-label">{copy.exportFormat}</span><div className="view-tabs"><button type="button" className={exportFormat === 'svg' ? 'active' : ''} onClick={() => setExportFormat('svg')}>SVG</button><button type="button" className={exportFormat === 'png' ? 'active' : ''} onClick={() => setExportFormat('png')}>PNG</button><button type="button" className={exportFormat === 'webp' ? 'active' : ''} onClick={() => setExportFormat('webp')}>WebP</button></div></div>
-            {exportFormat !== 'svg' && <>
-              <div className="export-row"><span className="export-label">{copy.exportScale}</span><div className="view-tabs">{[1, 2, 3].map((scale) => <button key={scale} type="button" className={exportScale === scale ? 'active' : ''} onClick={() => setExportScale(scale)}>{scale}x</button>)}</div></div>
-            </>}
             <div className="export-row">
               <span className="export-label">{copy.exportScope}</span>
               <div className="view-tabs" role="radiogroup" aria-label={copy.exportScope}>
@@ -1328,9 +1333,14 @@ function App() {
                 <button type="button" role="radio" aria-checked={exportSelectedOnly} className={exportSelectedOnly ? 'active' : ''} disabled={!exportLayerIds.length} onClick={() => setExportSelectedOnly(true)}>{copy.exportSelectedLayers}</button>
               </div>
             </div>
+            <div className="export-row"><span className="export-label">{copy.exportFormat}</span><div className="view-tabs"><button type="button" className={exportFormat === 'svg' ? 'active' : ''} onClick={() => setExportFormat('svg')}>SVG</button><button type="button" className={exportFormat === 'png' ? 'active' : ''} onClick={() => setExportFormat('png')}>PNG</button><button type="button" className={exportFormat === 'webp' ? 'active' : ''} onClick={() => setExportFormat('webp')}>WebP</button></div></div>
+            {exportFormat !== 'svg' && <>
+              <div className="export-row"><span className="export-label">{copy.exportScale}</span><div className="view-tabs">{[1, 2, 3].map((scale) => <button key={scale} type="button" className={exportScale === scale ? 'active' : ''} onClick={() => setExportScale(scale)}>{scale}x</button>)}</div></div>
+            </>}
             <div className="export-row"><span className="export-label">{copy.exportLayerCount}</span><span className="export-layer-count" aria-live="polite">{exportLayerCount}</span></div>
+            {exportFormat === 'svg' && <div className="export-row"><span className="export-label">{copy.exportOptimize}</span><label className="export-check"><input type="checkbox" checked={exportOptimize} onChange={(event) => setExportOptimize(event.target.checked)} /><span className="export-check-switch" /></label></div>}
+            <div className="export-size" aria-live="polite"><span className="export-label">{copy.exportEstimatedSize}</span><div className="export-size-values"><span>SVG {exportSizes?.svg || '-'}</span><span>PNG {exportSizes?.png || '-'}</span><span>WebP {exportSizes?.webp || '-'}</span></div></div>
             <div className="export-preview"><span className="export-label">{copy.exportPreview}</span><button className="export-preview-canvas" type="button" style={exportPreviewStyle} onClick={openExportPreview} aria-label={copy.expandExportPreview} title={copy.expandExportPreview} dangerouslySetInnerHTML={{ __html: exportMarkup }} /></div>
-            <div className="export-size" aria-live="polite"><span className="export-label">{copy.exportEstimatedSize}</span><div className="export-size-values"><span>SVG {exportSizes?.svg || '—'}</span><span>PNG {exportSizes?.png || '—'}</span><span>WebP {exportSizes?.webp || '—'}</span></div></div>
           </div>
           <div className="export-footer"><button className="button button-accent" type="button" onClick={exportDocument}><Icon name="upload" /> {copy.exportShort}</button></div>
         </div>

@@ -79,16 +79,115 @@ function socialMediaName(file) {
   return SOCIAL_MEDIA_NAMES[file.replace(/\.svg$/, '')] || animationName(file)
 }
 
-const POPULAR_DIRECTORY = 'popular'
-const POPULAR_FILES = [
-  'amazon.svg', 'android.svg', 'apple-light.svg', 'aws.svg', 'chrome.svg', 'claude.svg', 'cloudflare.svg', 'digitalocean.svg', 'discord.svg', 'figma.svg', 'firebase.svg', 'firefox.svg', 'github-copilot.svg', 'github.svg', 'google.svg', 'linux.svg', 'meta.svg', 'microsoft.svg', 'mongodb.svg', 'netflix.svg', 'nextdotjs.svg', 'nodejs.svg', 'notion.svg', 'openai.svg', 'postgresql.svg', 'python.svg', 'react.svg', 'redis.svg', 'rust.svg', 'safari.svg', 'slack.svg', 'spotify.svg', 'stripe.svg', 'supabase.svg', 'swift.svg', 'tailwindcss.svg', 'typescript.svg', 'vercel.svg', 'visual-studio-code.svg',
-]
-const POPULAR_NAMES = {
-  'apple-light': 'Apple', aws: 'AWS', 'github-copilot': 'GitHub Copilot', github: 'GitHub', mongodb: 'MongoDB', nextdotjs: 'Next.js', nodejs: 'Node.js', openai: 'OpenAI', postgresql: 'PostgreSQL', tailwindcss: 'Tailwind CSS', typescript: 'TypeScript', vercel: 'Vercel', 'visual-studio-code': 'VS Code', digitalocean: 'DigitalOcean', cloudflare: 'Cloudflare', microsoft: 'Microsoft', firebase: 'Firebase', spotify: 'Spotify', stripe: 'Stripe', supabase: 'Supabase', netflix: 'Netflix', notion: 'Notion', redis: 'Redis', python: 'Python', react: 'React', linux: 'Linux', safari: 'Safari', swift: 'Swift', figma: 'Figma', google: 'Google', chrome: 'Chrome', firefox: 'Firefox', claude: 'Claude', discord: 'Discord', slack: 'Slack', meta: 'Meta', android: 'Android', rust: 'Rust',
+// 品牌名大小写固定，统一走显式映射，缺失才回退 Title Case
+const BRAND_NAMES = {
+  // AI & LLMs
+  'ai-studio-google': 'Google AI Studio', anthropic: 'Anthropic', claude: 'Claude', openai: 'OpenAI',
+  'codex-openai': 'Codex', deepseek: 'DeepSeek', doubao: 'Doubao', gemini: 'Gemini',
+  'google-antigravity': 'Google Antigravity', 'google-gemini': 'Google Gemini', grok: 'Grok',
+  kimi: 'Kimi', manus: 'Manus', minimax: 'MiniMax', moonshot: 'Moonshot',
+  'nvidia-nemotron': 'Nemotron (NVIDIA)', 'openai-chatgpt': 'ChatGPT', perplexity: 'Perplexity',
+  qwen: 'Qwen', 'sora-openai': 'Sora', 'xai-grok': 'xAI Grok', 'xiaomi-mimo': 'MiMo (Xiaomi)', zhipu: 'Zhipu',
+  'claude-code': 'Claude Code', elevenlabs: 'ElevenLabs', exa: 'Exa', 'hugging-face': 'Hugging Face',
+  lovable: 'Lovable', midjourney: 'Midjourney', mistral: 'Mistral AI', 'nano-banana-google': 'Nano Banana (Google)',
+  'nousresearch-hermes': 'NousResearch Hermes', ollama: 'Ollama', runway: 'Runway',
+  'character-ai': 'Character.AI', 'cherry-studio': 'Cherry Studio', dify: 'Dify', kling: 'Kling', notebooklm: 'NotebookLM',
+  // Tech & Internet
+  alibaba: 'Alibaba', amazon: 'Amazon', 'apple-light': 'Apple', google: 'Google', meta: 'Meta', microsoft: 'Microsoft',
+  amd: 'AMD', arm: 'ARM', atlassian: 'Atlassian', baidu: 'Baidu', bytedance: 'ByteDance', 'cisco-light': 'Cisco',
+  datadog: 'Datadog', 'google-maps': 'Google Maps', 'google-translate': 'Google Translate', huawei: 'Huawei',
+  ibm: 'IBM', intel: 'Intel', 'microsoft-365-copilot': 'Microsoft 365 Copilot', micron: 'Micron', nvidia: 'NVIDIA',
+  palantir: 'Palantir', panasonic: 'Panasonic', qualcomm: 'Qualcomm', samsung: 'Samsung', sandisk: 'SanDisk',
+  'sk-hynix': 'SK Hynix', snapdragon: 'Snapdragon', tencent: 'Tencent', workbuddy: 'Work Buddy', workday: 'Workday',
+  xiaomi: 'Xiaomi', agora: 'Agora',
+  siemens: 'Siemens', 'kingston-technology': 'Kingston Technology', hcaptcha: 'hCaptcha', caterpillar: 'Caterpillar',
+  // Developer & Design Tools
+  figma: 'Figma', github: 'GitHub', 'github-copilot': 'GitHub Copilot', notion: 'Notion', slack: 'Slack',
+  'visual-studio-code': 'VS Code', adobe: 'Adobe', canva: 'Canva', coderabbit: 'CodeRabbit', cursor: 'Cursor',
+  'github-pages': 'GitHub Pages', 'model-context-protocol': 'MCP', obsidian: 'Obsidian', openclaw: 'OpenClaw',
+  opencode: 'OpenCode', openrouter: 'OpenRouter', 'refined-github': 'Refined GitHub', 'sketch-mono': 'Sketch', zoom: 'Zoom',
+  firecrawl: 'Firecrawl', 'kilo-code': 'Kilo Code', lottiefiles: 'LottieFiles', 'new-api': 'New API',
+  ffmpeg: 'FFmpeg', freecodecamp: 'freeCodeCamp', hexo: 'Hexo', 'intellij-idea': 'IntelliJ IDEA', n8n: 'n8n',
+  obs: 'OBS', raycast: 'Raycast', removedotbg: 'remove.bg', roocode: 'Roo Code', capcut: 'CapCut',
+  // Languages & Cloud
+  aws: 'AWS', cloudflare: 'Cloudflare', digitalocean: 'DigitalOcean', firebase: 'Firebase', mongodb: 'MongoDB',
+  nextdotjs: 'Next.js', nodejs: 'Node.js', postgresql: 'PostgreSQL', python: 'Python', react: 'React', redis: 'Redis',
+  rust: 'Rust', supabase: 'Supabase', swift: 'Swift', tailwindcss: 'Tailwind CSS', typescript: 'TypeScript', vercel: 'Vercel',
+  html5: 'HTML5', htmx: 'htmx', javascript: 'JavaScript', markdown: 'Markdown', svg: 'SVG', tex: 'TeX',
+  threedotjs: 'Three.js', volcengine: 'Volcengine', googlecloud: 'Google Cloud', snowflake: 'Snowflake',
+  bash: 'Bash', cplusplus: 'C++', dart: 'Dart', denojs: 'Deno', go: 'Go', gopher: 'Gopher',
+  'grpc-mono': 'gRPC', kotlin: 'Kotlin', objectivec: 'Objective-C', php: 'PHP', powershell: 'PowerShell',
+  ruby: 'Ruby', sass: 'Sass', apache: 'Apache', jpeg: 'JPEG',
+  // Browsers & OS
+  android: 'Android', chrome: 'Chrome', firefox: 'Firefox', linux: 'Linux', safari: 'Safari',
+  harmonyos: 'HarmonyOS', macos: 'macOS', opera: 'Opera', imessage: 'iMessage',
+  'airplay-audio': 'AirPlay Audio', 'airplay-video': 'AirPlay Video', openwrt: 'OpenWrt',
+  'app-store': 'App Store', 'google-play': 'Google Play',
+  ios: 'iOS', 'apple-tv': 'Apple TV',
+  // Social & Community
+  discord: 'Discord', dribbble: 'Dribbble', bilibili: 'Bilibili', bluesky: 'Bluesky', facebook: 'Facebook', instagram: 'Instagram',
+  linkedin: 'LinkedIn', medium: 'Medium', messenger: 'Messenger', pinterest: 'Pinterest', qq: 'QQ', reddit: 'Reddit',
+  'sina-weibo': 'Sina Weibo', substack: 'Substack', telegram: 'Telegram', 'threads-mono': 'Threads', vsco: 'VSCO',
+  wechat: 'WeChat', whatsapp: 'WhatsApp', xiaohongshu: 'Xiaohongshu', zhihu: 'Zhihu',
+  behance: 'Behance', csdn: 'CSDN', disqus: 'Disqus', douban: 'Douban', fanfou: 'Fanfou', feedly: 'Feedly',
+  instapaper: 'Instapaper', kakaotalk: 'KakaoTalk', skype: 'Skype', rss: 'RSS',
+  'buy-me-a-coffee': 'Buy Me a Coffee', arxiv: 'arXiv', 'creative-commons': 'Creative Commons',
+  // Finance & Crypto
+  stripe: 'Stripe', adyen: 'Adyen', alipay: 'Alipay', binance: 'Binance', bitcoin: 'Bitcoin', 'bitcoin-cash': 'Bitcoin Cash',
+  'bitcoin-sv': 'Bitcoin SV', bybit: 'Bybit', 'cash-app': 'Cash App', chase: 'Chase', 'chase-wordmark': 'Chase',
+  coinbase: 'Coinbase', dingocoin: 'Dingocoin', dogecoin: 'Dogecoin', hsbc: 'HSBC', litecoin: 'Litecoin',
+  metamask: 'MetaMask', nasdaq: 'Nasdaq', okx: 'OKX', paypal: 'PayPal', robinhood: 'Robinhood',
+  'standard-chartered': 'Standard Chartered', venmo: 'Venmo',
+  solana: 'Solana', tether: 'Tether', usdc: 'USDC', xrp: 'XRP',
+  'apple-pay': 'Apple Pay', 'goldman-sachs': 'Goldman Sachs', jcb: 'JCB',
+  // Auto & Travel
+  airasia: 'AirAsia', airbnb: 'Airbnb', 'airbnb-wordmark': 'Airbnb', bentley: 'Bentley', expedia: 'Expedia',
+  grab: 'Grab', klook: 'Klook', mitsubishi: 'Mitsubishi', mtr: 'MTR', porsche: 'Porsche', spacex: 'SpaceX',
+  tesla: 'Tesla', tripadvisor: 'Tripadvisor', tripdotcom: 'Trip.com', uber: 'Uber', waze: 'Waze',
+  cadillac: 'Cadillac', chevrolet: 'Chevrolet', 'china-railway': 'China Railway', ferrari: 'Ferrari',
+  infiniti: 'INFINITI', maserati: 'Maserati', nasa: 'NASA', lyft: 'Lyft', fedex: 'FedEx',
+  // Retail & Entertainment
+  netflix: 'Netflix', spotify: 'Spotify', adidas: 'Adidas', 'apple-music': 'Apple Music', costco: 'Costco',
+  'dazhong-dianping': 'Dianping', ea: 'EA', ikea: 'IKEA', mcdonalds: "McDonald's", meituan: 'Meituan',
+  'netease-cloud-music': 'NetEase Cloud Music', nike: 'Nike', 'nintendo-switch': 'Nintendo Switch',
+  shopee: 'Shopee', shopify: 'Shopify', 'sony-mono': 'Sony', starbucks: 'Starbucks', taobao: 'Taobao',
+  ticketmaster: 'Ticketmaster', 'walmart-wordmark-light': 'Walmart', curseforge: 'CurseForge',
+  'beats-by-dre': 'Beats', 'burger-king': 'Burger King', carrefour: 'Carrefour', 'coca-cola': 'Coca-Cola',
+  'counter-strike': 'Counter-Strike', dior: 'Dior', disney: 'Disney', disneyplus: 'Disney+', ebay: 'eBay',
+  fifa: 'FIFA', fila: 'FILA', handm: 'H&M', 'hbo-max': 'HBO Max', jbl: 'JBL', jordan: 'Jordan',
+  kodak: 'Kodak', mlb: 'MLB', nba: 'NBA', nbc: 'NBC', 'new-balance': 'New Balance',
+  'new-york-times': 'New York Times', nexon: 'Nexon', nikon: 'Nikon', puma: 'Puma', rakuten: 'Rakuten',
+  roblox: 'Roblox', battledotnet: 'Battle.net',
 }
 
-function popularName(file) {
-  return POPULAR_NAMES[file.replace(/\.svg$/, '')] || animationName(file)
+function brandName(file) {
+  const stem = file.replace(/\.svg$/, '')
+  return BRAND_NAMES[stem] || stem.split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join(' ')
+}
+
+// 9 个品牌分组：stems 不带扩展名，createBrandCollection 内部补 .svg
+const AI_LLM_STEMS = ['ai-studio-google', 'anthropic', 'claude', 'openai', 'codex-openai', 'deepseek', 'doubao', 'gemini', 'google-antigravity', 'google-gemini', 'grok', 'kimi', 'manus', 'minimax', 'moonshot', 'nvidia-nemotron', 'openai-chatgpt', 'perplexity', 'qwen', 'sora-openai', 'xai-grok', 'xiaomi-mimo', 'zhipu', 'claude-code', 'elevenlabs', 'exa', 'hugging-face', 'lovable', 'midjourney', 'mistral', 'nano-banana-google', 'nousresearch-hermes', 'ollama', 'runway', 'character-ai', 'cherry-studio', 'dify', 'kling', 'notebooklm']
+const TECH_COMPANIES_STEMS = ['alibaba', 'amazon', 'apple-light', 'google', 'meta', 'microsoft', 'amd', 'arm', 'atlassian', 'baidu', 'bytedance', 'cisco-light', 'datadog', 'google-maps', 'google-translate', 'huawei', 'ibm', 'intel', 'microsoft-365-copilot', 'micron', 'nvidia', 'palantir', 'panasonic', 'qualcomm', 'samsung', 'sandisk', 'sk-hynix', 'snapdragon', 'tencent', 'workbuddy', 'workday', 'xiaomi', 'agora', 'siemens', 'kingston-technology', 'hcaptcha', 'caterpillar']
+const DEV_TOOLS_STEMS = ['figma', 'github', 'github-copilot', 'notion', 'slack', 'visual-studio-code', 'adobe', 'canva', 'coderabbit', 'cursor', 'github-pages', 'model-context-protocol', 'obsidian', 'openclaw', 'opencode', 'openrouter', 'refined-github', 'sketch-mono', 'zoom', 'firecrawl', 'kilo-code', 'lottiefiles', 'new-api', 'ffmpeg', 'freecodecamp', 'hexo', 'intellij-idea', 'n8n', 'obs', 'raycast', 'removedotbg', 'roocode', 'capcut']
+const LANG_CLOUD_STEMS = ['aws', 'cloudflare', 'digitalocean', 'firebase', 'mongodb', 'nextdotjs', 'nodejs', 'postgresql', 'python', 'react', 'redis', 'rust', 'supabase', 'swift', 'tailwindcss', 'typescript', 'vercel', 'html5', 'htmx', 'javascript', 'markdown', 'svg', 'tex', 'threedotjs', 'volcengine', 'googlecloud', 'snowflake', 'bash', 'cplusplus', 'dart', 'denojs', 'go', 'gopher', 'grpc-mono', 'kotlin', 'objectivec', 'php', 'powershell', 'ruby', 'sass', 'apache', 'jpeg']
+const BROWSERS_OS_STEMS = ['android', 'chrome', 'firefox', 'linux', 'safari', 'harmonyos', 'macos', 'opera', 'imessage', 'airplay-audio', 'airplay-video', 'openwrt', 'app-store', 'google-play', 'ios', 'apple-tv']
+const SOCIAL_COMMUNITY_STEMS = ['discord', 'dribbble', 'bilibili', 'bluesky', 'facebook', 'instagram', 'linkedin', 'medium', 'messenger', 'pinterest', 'qq', 'reddit', 'sina-weibo', 'substack', 'telegram', 'threads-mono', 'vsco', 'wechat', 'whatsapp', 'xiaohongshu', 'zhihu', 'behance', 'csdn', 'disqus', 'douban', 'fanfou', 'feedly', 'instapaper', 'kakaotalk', 'skype', 'rss', 'buy-me-a-coffee', 'arxiv', 'creative-commons']
+const FINANCE_CRYPTO_STEMS = ['stripe', 'adyen', 'alipay', 'binance', 'bitcoin', 'bitcoin-cash', 'bitcoin-sv', 'bybit', 'cash-app', 'chase', 'chase-wordmark', 'coinbase', 'dingocoin', 'dogecoin', 'hsbc', 'litecoin', 'metamask', 'nasdaq', 'okx', 'paypal', 'robinhood', 'standard-chartered', 'venmo', 'solana', 'tether', 'usdc', 'xrp', 'apple-pay', 'goldman-sachs', 'jcb']
+const AUTO_TRAVEL_STEMS = ['airasia', 'airbnb', 'airbnb-wordmark', 'bentley', 'expedia', 'grab', 'klook', 'mitsubishi', 'mtr', 'porsche', 'spacex', 'tesla', 'tripadvisor', 'tripdotcom', 'uber', 'waze', 'cadillac', 'chevrolet', 'china-railway', 'ferrari', 'infiniti', 'maserati', 'nasa', 'lyft', 'fedex']
+const RETAIL_ENTERTAINMENT_STEMS = ['netflix', 'spotify', 'adidas', 'apple-music', 'costco', 'dazhong-dianping', 'ea', 'ikea', 'mcdonalds', 'meituan', 'netease-cloud-music', 'nike', 'nintendo-switch', 'shopee', 'shopify', 'sony-mono', 'starbucks', 'taobao', 'ticketmaster', 'walmart-wordmark-light', 'curseforge', 'beats-by-dre', 'burger-king', 'carrefour', 'coca-cola', 'counter-strike', 'dior', 'disney', 'disneyplus', 'ebay', 'fifa', 'fila', 'handm', 'hbo-max', 'jbl', 'jordan', 'kodak', 'mlb', 'nba', 'nbc', 'new-balance', 'new-york-times', 'nexon', 'nikon', 'puma', 'rakuten', 'roblox', 'battledotnet']
+
+// 浅色图标（fill/stroke 为白或极浅灰）：浅色预览底上不可见，渲染时需套深色底
+const LIGHT_ICON_STEMS = new Set(['anthropic', 'grok', 'manus', 'qwen', 'xai-grok', 'uber', 'cursor', 'model-context-protocol', 'openrouter', 'markdown', 'nextdotjs', 'threedotjs', 'firecrawl', 'kilo-code', 'midjourney', 'ollama', 'bash', 'go', 'php', 'curseforge', 'rust'])
+
+function createBrandCollection({ id, labelKey, directory, stems }) {
+  return {
+    id,
+    labelKey,
+    items: stems.map((stem) => {
+      const url = getCollectionAssetUrl(directory, `${stem}.svg`)
+      return { id: `${id}-${stem}`, name: brandName(`${stem}.svg`), url, editableUrl: url, preserveAppearance: true, light: LIGHT_ICON_STEMS.has(stem) }
+    }),
+  }
 }
 
 // Google 2026 品牌刷新后的各服务图标（本地静态资源，保留品牌贴色）
@@ -117,6 +216,37 @@ function createSvgCollection({ id, labelKey, directory, files, sourceUrl, nameFn
   return collection
 }
 
+// 「动画示例 / 动画组合 / 创意动画」三组合并为单一「动画合集」组（三者目录不同，各自保留原加载路径）
+const MERGED_ANIMATION_IDS = ['animation-examples', 'animation-pack', 'unique-animations']
+const mergedAnimationCollection = {
+  id: 'animations',
+  labelKey: 'svgCollectionAnimations',
+  items: ANIMATION_COLLECTIONS.filter((c) => MERGED_ANIMATION_IDS.includes(c.id)).flatMap((c) => createSvgCollection(c).items),
+}
+// 「旋转加载（svg-spinners）」并入「加载动画（loading-cases）」：合并 items，各自保留原加载目录与命名
+const standaloneAnimationCollections = (() => {
+  const loadingCases = createSvgCollection(ANIMATION_COLLECTIONS.find((c) => c.id === 'loading-cases'))
+  loadingCases.items.push(...createSvgCollection(ANIMATION_COLLECTIONS.find((c) => c.id === 'svg-spinners')).items)
+  return [loadingCases]
+})()
+
+// 「社交媒体」并入「社交与社区」：追加 social-media 独有项（跳过已存在的 Instagram / Xiaohongshu），各自保留原加载目录
+const socialCommunityCollection = (() => {
+  const collection = createBrandCollection({
+    id: 'social-community',
+    labelKey: 'svgCollectionSocialCommunity',
+    directory: 'social-community',
+    stems: SOCIAL_COMMUNITY_STEMS,
+  })
+  const existingNames = new Set(collection.items.map((item) => item.name))
+  collection.items.push(...SOCIAL_MEDIA_FILES.map((file) => {
+    const stem = file.replace(/\.svg$/, '')
+    const url = getCollectionAssetUrl(SOCIAL_MEDIA_DIRECTORY, file)
+    return { id: `social-community-${stem}`, name: socialMediaName(file), url, editableUrl: url, preserveAppearance: true }
+  }).filter((item) => !existingNames.has(item.name)))
+  return collection
+})()
+
 export const SVG_COLLECTIONS = [{
   id: 'company-logos',
   labelKey: 'svgCollectionCompanyLogos',
@@ -127,21 +257,49 @@ export const SVG_COLLECTIONS = [{
     editableUrl: getEditableUrl(name),
     inlineSvgMarkup: INLINE_LOGOS[name],
   })),
-}, createSvgCollection({
-  id: 'social-media',
-  labelKey: 'svgCollectionSocialMedia',
-  directory: SOCIAL_MEDIA_DIRECTORY,
-  files: SOCIAL_MEDIA_FILES,
-  nameFn: socialMediaName,
-}), createSvgCollection({
-  id: 'popular-logos',
-  labelKey: 'svgCollectionPopularLogos',
-  directory: POPULAR_DIRECTORY,
-  files: POPULAR_FILES,
-  nameFn: popularName,
+}, createBrandCollection({
+  id: 'ai-llm',
+  labelKey: 'svgCollectionAiLlm',
+  directory: 'ai-llm',
+  stems: AI_LLM_STEMS,
+}), createBrandCollection({
+  id: 'tech-companies',
+  labelKey: 'svgCollectionTechCompanies',
+  directory: 'tech-companies',
+  stems: TECH_COMPANIES_STEMS,
+}), createBrandCollection({
+  id: 'dev-tools',
+  labelKey: 'svgCollectionDevTools',
+  directory: 'dev-tools',
+  stems: DEV_TOOLS_STEMS,
+}), createBrandCollection({
+  id: 'lang-cloud',
+  labelKey: 'svgCollectionLangCloud',
+  directory: 'lang-cloud',
+  stems: LANG_CLOUD_STEMS,
+}), createBrandCollection({
+  id: 'browsers-os',
+  labelKey: 'svgCollectionBrowsersOs',
+  directory: 'browsers-os',
+  stems: BROWSERS_OS_STEMS,
+}), socialCommunityCollection, createBrandCollection({
+  id: 'finance-crypto',
+  labelKey: 'svgCollectionFinanceCrypto',
+  directory: 'finance-crypto',
+  stems: FINANCE_CRYPTO_STEMS,
+}), createBrandCollection({
+  id: 'auto-travel',
+  labelKey: 'svgCollectionAutoTravel',
+  directory: 'auto-travel',
+  stems: AUTO_TRAVEL_STEMS,
+}), createBrandCollection({
+  id: 'retail-entertainment',
+  labelKey: 'svgCollectionRetailEntertainment',
+  directory: 'retail-entertainment',
+  stems: RETAIL_ENTERTAINMENT_STEMS,
 }), createSvgCollection({
   id: 'google-2026',
   labelKey: 'svgCollectionGoogle2026',
   directory: GOOGLE_2026_DIRECTORY,
   files: GOOGLE_2026_FILES,
-}), ...ANIMATION_COLLECTIONS.map(createSvgCollection)]
+}), mergedAnimationCollection, ...standaloneAnimationCollections]

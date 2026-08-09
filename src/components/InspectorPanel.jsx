@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import Icon from './Icon.jsx'
 import { getTagDisplayName } from '../app/copy.js'
+import { normalizeHexColor } from '../editor/svg-transforms.js'
 
 function ColorField({ label, value, onPreview, onCommit }) {
-  const canPickColor = value.length === 7 && /^#[0-9a-f]{6}$/i.test(value)
-  return <div className="color-field"><label>{label}</label><div className="color-control"><input className="color-picker" type="color" value={canPickColor ? value : '#000000'} disabled={!canPickColor} onChange={(event) => onPreview(event.target.value.toUpperCase())} onBlur={onCommit} /><input className="hex-input" value={value} onChange={(event) => onPreview(event.target.value)} onBlur={onCommit} maxLength={7} /></div></div>
+  const hex = normalizeHexColor(value)
+  const canPickColor = hex.length === 7
+  return <div className="color-field"><label>{label}</label><div className="color-control"><input className="color-picker" type="color" value={canPickColor ? hex : '#000000'} disabled={!canPickColor} onChange={(event) => onPreview(event.target.value.toUpperCase())} onBlur={onCommit} /><input className="hex-input" value={value} onChange={(event) => onPreview(event.target.value)} onBlur={onCommit} maxLength={7} /></div></div>
 }
 
 function NumericField({ id, label, value, min, step, suffix, onPreview, onCommit, onKeyDown }) {
