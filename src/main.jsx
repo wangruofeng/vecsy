@@ -111,6 +111,7 @@ function App() {
   const toastTimerRef = useRef(0)
   const fileDragCounterRef = useRef(0)
   const renameInputRef = useRef(null)
+  const renameInitialDraftRef = useRef('')
   const textEditIdRef = useRef('')
   const arrowKeyHoldRef = useRef({ key: '', startedAt: 0 })
   const exportPreviewZoomRef = useRef(1)
@@ -1116,7 +1117,9 @@ function App() {
   const startRename = (targetId) => {
     const item = elements.find((element) => element.id === targetId)
     if (!item) return
-    setRenameDraft(item.node.getAttribute('data-name') || item.name)
+    const displayName = getLayerDisplayName(item, language)
+    renameInitialDraftRef.current = displayName
+    setRenameDraft(displayName)
     setRenamingLayerId(targetId)
     setContextMenu(null)
   }
@@ -1129,6 +1132,7 @@ function App() {
     const node = doc.querySelector(`[data-editor-id="${targetId}"]`)
     setRenamingLayerId('')
     if (!node) return
+    if (trimmed === renameInitialDraftRef.current) return
     const currentName = node.getAttribute('data-name') || ''
     if (trimmed === currentName) return
     if (trimmed) node.setAttribute('data-name', trimmed)
