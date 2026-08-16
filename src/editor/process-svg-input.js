@@ -67,8 +67,8 @@ function sanitizeAttributes(node, removedFeatures) {
 
 /**
  * Parses and sanitizes SVG markup before it can reach an inline SVG preview.
- * App-owned assets may keep their animation styles, while every other source
- * gets the stricter no-style policy defined by the v0.5 threat model.
+ * Stylesheets are retained only when they cannot fetch external resources or
+ * define externally sourced fonts. Other unsafe SVG features are removed.
  */
 export function processSvgInput(rawMarkup, { source = 'untrusted' } = {}) {
   if (typeof rawMarkup !== 'string' || !rawMarkup.trim()) return reject('empty-svg')
@@ -85,9 +85,9 @@ export function processSvgInput(rawMarkup, { source = 'untrusted' } = {}) {
   })
   Array.from(root.querySelectorAll('*')).forEach((node) => {
     const tagName = node.localName.toLowerCase()
-    if (BLOCKED_ELEMENTS.has(tagName) || (source !== 'app-owned' && tagName === 'style')) {
+    if (BLOCKED_ELEMENTS.has(tagName)) {
       node.remove()
-      record(removedFeatures, tagName === 'style' ? 'style-element' : 'blocked-element')
+      record(removedFeatures, 'blocked-element')
       return
     }
     if (tagName === 'style') {

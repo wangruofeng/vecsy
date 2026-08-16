@@ -20,15 +20,15 @@ describe('SVG input processing', () => {
     expect(result.markup).toContain('data:image/png;base64,aGVsbG8=')
   })
 
-  it('keeps vetted app-owned styles but strips them from untrusted SVG', () => {
+  it('keeps safe styles from untrusted SVG', () => {
     const markup = '<svg xmlns="http://www.w3.org/2000/svg"><style>.pulse { opacity: .5 }</style><rect class="pulse"/></svg>'
 
-    expect(processSvgInput(markup).markup).not.toContain('<style')
+    expect(processSvgInput(markup).markup).toContain('<style')
     expect(processSvgInput(markup, { source: 'app-owned' }).markup).toContain('<style')
   })
 
-  it('removes app-owned styles that request external resources', () => {
-    const result = processSvgInput('<svg xmlns="http://www.w3.org/2000/svg"><style>@import url(https://example.com/theme.css); .mark { fill: red }</style><rect class="mark"/></svg>', { source: 'app-owned' })
+  it('removes untrusted styles that request external resources', () => {
+    const result = processSvgInput('<svg xmlns="http://www.w3.org/2000/svg"><style>@import url(https://example.com/theme.css); .mark { fill: red }</style><rect class="mark"/></svg>')
 
     expect(result.status).toBe('sanitized')
     expect(result.markup).not.toContain('<style')
