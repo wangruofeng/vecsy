@@ -12,6 +12,16 @@ describe('SVG input processing', () => {
     expect(result.removedFeatures['external-url']).toBeGreaterThan(0)
   })
 
+  it('converts foreignObject labels into centered text and drops empty ones', () => {
+    const result = processSvgInput('<svg xmlns="http://www.w3.org/2000/svg"><g transform="translate(10,20)"><foreignObject width="100" height="21"><span>fork &amp; pull</span></foreignObject></g><foreignObject width="50" height="21"><iframe src="https://example.com"/></foreignObject><foreignObject width="10" height="10"/></svg>')
+
+    expect(result.status).toBe('sanitized')
+    expect(result.markup).not.toContain('foreignObject')
+    expect(result.markup).toContain('fork &amp; pull')
+    expect(result.removedFeatures['converted-label']).toBe(1)
+    expect(result.removedFeatures['blocked-element']).toBeGreaterThan(0)
+  })
+
   it('preserves safe local references and raster data URLs', () => {
     const result = processSvgInput('<svg xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="paint"/></defs><rect fill="url(#paint)"/><image href="data:image/png;base64,aGVsbG8="/></svg>')
 

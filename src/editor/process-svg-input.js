@@ -38,6 +38,27 @@ function sanitizeStyleElement(node, removedFeatures) {
   }
 }
 
+function convertForeignObjectLabel(node, removedFeatures) {
+  const text = (node.textContent || '').replace(/\s+/g, ' ').trim()
+  if (!text) {
+    node.remove()
+    record(removedFeatures, 'blocked-element')
+    return
+  }
+  const x = Number.parseFloat(node.getAttribute('x') || '0')
+  const y = Number.parseFloat(node.getAttribute('y') || '0')
+  const width = Number.parseFloat(node.getAttribute('width') || '0')
+  const height = Number.parseFloat(node.getAttribute('height') || '0')
+  const label = node.ownerDocument.createElementNS(SVG_NAMESPACE, 'text')
+  label.setAttribute('x', String(x + width / 2))
+  label.setAttribute('y', String(y + height / 2))
+  label.setAttribute('text-anchor', 'middle')
+  label.setAttribute('dominant-baseline', 'central')
+  label.textContent = text
+  node.replaceWith(label)
+  record(removedFeatures, 'converted-label')
+}
+
 function sanitizeAttributes(node, removedFeatures) {
   Array.from(node.attributes).forEach((attribute) => {
     const name = attribute.name.toLowerCase()
@@ -86,6 +107,10 @@ export function processSvgInput(rawMarkup, { source = 'untrusted' } = {}) {
   Array.from(root.querySelectorAll('*')).forEach((node) => {
     const tagName = node.localName.toLowerCase()
     if (BLOCKED_ELEMENTS.has(tagName)) {
+      if (tagName === 'foreignobject') {
+        convertForeignObjectLabel(node, removedFeatures)
+        return
+      }
       node.remove()
       record(removedFeatures, 'blocked-element')
       return
