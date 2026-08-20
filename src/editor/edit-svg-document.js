@@ -1,4 +1,4 @@
-import { groupLayers, removeLayers, translateElements, translateElementsById, updateElementAttributes, updateElementTransform } from './svg-transforms.js'
+import { groupLayers, insertBasicShape, removeLayers, scaleElementAroundCenter, translateElements, translateElementsById, updateElementAttributes, updateElementTextContent, updateElementTransform } from './svg-transforms.js'
 
 /**
  * Applies one user-intent transaction to SVG markup. This boundary is pure:
@@ -36,6 +36,21 @@ export function editSvgDocument(markup, transaction) {
       result = { markup: removed.markup, nextSelectedId: removed.nextSelectedId, nextSelectedIds: removed.nextSelectedId ? [removed.nextSelectedId] : [] }
       break
     }
+    case 'resize':
+      result.markup = scaleElementAroundCenter(markup, transaction.targetId, transaction.scale)
+      result.nextSelectedId = transaction.targetId
+      result.nextSelectedIds = [transaction.targetId]
+      break
+    case 'replace-text':
+      result.markup = updateElementTextContent(markup, transaction.targetId, transaction.text)
+      result.nextSelectedId = transaction.targetId
+      result.nextSelectedIds = [transaction.targetId]
+      break
+    case 'insert-shape':
+      result.markup = insertBasicShape(markup, transaction.shape)
+      result.nextSelectedId = transaction.shape.id
+      result.nextSelectedIds = [transaction.shape.id]
+      break
     default:
       throw new Error(`Unsupported SVG transaction: ${transaction.type}`)
   }

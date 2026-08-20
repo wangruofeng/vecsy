@@ -10,6 +10,7 @@ import InspectorPanel from './components/InspectorPanel.jsx'
 import SvgCollectionModal from './components/SvgCollectionModal.jsx'
 import RecentSvgModal from './components/RecentSvgModal.jsx'
 import useEditorDocument from './hooks/useEditorDocument.js'
+import useAiDesign from './hooks/useAiDesign.js'
 import useCanvasInteraction from './hooks/useCanvasInteraction.js'
 import { getAncestorGroupIds, getColor, getSvgColorTokens, getVisibleLayerItems, isElementHidden, setElementVisibility } from './editor/svg-parser.js'
 import { getSvgDimensions, getTopLevelSelectedIds } from './editor/svg-geometry.js'
@@ -60,7 +61,7 @@ function renderRasterExport(markup, width, height, format) {
 }
 
 function App() {
-  const { language, setLanguage, svgMarkup, sourceDraft, setSourceDraft, elements, selectedId, setSelectedId, selectedIds, setSelectedIds, fileName, dirty, setDirty, history, storageError, setStorageError, selectLayerIds, currentSnapshot, commitDocument, undo, redo, loadDocument, recentDocuments, removeRecentDocument } = useEditorDocument({ initialMarkup: SAMPLE_SVG, storageKey: STORAGE_KEY, legacyStorageKey: LEGACY_STORAGE_KEY, historyLimit: HISTORY_LIMIT })
+  const { language, setLanguage, svgMarkup, sourceDraft, setSourceDraft, elements, selectedId, setSelectedId, selectedIds, setSelectedIds, fileName, dirty, setDirty, history, storageError, setStorageError, documentRevision, selectLayerIds, currentSnapshot, commitDocument, undo, redo, loadDocument, recentDocuments, removeRecentDocument } = useEditorDocument({ initialMarkup: SAMPLE_SVG, storageKey: STORAGE_KEY, legacyStorageKey: LEGACY_STORAGE_KEY, historyLimit: HISTORY_LIMIT })
   const [activeTab, setActiveTab] = useState('preview')
   const [isLayersOpen, setIsLayersOpen] = useState(true)
   const [isInspectorOpen, setIsInspectorOpen] = useState(true)
@@ -118,6 +119,7 @@ function App() {
   const exportPreviewPointersRef = useRef(new Map())
   const exportPreviewPinchRef = useRef(null)
   const copy = COPY[language]
+  const aiDesign = useAiDesign({ svgMarkup, selectedIds, documentRevision, commitDocument })
 
   const showSecurityFeedback = (result) => {
     if (result.status !== 'sanitized') return
@@ -1299,6 +1301,7 @@ function App() {
           toastTimerRef={toastTimerRef}
           selectedDisplayName={selectedDisplayName}
           setToast={setToast}
+          aiDesign={aiDesign}
         />
         <InspectorPanel
           copy={copy}

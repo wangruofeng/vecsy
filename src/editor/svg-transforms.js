@@ -173,6 +173,59 @@ export function updateElementAttributes(rawMarkup, targetId, updates) {
   return new XMLSerializer().serializeToString(doc.documentElement)
 }
 
+export function updateElementTextContent(rawMarkup, targetId, text) {
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const node = doc.querySelector(`[data-editor-id="${targetId}"]`)
+  if (node?.tagName?.toLowerCase() !== 'text') return rawMarkup
+  node.replaceChildren(doc.createTextNode(text))
+  return new XMLSerializer().serializeToString(doc.documentElement)
+}
+
+function getNodeCenter(node) {
+  const number = (name, fallback = 0) => {
+    const value = Number(node.getAttribute(name))
+    return Number.isFinite(value) ? value : fallback
+  }
+  const tag = node.tagName?.toLowerCase()
+  if (tag === 'rect') return { x: number('x') + number('width') / 2, y: number('y') + number('height') / 2 }
+  if (tag === 'circle' || tag === 'ellipse') return { x: number('cx'), y: number('cy') }
+  if (tag === 'line') return { x: (number('x1') + number('x2')) / 2, y: (number('y1') + number('y2')) / 2 }
+  if (tag === 'polygon' || tag === 'polyline') {
+    const points = parsePolygonPoints(node.getAttribute('points'))
+    if (points.length) return {
+      x: (Math.min(...points.map((point) => point.x)) + Math.max(...points.map((point) => point.x))) / 2,
+      y: (Math.min(...points.map((point) => point.y)) + Math.max(...points.map((point) => point.y))) / 2,
+    }
+  }
+  if (tag === 'text') return { x: number('x'), y: number('y') }
+  return null
+}
+
+export function scaleElementAroundCenter(rawMarkup, targetId, scale) {
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const node = doc.querySelector(`[data-editor-id="${targetId}"]`)
+  const center = node && getNodeCenter(node)
+  if (!node || !center || !Number.isFinite(scale) || scale <= 0) return rawMarkup
+  const transform = `translate(${center.x.toFixed(2)} ${center.y.toFixed(2)}) scale(${scale.toFixed(4)}) translate(${-center.x.toFixed(2)} ${-center.y.toFixed(2)})`
+  const baseTransform = node.getAttribute('transform') || ''
+  node.setAttribute('transform', baseTransform ? `${transform} ${baseTransform}` : transform)
+  return new XMLSerializer().serializeToString(doc.documentElement)
+}
+
+export function insertBasicShape(rawMarkup, { id, tag, attributes, text = '' }) {
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const root = doc.documentElement
+  if (!root || !id || !tag) return rawMarkup
+  const node = doc.createElementNS('http://www.w3.org/2000/svg', tag)
+  Object.entries(attributes || {}).forEach(([name, value]) => node.setAttribute(name, String(value)))
+  node.setAttribute('data-editor-id', id)
+  if (tag === 'text') node.textContent = text
+  root.appendChild(doc.createTextNode('\n  '))
+  root.appendChild(node)
+  root.appendChild(doc.createTextNode('\n'))
+  return new XMLSerializer().serializeToString(root)
+}
+
 // 把 3/4/6 位 hex 标准化为 6 位 #RRGGBB（4 位的 alpha 丢弃——fill 编辑不支持 alpha，半透明由 fill-opacity 单独承载）。非 hex（命名色、rgb() 等）返回 ''。
 export function normalizeHexColor(value) {
   if (typeof value !== 'string') return ''

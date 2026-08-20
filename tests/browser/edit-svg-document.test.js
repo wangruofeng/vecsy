@@ -22,4 +22,14 @@ describe('SVG transactions', () => {
   it('reports no change for a no-op edit', () => {
     expect(editSvgDocument(markup, { type: 'set-attributes', targetId: 'missing', updates: { fill: '#000' } })).toMatchObject({ markup, changed: false })
   })
+
+  it('supports AI runtime resize, text replacement, and shape insertion transactions', () => {
+    const resized = editSvgDocument(markup, { type: 'resize', targetId: 'a', scale: 1.25 })
+    const replaced = editSvgDocument('<svg xmlns="http://www.w3.org/2000/svg"><text data-editor-id="label">Old</text></svg>', { type: 'replace-text', targetId: 'label', text: 'Vecsy AI' })
+    const inserted = editSvgDocument(markup, { type: 'insert-shape', shape: { id: 'node-ai-0', tag: 'circle', attributes: { cx: 50, cy: 50, r: 8 } } })
+
+    expect(resized.markup).toContain('scale(1.2500)')
+    expect(replaced.markup).toContain('>Vecsy AI</text>')
+    expect(inserted).toMatchObject({ nextSelectedId: 'node-ai-0', nextSelectedIds: ['node-ai-0'] })
+  })
 })

@@ -54,6 +54,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     past: Array.isArray(persisted?.history?.past) ? persisted.history.past : [],
     future: Array.isArray(persisted?.history?.future) ? persisted.history.future : [],
   }))
+  const [documentRevision, setDocumentRevision] = useState(0)
   const [storageError, setStorageError] = useState(false)
   const storageWarnedRef = useRef(false)
   const databaseRef = useRef(null)
@@ -94,6 +95,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
         setSelectedIds(Array.isArray(storedDocument.selectedIds) ? storedDocument.selectedIds : [])
         setFileName(storedDocument.fileName || 'untitled.svg')
         setDirty(Boolean(storedDocument.dirty))
+        setDocumentRevision((current) => current + 1)
         if (LANGUAGES.some((item) => item.code === storedLanguage?.value)) setLanguage(storedLanguage.value)
       }
       if (!closed && storedRecents.length) setRecentDocuments(storedRecents.map(({ fileName, svgMarkup, updatedAt }) => ({ fileName, svgMarkup, updatedAt })))
@@ -201,6 +203,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     setSelectedIds(validSelectedIds.length ? validSelectedIds : (validSelectedId ? [validSelectedId] : []))
     setFileName(nextFileName)
     setDirty(nextDirty)
+    setDocumentRevision((current) => current + 1)
     recordRecentDocument(parsed.markup, nextFileName)
   }
 
@@ -214,6 +217,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     setSelectedIds(validSelectedId ? [validSelectedId] : [])
     setFileName(snapshot.fileName)
     setDirty(snapshot.dirty)
+    setDocumentRevision((current) => current + 1)
     recordRecentDocument(parsed.markup, snapshot.fileName)
   }
 
@@ -241,6 +245,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     setFileName(nextFileName)
     setDirty(false)
     setHistory({ past: [], future: [] })
+    setDocumentRevision((current) => current + 1)
     recordRecentDocument(parsed.markup, nextFileName)
     return parsed
   }
@@ -255,6 +260,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     fileName, setFileName,
     recentDocuments,
     dirty, setDirty,
+    documentRevision,
     history, setHistory,
     storageError, setStorageError,
     selectLayerIds, currentSnapshot, commitDocument, restoreSnapshot, undo, redo, loadDocument, removeRecentDocument,
