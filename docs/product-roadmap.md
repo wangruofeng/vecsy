@@ -1,6 +1,6 @@
 # Vecsy 产品迭代计划
 
-> 最近更新：2026-07-26 ｜ 当前版本：v0.1.0
+> 最近更新：2026-08-28 ｜ 当前版本：v0.5.0
 
 ## 产品定位
 
@@ -13,7 +13,7 @@
 
 **工程约束**（沿用 AGENTS.md 红线）：
 - 零运行时依赖（React/Vite 之外），分享压缩、ID 生成等均手写实现
-- 模块化单页架构：`src/main.jsx` 负责编排，SVG 逻辑 / 文案 / 面板 / 状态 Hook 分别下沉到 `src/editor/`、`src/app/`、`src/components/`、`src/hooks/`，界面文案走 `COPY` 双语
+- 模块化单页架构：`src/main.jsx` 负责编排，SVG 逻辑 / 文案 / 面板 / 状态 Hook 分别下沉到 `src/editor/`、`src/app/`、`src/components/`、`src/hooks/`，界面文案走 `COPY` 四语（`en` / `zh-CN` / `zh-TW` / `ja`）
 - 一切 SVG 变更经 `commitDocument`，保证撤销/重做不断链
 
 ---
@@ -28,6 +28,8 @@
 | **P4** | 工程化 | 可持续迭代 | vitest 纯函数测试、CI、大文件性能、错误边界 |
 
 > 原则：P1 全部为零后端、零依赖即可交付的项；需要后端的能力统一收敛到 P3。
+
+> **v0.5 状态**（2026-08-28）：v0.5 Foundation 已发布，完成了统一 SVG 安全输入 Pipeline、CI/CD 自动化测试、IndexedDB 持久化、Drag 统一坐标契约等基础工程。以下 P1–P4 路线图为 v0.1.0 阶段规划，其中 P1（对齐/分布/右键菜单）和 P4（测试/CI）的大部分内容已在 v0.5 中实现。后续迭代计划请参考 [`docs/v0.5/roadmap.md`](./v0.5/roadmap.md) 的 Phase 7 之后章节。
 
 ---
 

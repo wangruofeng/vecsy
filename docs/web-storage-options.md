@@ -121,8 +121,8 @@ await writable.close()
 
 | 场景 | 现状 | 建议 |
 |------|------|------|
-| **当前文档 + 历史** | localStorage（review #10：每次 commit 全量序列化） | **迁移到 IndexedDB**：异步、不阻塞、可存 Blob 缩略图 |
-| **小偏好设置**（语言、面板折叠态） | — | **留在 localStorage**（同步快、体积小） |
+| **当前文档 + 历史** | **IndexedDB**（v0.5 已迁移，异步、不阻塞主线程） | 保持 IndexedDB；若做多文档管理，可扩展 `documents` store 的索引 |
+| **小偏好设置**（语言、面板折叠态） | localStorage（v0.5 继续保留） | **留在 localStorage**（同步快、体积小） |
 | **自动保存大草稿** | — | **OPFS**（如果做） |
 | **多文档管理 / 作品列表** | — | **IndexedDB**（带索引按 lastModified 排序） |
 | **离线可用** | — | **Cache Storage + Service Worker**（缓存静态资源 + 用户文档） |
@@ -130,11 +130,11 @@ await writable.close()
 
 ---
 
-## 四、迁移路径参考
+## 四、迁移路径参考（v0.5 已完成主迁移）
 
-**立即可做的一步**（不需要新依赖）：把 `useEditorDocument.js` 的持久化从 localStorage 切到 IndexedDB，解决 review #10 的性能问题，顺便为「多文档」打地基。代码量约 50 行。
+**已完成（v0.5 Foundation）**：文档主存储已从 localStorage 迁移到 IndexedDB，包含自动保存、刷新恢复、Recent Documents 管理。localStorage 继续保留 UI 偏好设置。
 
-**落地顺序建议**：
+**后续可选方向**：
 1. IndexedDB 迁移（解决 review #10，为未来分享/多文档铺路）
 2. Service Worker + Cache Storage（配合已有 manifest.json 就是完整 PWA）
 3. OPFS（如果需要真实文件体验）

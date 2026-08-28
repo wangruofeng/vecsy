@@ -4,7 +4,7 @@
 
 ## 基础加载
 
-- [ ] 页面标题为 `Vecsy — SVG editor`。
+- [ ] 页面标题为 `Vecsy — Free Online SVG Editor in Your Browser`。
 - [ ] 首屏出现 VECSY、Layers、Preview、Inspector 和示例 SVG。
 - [ ] 页面没有 Vite/React 错误覆盖层，控制台没有 error/warn。
 

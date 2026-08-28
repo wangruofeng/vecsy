@@ -48,7 +48,7 @@
 - Export the edited SVG
 
 ### Misc
-- Simplified Chinese / English bilingual UI
+- Simplified Chinese / Traditional Chinese / English / Japanese UI
 
 ## Shortcuts
 
@@ -88,7 +88,7 @@ The project uses Cloudflare Pages Direct Upload to ship the Vite build output:
 
 ```bash
 npm run build
-npx wrangler pages deploy dist --project-name vector-forge --branch main
+npx wrangler pages deploy dist --project-name vecsy --branch main
 ```
 
 Sign in to Cloudflare with Wrangler before deploying:
@@ -113,16 +113,21 @@ The app entry point handles orchestration. SVG parsing/geometry/transforms, shar
 │   ├── manifest.json            # PWA manifest
 │   ├── robots.txt               # Crawl policy (overrides Cloudflare-hosted default)
 │   ├── sitemap.xml              # Sitemap
-│   ├── _headers                 # Cloudflare Pages cache rules
+│   ├── _headers                 # Cloudflare Pages security & cache rules
 │   └── 404.html                 # Static 404 page (fixes SPA soft-404)
 ├── src/
 │   ├── main.jsx     # App entry & business orchestration
-│   ├── app/copy.js  # Bilingual copy and display names
+│   ├── app/copy.js  # Quad-lingual copy (en/zh-CN/zh-TW/ja) and display names
 │   ├── components/  # LayerPanel, CanvasPanel, InspectorPanel, Icon
-│   ├── editor/      # SVG parser, geometry, transforms
+│   ├── editor/      # SVG parser, geometry, transforms, security
 │   ├── hooks/       # Document state and canvas interaction hooks
 │   └── styles.css   # Global styles
+├── tests/
+│   ├── unit/        # Pure function unit tests (security, matrix, storage)
+│   ├── browser/     # Browser integration tests (parser, geometry, drag)
+│   └── fixtures/    # SVG test fixtures
 ├── docs/
+│   ├── v0.5/        # v0.5 Foundation docs (PRD, roadmap, release notes)
 │   ├── product-roadmap.md          # Product roadmap
 │   ├── browser-smoke-checklist.md  # Manual browser acceptance checklist
 │   └── web-storage-options.md      # Web data persistence options

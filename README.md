@@ -48,7 +48,7 @@
 - 导出编辑后的 SVG
 
 ### 其他
-- 简体中文 / English 双语界面
+- 简体中文 / 繁體中文 / English / 日本語 四语界面
 
 ## 快捷键
 
@@ -88,7 +88,7 @@ npm run preview
 
 ```bash
 npm run build
-npx wrangler pages deploy dist --project-name vector-forge --branch main
+npx wrangler pages deploy dist --project-name vecsy --branch main
 ```
 
 部署前需要先使用 Wrangler 登录 Cloudflare：
@@ -113,16 +113,21 @@ npx wrangler login
 │   ├── manifest.json            # PWA manifest
 │   ├── robots.txt               # 爬虫策略（覆盖 Cloudflare 托管默认）
 │   ├── sitemap.xml              # 站点地图
-│   ├── _headers                 # Cloudflare Pages 缓存策略
+│   ├── _headers                 # Cloudflare Pages 安全与缓存策略
 │   └── 404.html                 # 静态 404 页（解决 SPA 软 404）
 ├── src/
 │   ├── main.jsx     # 应用入口与业务编排
-│   ├── app/copy.js  # 双语文案和显示名称
+│   ├── app/copy.js  # 四语文案（en/zh-CN/zh-TW/ja）和显示名称
 │   ├── components/  # LayerPanel、CanvasPanel、InspectorPanel、Icon
-│   ├── editor/      # SVG parser、geometry、transforms
+│   ├── editor/      # SVG parser、geometry、transforms、security
 │   ├── hooks/       # 文档状态和画布交互 Hook
 │   └── styles.css   # 全局样式
+├── tests/
+│   ├── unit/        # 纯函数单元测试（安全、矩阵、存储）
+│   ├── browser/     # 浏览器集成测试（解析器、几何、拖拽）
+│   └── fixtures/    # SVG 测试夹具
 ├── docs/
+│   ├── v0.5/        # v0.5 Foundation 文档（PRD、路线图、发布说明）
 │   ├── product-roadmap.md       # 产品迭代计划
 │   ├── browser-smoke-checklist.md  # 浏览器手动验收清单
 │   └── web-storage-options.md   # Web 数据持久化方案选型

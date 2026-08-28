@@ -224,7 +224,7 @@ External reference × 1
 
 要求：
 
-- 文案同时提供 `en` / `zh` / `zh-TW` / `ja`；
+- 文案同时提供 `en` / `zh-CN` / `zh-TW` / `ja`；
 - 用户可展开查看类别与数量，但 v0.5 不展示原始危险代码；
 - `rejected` 使用 error feedback，保留当前文档不变；
 - 导出只导出清理后的 Canonical Markup；
@@ -630,7 +630,7 @@ v0.5 继续保持：
 - [ ] Text / Fill / Stroke / Opacity / Gradient / Source Edit；
 - [ ] Undo / Redo；
 - [ ] SVG / PNG / WebP / Selected-only Export；
-- [ ] `en` / `zh` / `zh-TW` / `ja`；
+- [ ] `en` / `zh-CN` / `zh-TW` / `ja`；
 - [ ] Chrome / Safari / Edge Smoke。
 
 ---
