@@ -43,7 +43,14 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     try {
       const stored = JSON.parse(window.localStorage.getItem(recentStorageKey) || (legacyRecentStorageKey ? window.localStorage.getItem(legacyRecentStorageKey) : null) || '[]')
       return Array.isArray(stored)
-        ? stored.filter((item) => item?.fileName && item?.svgMarkup).slice(0, 20)
+        ? stored.filter((item) => {
+          if (!item?.fileName || !item?.svgMarkup) return false
+          try {
+            return parseSvg(item.svgMarkup).hasContent
+          } catch {
+            return false
+          }
+        }).slice(0, 20)
         : []
     } catch {
       return []
@@ -163,9 +170,10 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     return () => window.clearTimeout(timeout)
   }, [databaseReady, recentDocuments, recentStorageKey])
 
-  const recordRecentDocument = (markup, name) => {
+  const recordRecentDocument = (document, name) => {
+    if (!document.hasContent) return
     setRecentDocuments((current) => [
-      { fileName: name, svgMarkup: markup, updatedAt: Date.now() },
+      { fileName: name, svgMarkup: document.markup, updatedAt: Date.now() },
       ...current.filter((item) => item.fileName !== name),
     ].slice(0, 20))
   }
@@ -201,7 +209,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     setSelectedIds(validSelectedIds.length ? validSelectedIds : (validSelectedId ? [validSelectedId] : []))
     setFileName(nextFileName)
     setDirty(nextDirty)
-    recordRecentDocument(parsed.markup, nextFileName)
+    recordRecentDocument(parsed, nextFileName)
   }
 
   const restoreSnapshot = (snapshot) => {
@@ -214,7 +222,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     setSelectedIds(validSelectedId ? [validSelectedId] : [])
     setFileName(snapshot.fileName)
     setDirty(snapshot.dirty)
-    recordRecentDocument(parsed.markup, snapshot.fileName)
+    recordRecentDocument(parsed, snapshot.fileName)
   }
 
   const undo = () => {
@@ -241,7 +249,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     setFileName(nextFileName)
     setDirty(false)
     setHistory({ past: [], future: [] })
-    recordRecentDocument(parsed.markup, nextFileName)
+    recordRecentDocument(parsed, nextFileName)
     return parsed
   }
 

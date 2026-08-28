@@ -30,6 +30,7 @@ export function parseSvg(markup) {
     throw new Error('This file does not contain a valid SVG.')
   }
   ensureViewBox(doc.documentElement)
+  const hasContent = Array.from(doc.documentElement.children).length > 0
   let id = 0
   const usedIds = new Set(Array.from(doc.querySelectorAll('[data-editor-id]')).map((node) => node.getAttribute('data-editor-id')).filter(Boolean))
   const elements = []
@@ -50,7 +51,7 @@ export function parseSvg(markup) {
     })
   }
   walk(doc.documentElement)
-  return { markup: new XMLSerializer().serializeToString(doc.documentElement), elements }
+  return { markup: new XMLSerializer().serializeToString(doc.documentElement), elements, hasContent }
 }
 
 export function getColor(value) {
