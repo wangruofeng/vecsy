@@ -2,7 +2,7 @@
 
 > 版本：v0.6.0
 > 状态：部分实施 — 本地 Action Runtime 已完成
-> 最近更新：2026-08-21
+> 最近更新：2026-08-22
 
 ---
 
@@ -11,14 +11,17 @@
 已实现：
 
 - `src/ai/` 中的 VDAP schema、context、validator、compiler、executor 和 Demo quick actions；
-- `useAiDesign` 的本地 Preview / Apply / Cancel 流程与文档版本、选择集保护；
+- `src/ai/ai-client.js` 中的 Provider-agnostic `editDesign()` / `generateDesign()` 合约、Demo Adapter 和 HTTP Adapter；
+- `functions/api/ai/` 中的 Cloudflare Pages Functions：`edit.js`（请求防护、KV 限流（可选）、系统提示词、信封形状检查）、`generate.js`（503 桩）与 `_lib/`（guards / prompt / provider / rate-limit）；
+- 首个 Provider 适配器：DeepSeek（`deepseek-chat`，`response_format: json_object`，`temperature: 0`），经 `DEEPSEEK_API_KEY` 服务端密钥启用；
+- `useAiDesign` 的 `thinking` 状态、35s 客户端超时中止、`retry()` 与本地 Preview / Apply / Cancel 流程、文档版本与选择集保护；
 - `AiCommandBar`、`AiPreviewPanel`、`AiQuickActions`，以及四语言界面文案；
 - `resize`、`replace-text`、`insert-shape` 的 Editor Transaction 支持；
-- 预览和 Action Runtime 的浏览器测试。
+- Function `_lib` 的单元测试与预览、Action Runtime、Provider 生命周期的浏览器测试。
 
-尚未实现：真实 AI Provider、`ai-client.js`、Cloudflare Functions、`AiGeneratePanel`、Create Mode、Prompt → SVG、速率限制、遥测与 Evals。
+尚未实现：`AiGeneratePanel`、Create Mode、Prompt → SVG、生产级遥测与 Evals。
 
-当前 Demo Runtime 不调用网络或 Provider；它只接受预置演示动作和用于开发验证的 VDAP JSON。
+命令栏自由文本输入经 `POST /api/ai/edit` 调用真实模型（未配置密钥时返回 `PROVIDER_NOT_CONFIGURED`）；快捷操作与 JSON 调试仍在本地确定性执行，不请求网络。
 
 ---
 
@@ -175,6 +178,7 @@ src/
 │   ├── validate-design-actions.js
 │   ├── compile-design-actions.js
 │   ├── execute-design-actions.js
+│   ├── ai-client.js
 │   └── quick-actions.js
 │
 ├── components/
@@ -193,17 +197,23 @@ src/
     └── process-svg-input.js
 ```
 
-`ai-client.js`、`AiGeneratePanel.jsx` 和下方 Cloudflare Function 目录仍是后续计划，当前仓库中不存在。
-
-Cloudflare：
+`AiGeneratePanel.jsx` 仍是后续计划。`functions/api/ai/` 已实现并部署为 Cloudflare Pages Functions：
 
 ```text
 functions/
 └── api/
     └── ai/
-        ├── generate.js
-        └── edit.js
+        ├── edit.js          # POST /api/ai/edit：防护 → 限流 → Provider → 信封检查
+        ├── generate.js      # 503 桩，Create Mode 后续实现
+        └── _lib/
+            ├── errors.js    # 统一错误码与 JSON 响应
+            ├── guards.js    # 同源、Content-Type、体积、prompt 与 selection 上限
+            ├── prompt.js    # VDAP 系统提示词与用户消息构建
+            ├── provider.js  # DeepSeek 适配器（OpenAI 兼容，JSON mode）
+            └── rate-limit.js# KV 限流（20 次/IP/天 + 突发限制，绑定缺失时跳过）
 ```
+
+`DEEPSEEK_API_KEY` 仅存在于 Cloudflare 服务端 Secret 与本地环境（shell 导出或 git-ignore 的 `.env`，由 `scripts/dev-ai.mjs` 解析后经 `wrangler pages dev -b` 注入）；`AI_MODEL`、`DEEPSEEK_BASE_URL` 可覆盖默认模型与端点。本地运行用 `npm run dev:ai`（wrangler 代理 vite）。
 
 ---
 
@@ -246,7 +256,7 @@ cancelPreview()
 retry()
 ```
 
-当前实现仅管理本地编辑所需的 `idle`、`validating`、`preview`、`applying` 与 `error`，并提供 `previewPrompt()`、`previewDemo()`、`submitJson()`、`applyPreview()`、`cancelPreview()`。`generate()`、`editSelection()` 和 `retry()` 需在 Provider 接入后实现。
+当前实现仅管理本地编辑所需的 `idle`、`validating`、`preview`、`applying` 与 `error`，并提供 `previewPrompt()`、`previewDemo()`、`submitJson()`、`applyPreview()`、`cancelPreview()`；`useAiDesign` 通过注入的 `aiClient.editDesign()` 获取 Envelope。`generate()`、`editSelection()` 和 `retry()` 需在真实 Provider 接入后实现。
 
 ---
 
@@ -297,6 +307,17 @@ Selection Edit 不发送完整 SVG。
 ---
 
 ## 8. AI Provider Boundary
+
+当前已先落地客户端合约：
+
+```js
+const aiClient = {
+  editDesign({ prompt, context, signal }) {},
+  generateDesign({ prompt, options, signal }) {},
+}
+```
+
+Demo Adapter 将现有预置 Prompt 映射为 VDAP Envelope；HTTP Adapter 只负责向 `/api/ai/edit` 与 `/api/ai/generate` 发送 JSON，并统一映射请求失败、超时和限流错误。Cloudflare Function、Provider Adapter 和服务端 Secret 仍需后续配置后才能启用。
 
 第一版只支持一个 Provider。
 

@@ -4,7 +4,7 @@
 > 阶段名称：AI Alpha
 > 产品定位：AI-native SVG Editor
 > 状态：部分实施 — 本地 Selection AI Edit 闭环已完成
-> 最近更新：2026-08-21
+> 最近更新：2026-08-22
 
 ---
 
@@ -38,12 +38,14 @@ Vecsy 不定位为 AI Image Generator，而定位为：
 | 功能 | 当前状态 | 说明 |
 |---|---|---|
 | AI Design Action Protocol | 已完成 | VDAP 1.0 Envelope 与八类 MVP Action 已校验、编译并执行。 |
-| Selection → AI Edit | 已完成（本地 Demo Runtime） | 仅允许修改当前选择的真实 SVG 元素。 |
+| Selection → AI Edit | 已完成（真实 Provider） | 仅允许修改当前选择的真实 SVG 元素；命令栏自由文本输入经 DeepSeek 生成 VDAP Envelope。 |
 | Preview / Apply / Cancel / Undo | 已完成 | Preview 不写入 History；Apply 只调用一次 `commitDocument()`。 |
 | Revision Guard / Failure Isolation | 已完成 | 文档或选择变更会阻止旧预览应用；非法 Action 不会部分提交。 |
+| AI Client 合约 | 已完成（适配器） | Demo Adapter 与 HTTP Adapter 使用统一的 `editDesign()` / `generateDesign()` 接口。 |
 | AI Quick Actions | 已完成（演示） | 当前提供改为蓝色、放大、更圆润、删除。 |
-| Prompt → Editable SVG / Create Mode | 未实施 | 依赖真实 Provider 和安全的 Generate API。 |
-| Cloudflare API / Provider / Evals | 未实施 | 不在本地 Demo Runtime 范围内。 |
+| Cloudflare API / Provider | 已完成（首个 Provider） | `functions/api/ai/edit` Pages Function + DeepSeek 适配器（`deepseek-chat`，JSON mode）；请求防护与可选 KV 限流已就位，`/api/ai/generate` 为 503 桩。快捷操作仍为本地确定性执行。 |
+| Prompt → Editable SVG / Create Mode | 未实施 | 依赖后续 Generate API 与 SVG 安全清洗。 |
+| Evals | 未实施 | 不在当前范围。 |
 
 ---
 

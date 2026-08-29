@@ -107,7 +107,7 @@ function InlineTextEditor({ canvasRef, svgRef, editingTextId, textDraft, setText
 }
 
 export default function CanvasPanel(props) {
-  const { copy, activeTab, setActiveTab, formatSource, simplifySource, sourceDisplayMode, setSourceDisplayMode, expandedGroups, toggleGroup, selectedIds, selectLayerIds, alignSelection, zoomBy, fitToScreen, svgScale, setSvgScale, setSvgPosition, canvasRef, handleCanvasClick, handleSvgDoubleClick, openContextMenu, handleCanvasPointerDown, handleCanvasPointerMove, handleCanvasPointerUp, hoveredLayerId, setHoveredLayerId, elements, isDraggingSvg, isDraggingElement, isPinchingSvg, svgRef, svgPosition, renderedMarkup, editingTextId, selectedId, selected, selectionBox, lineEndpoints, textDraft, setTextDraft, commitTextEdit, cancelTextEdit, language, selectionGroupBox, multiSelectionBoxes, isResizingElement, handleResizePointerMove, handleResizePointerUp, handleResizePointerDown, sourceHighlightRef, highlightedSource, sourceDraft, setSourceDraft, syncSourceScroll, commitSourceMarkup, showToast, loadDemo, toast, toastTimerRef, selectedDisplayName, setToast, aiDesign } = props
+  const { copy, activeTab, setActiveTab, formatSource, simplifySource, sourceDisplayMode, setSourceDisplayMode, expandedGroups, toggleGroup, selectedIds, selectLayerIds, alignSelection, zoomBy, fitToScreen, svgScale, setSvgScale, setSvgPosition, canvasRef, handleCanvasClick, handleSvgDoubleClick, openContextMenu, handleCanvasPointerDown, handleCanvasPointerMove, handleCanvasPointerUp, hoveredLayerId, setHoveredLayerId, elements, isDraggingSvg, isDraggingElement, isPinchingSvg, svgRef, svgPosition, renderedMarkup, editingTextId, selectedId, selected, selectionBox, lineEndpoints, textDraft, setTextDraft, commitTextEdit, cancelTextEdit, language, selectionGroupBox, multiSelectionBoxes, isResizingElement, handleResizePointerMove, handleResizePointerUp, handleResizePointerDown, sourceHighlightRef, highlightedSource, sourceDraft, setSourceDraft, syncSourceScroll, commitSourceMarkup, showToast, loadDemo, toast, toastTimerRef, selectedDisplayName, setToast, aiDesign, onOpenAiSettings } = props
   const [hasAnimation, setHasAnimation] = useState(false)
   const [isAnimationPaused, setIsAnimationPaused] = useState(false)
   const sourceRowRefs = useRef(new Map())
@@ -193,7 +193,7 @@ export default function CanvasPanel(props) {
             </div>
           )}
           {toast && <div key={toast.id} className={`toast ${toast.kind}`} role={toast.kind === 'error' ? 'alert' : 'status'}><Icon name={toast.kind === 'error' ? 'x' : 'check'} size={15} /><span>{toast.message}</span><button type="button" className="toast-close" aria-label={copy.close} onClick={() => { if (toastTimerRef.current) { window.clearTimeout(toastTimerRef.current); toastTimerRef.current = 0 } setToast(null) }}><Icon name="x" size={13} /></button></div>}
-          <AiCommandBar copy={copy} aiDesign={aiDesign} selectedIds={selectedIds} />
+          <AiCommandBar copy={copy} aiDesign={aiDesign} selectedIds={selectedIds} onOpenSettings={onOpenAiSettings} />
           <div className="canvas-status"><span><span className="live-dot" /> {copy.livePreview}</span><span>{elements.length} {copy.statusReady}</span><span className="status-path">{selected ? `${copy.selected}: ${selectedDisplayName}` : copy.noSelection}</span></div>
         </section>
 

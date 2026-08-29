@@ -9,8 +9,10 @@ import CanvasPanel from './components/CanvasPanel.jsx'
 import InspectorPanel from './components/InspectorPanel.jsx'
 import SvgCollectionModal from './components/SvgCollectionModal.jsx'
 import RecentSvgModal from './components/RecentSvgModal.jsx'
+import AiSettingsModal from './components/AiSettingsModal.jsx'
 import useEditorDocument from './hooks/useEditorDocument.js'
 import useAiDesign from './hooks/useAiDesign.js'
+import { loadAiSettings, saveAiSettings } from './ai/ai-settings.js'
 import useCanvasInteraction from './hooks/useCanvasInteraction.js'
 import { getAncestorGroupIds, getColor, getSvgColorTokens, getVisibleLayerItems, isElementHidden, setElementVisibility } from './editor/svg-parser.js'
 import { getSvgDimensions, getTopLevelSelectedIds } from './editor/svg-geometry.js'
@@ -82,6 +84,8 @@ function App() {
   const [exportSizes, setExportSizes] = useState(null)
   const [exportPreviewOpen, setExportPreviewOpen] = useState(false)
   const [exportPreviewZoom, setExportPreviewZoom] = useState(1)
+  const [aiSettings, setAiSettings] = useState(() => loadAiSettings())
+  const [aiSettingsOpen, setAiSettingsOpen] = useState(false)
   const [contextMenu, setContextMenu] = useState(null)
   const [renamingLayerId, setRenamingLayerId] = useState('')
   const [renameDraft, setRenameDraft] = useState('')
@@ -119,7 +123,7 @@ function App() {
   const exportPreviewPointersRef = useRef(new Map())
   const exportPreviewPinchRef = useRef(null)
   const copy = COPY[language]
-  const aiDesign = useAiDesign({ svgMarkup, selectedIds, documentRevision, commitDocument })
+  const aiDesign = useAiDesign({ svgMarkup, selectedIds, documentRevision, commitDocument, aiSettings })
 
   const showSecurityFeedback = (result) => {
     if (result.status !== 'sanitized') return
@@ -1197,6 +1201,7 @@ function App() {
           <button className="icon-button" type="button" title={`${copy.shortcutsTitle} (?)`} aria-label={copy.shortcutsTitle} aria-pressed={showShortcuts} onClick={() => setShowShortcuts((current) => !current)}><Icon name="help" /></button>
           <button className="icon-button recent-svg-button" type="button" title={copy.recentSvgs} aria-label={copy.recentSvgs} aria-pressed={showRecentSvgs} onClick={() => setShowRecentSvgs(true)}><Icon name="history" /></button>
           <span className="divider" />
+          <button className="icon-button" type="button" title={copy.aiSettingsTitle} aria-label={copy.aiSettingsTitle} onClick={() => setAiSettingsOpen(true)}><Icon name="settings" size={14} /></button>
           <div className="language-menu-wrap">
             <button className="language-toggle" type="button" onClick={() => setLangMenuOpen((current) => !current)} aria-label={copy.languageSwitch} aria-haspopup="menu" aria-expanded={langMenuOpen} title={copy.languageSwitch}><Icon name="globe" size={13} /></button>
             {langMenuOpen && <div className="language-menu" role="menu" aria-label={copy.languageSwitch}>{LANGUAGES.map((item) => <button key={item.code} type="button" role="menuitemradio" aria-checked={language === item.code} className={language === item.code ? 'is-active' : ''} onClick={() => { setLanguage(item.code); setLangMenuOpen(false) }}><span className="language-menu-check">{language === item.code && <Icon name="check" size={12} />}</span><span>{item.label}</span></button>)}</div>}
@@ -1302,6 +1307,7 @@ function App() {
           selectedDisplayName={selectedDisplayName}
           setToast={setToast}
           aiDesign={aiDesign}
+          onOpenAiSettings={() => setAiSettingsOpen(true)}
         />
         <InspectorPanel
           copy={copy}
@@ -1364,6 +1370,12 @@ function App() {
       </div>}
       {showSvgCollection && <SvgCollectionModal copy={copy} onClose={() => setShowSvgCollection(false)} onSelect={addSvgCollectionItem} processCustomSvg={processSvgInput} showSecurityFeedback={showSecurityFeedback} />}
       {showRecentSvgs && <RecentSvgModal copy={copy} documents={recentDocuments} onClose={() => setShowRecentSvgs(false)} onOpen={openRecentDocument} onRemove={removeRecentDocument} />}
+      {aiSettingsOpen && <AiSettingsModal
+        copy={copy}
+        settings={aiSettings}
+        onSave={(next) => setAiSettings(saveAiSettings(next))}
+        onClose={() => setAiSettingsOpen(false)}
+      />}
       {exportOpen && <div className="shortcuts-overlay" onClick={() => setExportOpen(false)}>
         <div className="shortcuts-modal export-modal" role="dialog" aria-modal="true" aria-label={copy.exportDialogTitle} onClick={(event) => event.stopPropagation()}>
           <div className="shortcuts-header"><span>{copy.exportDialogTitle}</span><button className="mini-button" type="button" title={copy.close} aria-label={copy.close} onClick={() => setExportOpen(false)}><Icon name="x" size={14} /></button></div>

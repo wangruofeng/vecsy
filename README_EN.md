@@ -70,10 +70,10 @@
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:5173
 ```
 
-After startup, open the local address printed in the terminal — usually `http://localhost:5173`.
+AI features are fully client-managed: configure your provider (Base URL / API format / API Key / model list) in the in-app "AI Model Settings" panel. The configuration is stored in your browser's `localStorage`, and the app calls the third-party AI API directly (Chat Completions / Anthropic Messages / Responses formats are supported). No server side or environment variables needed.
 
 ## Build
 
@@ -84,11 +84,11 @@ npm run preview
 
 ## Deploy to Cloudflare Pages
 
-The project uses Cloudflare Pages Direct Upload to ship the Vite build output:
+The project uses Cloudflare Pages Direct Upload to ship the Vite build output (fully static, no Functions):
 
 ```bash
 npm run build
-npx wrangler pages deploy dist --project-name vector-forge --branch main
+npx wrangler pages deploy dist --project-name vecsy --branch main
 ```
 
 Sign in to Cloudflare with Wrangler before deploying:
@@ -118,10 +118,12 @@ The app entry point handles orchestration. SVG parsing/geometry/transforms, shar
 ├── src/
 │   ├── main.jsx     # App entry & business orchestration
 │   ├── app/copy.js  # Bilingual copy and display names
-│   ├── components/  # LayerPanel, CanvasPanel, InspectorPanel, Icon
+│   ├── components/  # LayerPanel, CanvasPanel, InspectorPanel, AiCommandBar, AiSettingsModal
 │   ├── editor/      # SVG parser, geometry, transforms
+│   ├── ai/          # VDAP schema, validator, compiler, executor, prompt, providers, direct-ai-client, ai-settings
 │   ├── hooks/       # Document state and canvas interaction hooks
 │   └── styles.css   # Global styles
+├── wrangler.toml    # Pages build output declaration
 ├── docs/
 │   ├── product-roadmap.md          # Product roadmap
 │   ├── browser-smoke-checklist.md  # Manual browser acceptance checklist

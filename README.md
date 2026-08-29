@@ -48,7 +48,8 @@
 - 导出编辑后的 SVG
 
 ### 其他
-- 简体中文 / English 双语界面
+- 简体中文 / 繁體中文 / English / 日本語 四语界面
+- **AI 编辑（Beta）**：选中图层后输入自然语言（如「把选中元素改成蓝色」），AI 生成编辑方案，预览确认后应用，可撤销
 
 ## 快捷键
 
@@ -70,10 +71,10 @@
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:5173
 ```
 
-启动后访问终端输出的本地地址，通常是 `http://localhost:5173`。
+AI 功能为纯前端自管：在应用内「AI 模型设置」面板配置供应商（Base URL / API 格式 / API Key / 模型列表），配置保存在浏览器 `localStorage`，前端直连第三方 AI API（支持 Chat Completions / Anthropic Messages / Responses 三种格式），无需任何服务端或环境变量。
 
 ## 构建
 
@@ -84,11 +85,17 @@ npm run preview
 
 ## 部署到 Cloudflare Pages
 
-项目当前使用 Cloudflare Pages Direct Upload，将 Vite 构建产物上传到 Pages：
+项目当前使用 Cloudflare Pages Direct Upload，将 Vite 构建产物上传到 Pages（纯静态，无 Functions）：
 
 ```bash
 npm run build
-npx wrangler pages deploy dist --project-name vector-forge --branch main
+npx wrangler pages deploy dist --project-name vecsy --branch main
+```
+
+部署前需要先使用 Wrangler 登录 Cloudflare：
+
+```bash
+npx wrangler login
 ```
 
 部署前需要先使用 Wrangler 登录 Cloudflare：
@@ -117,15 +124,18 @@ npx wrangler login
 │   └── 404.html                 # 静态 404 页（解决 SPA 软 404）
 ├── src/
 │   ├── main.jsx     # 应用入口与业务编排
-│   ├── app/copy.js  # 双语文案和显示名称
-│   ├── components/  # LayerPanel、CanvasPanel、InspectorPanel、Icon
+│   ├── app/copy.js  # 四语文案和显示名称
+│   ├── components/  # LayerPanel、CanvasPanel、InspectorPanel、AiCommandBar
 │   ├── editor/      # SVG parser、geometry、transforms
-│   ├── hooks/       # 文档状态和画布交互 Hook
+│   ├── ai/          # VDAP schema、validator、compiler、executor、prompt、providers、direct-ai-client、ai-settings
+│   ├── hooks/       # 文档状态、画布交互和 useAiDesign Hook
 │   └── styles.css   # 全局样式
+├── wrangler.toml    # Pages 构建输出声明
 ├── docs/
 │   ├── product-roadmap.md       # 产品迭代计划
 │   ├── browser-smoke-checklist.md  # 浏览器手动验收清单
-│   └── web-storage-options.md   # Web 数据持久化方案选型
+│   ├── web-storage-options.md   # Web 数据持久化方案选型
+│   └── vecsy-ai-v0.6-docs/      # AI v0.6 实施文档（PRD / 技术设计 / VDAP 协议）
 ├── index.html
 └── package.json
 ```

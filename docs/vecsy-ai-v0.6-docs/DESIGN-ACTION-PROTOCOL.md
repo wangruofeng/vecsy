@@ -2,8 +2,8 @@
 
 > 协议版本：1.0
 > 适用版本：Vecsy AI v0.6+
-> 状态：已在本地 Demo Runtime 实现
-> 最近更新：2026-08-21
+> 状态：已在本地 Runtime 与真实 Provider 链路实现
+> 最近更新：2026-08-22
 
 ---
 
@@ -28,9 +28,10 @@ insert-shape
 - `resize` 仅支持 `anchor: "center"`；
 - `insert-shape` 仅支持根 SVG 插入，`data-editor-id` 由 Vecsy 生成；
 - unknown fields、非有限数值、不安全颜色和不支持属性会拒绝整个 Envelope；
-- Demo Runtime 不调用 AI Provider；预置动作与 JSON 调试共用同一校验和执行管线。
+- 命令栏自由文本经 `POST /api/ai/edit`（Cloudflare Pages Function）调用真实 Provider（DeepSeek，`deepseek-chat`，JSON mode）；服务端做信封形状检查，完整校验与预览仍由客户端 VDAP 管线负责；
+- 快捷动作与 JSON 调试在本地确定性执行，不请求网络。
 
-Provider、网络重试、速率限制与 Evals 不属于本协议 Runtime 的当前实现范围。
+服务端已实现 IP 级速率限制（可选 KV 绑定）。网络重试与 Evals 不属于本协议 Runtime 的当前实现范围。
 
 ---
 
