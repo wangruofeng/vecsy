@@ -1075,10 +1075,10 @@ const SECTIONS = {
       'ja': '比率を維持してリサイズ',
     },
     shortcutMove: {
-      'en': 'Move selected layers (Shift: 10px)',
-      'zh-CN': '移动选中的图层（Shift：10px）',
-      'zh-TW': '移動選取的圖層（Shift：10px）',
-      'ja': '選択したレイヤーを移動（Shift: 10px）',
+      'en': 'Move selected layers',
+      'zh-CN': '移动选中的图层',
+      'zh-TW': '移動選取的圖層',
+      'ja': '選択したレイヤーを移動',
     },
     shortcutDeselect: {
       'en': 'Clear selection',

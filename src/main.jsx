@@ -164,7 +164,6 @@ function App() {
         [copy.shortcutKeyScroll, copy.shortcutZoom],
         [copy.shortcutKeyDoubleClick, copy.shortcutEditText],
         ['Shift + Drag', copy.shortcutResizeProportional],
-        ['↑ ↓ ← →', copy.shortcutMove],
         ['Esc', copy.shortcutDeselect],
       ],
     },
@@ -172,6 +171,7 @@ function App() {
       title: copy.shortcutsLayers,
       wide: true,
       items: [
+        ['↑ ↓ ← →', copy.shortcutMove],
         ['Shift + Click', copy.shortcutRangeSelect],
         ['⌘ + Click', copy.shortcutToggleSelect],
         ['⌘ G', copy.shortcutGroup],
