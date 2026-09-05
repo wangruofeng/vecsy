@@ -1,4 +1,4 @@
-import { groupLayers, removeLayers, translateElements, translateElementsById, updateElementAttributes, updateElementTransform } from './svg-transforms.js'
+import { groupLayers, removeLayers, translateElements, translateElementsById, updateElementAttributes, updateElementTransform, updateLineEndpointStyle } from './svg-transforms.js'
 
 /**
  * Applies one user-intent transaction to SVG markup. This boundary is pure:
@@ -10,6 +10,10 @@ export function editSvgDocument(markup, transaction) {
   switch (transaction.type) {
     case 'set-attributes':
       result.markup = updateElementAttributes(markup, transaction.targetId, transaction.updates)
+      result.nextSelectedId = transaction.targetId
+      break
+    case 'set-line-endpoint-style':
+      result.markup = updateLineEndpointStyle(markup, transaction.targetId, transaction.end, transaction.style)
       result.nextSelectedId = transaction.targetId
       break
     case 'set-transform':

@@ -517,6 +517,72 @@ const SECTIONS = {
       'zh-TW': '終點 Y',
       'ja': '終点 Y',
     },
+    capNone: {
+      'en': 'None',
+      'zh-CN': '无',
+      'zh-TW': '無',
+      'ja': 'なし',
+    },
+    capRound: {
+      'en': 'Round',
+      'zh-CN': '圆形',
+      'zh-TW': '圓形',
+      'ja': '丸',
+    },
+    capSquare: {
+      'en': 'Square',
+      'zh-CN': '方形',
+      'zh-TW': '方形',
+      'ja': '四角',
+    },
+    capLineArrow: {
+      'en': 'Line arrow',
+      'zh-CN': '直线箭头',
+      'zh-TW': '直線箭頭',
+      'ja': '線矢印',
+    },
+    capTriangleArrow: {
+      'en': 'Triangle arrow',
+      'zh-CN': '三角箭头',
+      'zh-TW': '三角箭頭',
+      'ja': '三角矢印',
+    },
+    capReversedTriangle: {
+      'en': 'Reversed triangle',
+      'zh-CN': '反转三角',
+      'zh-TW': '反轉三角',
+      'ja': '反転三角',
+    },
+    capCircleArrow: {
+      'en': 'Circle arrow',
+      'zh-CN': '圆形箭头',
+      'zh-TW': '圓形箭頭',
+      'ja': '円矢印',
+    },
+    capDiamondArrow: {
+      'en': 'Diamond arrow',
+      'zh-CN': '菱形箭头',
+      'zh-TW': '菱形箭頭',
+      'ja': 'ひし形矢印',
+    },
+    lineStartPoint: {
+      'en': 'Start point',
+      'zh-CN': '开始点',
+      'zh-TW': '開始點',
+      'ja': '始点',
+    },
+    lineEndPoint: {
+      'en': 'End point',
+      'zh-CN': '结束点',
+      'zh-TW': '結束點',
+      'ja': '終点',
+    },
+    lineWeight: {
+      'en': 'Weight',
+      'zh-CN': '线宽',
+      'zh-TW': '線寬',
+      'ja': '線の太さ',
+    },
     aspectRatio: {
       'en': 'Aspect ratio',
       'zh-CN': '图层比例',
@@ -827,6 +893,18 @@ const SECTIONS = {
       'zh-CN': '从左上角调整大小',
       'zh-TW': '從左上角調整大小',
       'ja': '左上からリサイズ',
+    },
+    resizeTopRight: {
+      'en': 'Resize from top right',
+      'zh-CN': '从右上角调整大小',
+      'zh-TW': '從右上角調整大小',
+      'ja': '右上からリサイズ',
+    },
+    resizeBottomLeft: {
+      'en': 'Resize from bottom left',
+      'zh-CN': '从左下角调整大小',
+      'zh-TW': '從左下角調整大小',
+      'ja': '左下からリサイズ',
     },
     resizeBottomRight: {
       'en': 'Resize from bottom right',
@@ -1334,6 +1412,11 @@ const TAG_ENTRIES = {
       'zh-TW': '直線',
       'ja': '直線',
     },
+    arrow: {
+      'zh-CN': '箭头',
+      'zh-TW': '箭頭',
+      'ja': '矢印',
+    },
     polyline: {
       'zh-CN': '折线',
       'zh-TW': '折線',
@@ -1402,6 +1485,11 @@ const LAYER_ENTRIES = {
       'zh-TW': '五角星',
       'ja': '星',
     },
+    Arrow: {
+      'zh-CN': '箭头',
+      'zh-TW': '箭頭',
+      'ja': '矢印',
+    },
 }
 
 function buildByLanguage(entries) {
@@ -1417,7 +1505,7 @@ function buildByLanguage(entries) {
 export const TAG_NAMES = buildByLanguage(TAG_ENTRIES)
 export const LAYER_NAMES = buildByLanguage(LAYER_ENTRIES)
 
-export const ADD_LAYER_TAGS = ["rect","circle","ellipse","line","polyline","polygon","heart","star","path","text"]
+export const ADD_LAYER_TAGS = ["rect","circle","ellipse","line","arrow","polygon","heart","star","text"]
 
 export function getLayerDisplayName(item, language) {
   const layerNames = LAYER_NAMES[language]

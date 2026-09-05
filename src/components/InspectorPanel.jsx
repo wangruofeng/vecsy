@@ -2,6 +2,34 @@ import { useEffect, useState } from 'react'
 import Icon from './Icon.jsx'
 import { getTagDisplayName } from '../app/copy.js'
 import { normalizeHexColor } from '../editor/svg-transforms.js'
+import { LINE_ENDPOINT_STYLES } from '../editor/svg-transforms.js'
+
+const LINE_ENDPOINT_COPY_KEYS = { none: 'capNone', round: 'capRound', square: 'capSquare', 'line-arrow': 'capLineArrow', 'triangle-arrow': 'capTriangleArrow', 'reversed-triangle': 'capReversedTriangle', 'circle-arrow': 'capCircleArrow', 'diamond-arrow': 'capDiamondArrow' }
+
+// 自定义端点样式下拉：原生 <select> 的 option 在 macOS 上不派发 hover 事件，无法做 hover 预览
+function LineCapSelect({ id, label, value, copy, onPreview, onCancelPreview, onCommit }) {
+  const [open, setOpen] = useState(false)
+  const [hovered, setHovered] = useState('')
+  const close = () => { setOpen(false); setHovered(''); onCancelPreview() }
+  useEffect(() => {
+    if (!open) return undefined
+    const handlePointerDown = (event) => { if (!event.target.closest('.cap-select-wrap')) close() }
+    const handleKeyDown = (event) => { if (event.key === 'Escape') close() }
+    window.addEventListener('mousedown', handlePointerDown)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('mousedown', handlePointerDown)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
+  return <div className="cap-select-wrap">
+    <button type="button" id={id} className={`cap-select ${open ? 'is-open' : ''}`} aria-haspopup="listbox" aria-expanded={open} aria-label={label} onClick={() => (open ? close() : setOpen(true))}>
+      <span className="cap-select-label">{copy[LINE_ENDPOINT_COPY_KEYS[hovered || value]]}</span>
+      <span className="cap-select-caret"><Icon name="chevron" size={12} /></span>
+    </button>
+    {open && <div className="cap-menu" role="listbox" aria-label={label}>{LINE_ENDPOINT_STYLES.map((style) => <button key={style} type="button" role="option" aria-selected={style === value} className={style === value ? 'is-active' : ''} onMouseEnter={() => { setHovered(style); onPreview(style) }} onClick={() => { onCommit(style); setOpen(false); setHovered('') }}>{copy[LINE_ENDPOINT_COPY_KEYS[style]]}</button>)}</div>}
+  </div>
+}
 
 function ColorField({ label, value, onPreview, onCommit }) {
   const hex = normalizeHexColor(value)
@@ -9,7 +37,7 @@ function ColorField({ label, value, onPreview, onCommit }) {
   return <div className="color-field"><label>{label}</label><div className="color-control"><input className="color-picker" type="color" value={canPickColor ? hex : '#000000'} disabled={!canPickColor} onChange={(event) => onPreview(event.target.value.toUpperCase())} onBlur={onCommit} /><input className="hex-input" value={value} onChange={(event) => onPreview(event.target.value)} onBlur={onCommit} maxLength={7} /></div></div>
 }
 
-function NumericField({ id, label, value, min, step, suffix, onPreview, onCommit, onKeyDown }) {
+function NumericControl({ id, label, value, min, step, suffix, onPreview, onCommit, onKeyDown }) {
   const adjust = (direction) => {
     const current = Number(value)
     const precision = String(step).split('.')[1]?.length || 0
@@ -17,7 +45,11 @@ function NumericField({ id, label, value, min, step, suffix, onPreview, onCommit
     onPreview(String(min == null ? next : Math.max(min, next)))
     onCommit()
   }
-  return <div className="text-property-field"><label htmlFor={id}>{label}</label><div className="numeric-field"><input id={id} type="number" min={min} step={step} value={value} onChange={(event) => onPreview(event.target.value)} onBlur={onCommit} onKeyDown={onKeyDown} /><span className="numeric-stepper"><button type="button" aria-label={`${label} +`} onMouseDown={(event) => event.preventDefault()} onClick={() => adjust(1)}><Icon name="chevron" size={10} /></button><button type="button" aria-label={`${label} -`} onMouseDown={(event) => event.preventDefault()} onClick={() => adjust(-1)}><Icon name="chevron" size={10} /></button></span>{suffix && <span className="numeric-suffix">{suffix}</span>}</div></div>
+  return <div className="numeric-field"><input id={id} type="number" min={min} step={step} value={value} onChange={(event) => onPreview(event.target.value)} onBlur={onCommit} onKeyDown={onKeyDown} /><span className="numeric-stepper"><button type="button" aria-label={`${label} +`} onMouseDown={(event) => event.preventDefault()} onClick={() => adjust(1)}><Icon name="chevron" size={10} /></button><button type="button" aria-label={`${label} -`} onMouseDown={(event) => event.preventDefault()} onClick={() => adjust(-1)}><Icon name="chevron" size={10} /></button></span>{suffix && <span className="numeric-suffix">{suffix}</span>}</div>
+}
+
+function NumericField({ id, label, value, min, step, suffix, onPreview, onCommit, onKeyDown }) {
+  return <div className="text-property-field"><label htmlFor={id}>{label}</label><NumericControl id={id} label={label} value={value} min={min} step={step} suffix={suffix} onPreview={onPreview} onCommit={onCommit} onKeyDown={onKeyDown} /></div>
 }
 
 function PolygonSidesField({ label, value, onCommit }) {
@@ -134,7 +166,7 @@ function DocumentNameField({ copy, fileName, onRename }) {
 }
 
 export default function InspectorPanel(props) {
-  const { copy, language, isInspectorOpen, setIsInspectorOpen, selected, selectedDisplayName, isSelectedHidden, textFieldDraft, setTextFieldDraft, commitTextField, startTextEdit, textFontSize, textLetterSpacing, textFontFamily, isTextBold, previewAttributeDebounced, commitPreviewAttributes, previewTextGradientDebounced, commitTextGradient, textGradient, handleTextAttributeKeyDown, rectWidthValue, rectHeightValue, lineStartX, lineStartY, lineEndX, lineEndY, updateRectAspectRatio, polygonSides, updatePolygonSides, fill, stroke, opacity, strokeWidth, cornerRadiusMax, cornerRadius, previewRectRadius, elements, colorTokens, previewColorTokenDebounced, commitColorToken, fileName, renameDocument } = props
+  const { copy, language, isInspectorOpen, setIsInspectorOpen, selected, selectedDisplayName, isSelectedHidden, textFieldDraft, setTextFieldDraft, commitTextField, textFontSize, textLetterSpacing, textFontFamily, isTextBold, previewAttributeDebounced, commitPreviewAttributes, previewTextGradientDebounced, commitTextGradient, textGradient, handleTextAttributeKeyDown, rectWidthValue, rectHeightValue, lineStartX, lineStartY, lineEndX, lineEndY, lineStartCap, lineEndCap, updateLineEndpointStyle, previewLineEndpointStyle, cancelLineEndpointPreview, updateRectAspectRatio, polygonSides, updatePolygonSides, fill, stroke, opacity, strokeWidth, cornerRadiusMax, cornerRadius, previewRectRadius, elements, colorTokens, previewColorTokenDebounced, commitColorToken, fileName, renameDocument } = props
   const [copiedToken, setCopiedToken] = useState('')
   const [editingToken, setEditingToken] = useState('')
   const layerTypeCounts = Array.from(elements.reduce((counts, { tag }) => counts.set(tag, (counts.get(tag) || 0) + 1), new Map()))
@@ -152,7 +184,7 @@ export default function InspectorPanel(props) {
             <div className="selection-summary"><div className={`selection-icon tag-${selected.tag}`}>{selected.tag.slice(0, 2).toUpperCase()}</div><div className="selection-meta"><strong>{selectedDisplayName}</strong><span>{getTagDisplayName(selected.tag, language)} {copy.elementSuffix}</span></div><span className="selection-check"><Icon name="check" size={13} /></span></div>
             <div className="inspector-section"><div className="section-label">{copy.appearance}</div>
               {selected.tag === 'text' && <>
-                <div className="text-content-field"><label htmlFor="text-content-input">{copy.textContent}</label><div className="text-content-control"><textarea id="text-content-input" rows="3" value={textFieldDraft} onChange={(event) => setTextFieldDraft(event.target.value)} onBlur={commitTextField} onKeyDown={(event) => { if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); event.currentTarget.blur() } }} aria-label={copy.editText} /><button type="button" onClick={() => startTextEdit(selected.id, textFieldDraft)} aria-label={copy.editText} title={copy.editText}>↗</button></div></div>
+                <div className="text-content-field"><label htmlFor="text-content-input">{copy.textContent}</label><div className="text-content-control"><textarea id="text-content-input" rows="3" value={textFieldDraft} onChange={(event) => setTextFieldDraft(event.target.value)} onBlur={commitTextField} onKeyDown={(event) => { if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); event.currentTarget.blur() } }} aria-label={copy.editText} /></div></div>
                 <div className="text-property-grid">
                   <NumericField id="text-font-size-input" label={copy.fontSize} value={textFontSize} min={0} step={1} suffix="px" onPreview={(value) => previewAttributeDebounced('font-size', value)} onCommit={commitPreviewAttributes} onKeyDown={handleTextAttributeKeyDown} />
                   <NumericField id="text-letter-spacing-input" label={copy.letterSpacing} value={textLetterSpacing} step={0.5} suffix="px" onPreview={(value) => previewAttributeDebounced('letter-spacing', value)} onCommit={commitPreviewAttributes} onKeyDown={handleTextAttributeKeyDown} />
@@ -164,12 +196,12 @@ export default function InspectorPanel(props) {
                 <TextGradientField copy={copy} config={textGradient} onPreview={previewTextGradientDebounced} onCommit={commitTextGradient} />
               </>}
               {selected.tag === 'rect' && <><div className="text-property-grid"><NumericField id="rect-width-input" label={copy.width} value={rectWidthValue} min={0} step={1} suffix="px" onPreview={(value) => previewAttributeDebounced('width', value)} onCommit={commitPreviewAttributes} /><NumericField id="rect-height-input" label={copy.height} value={rectHeightValue} min={0} step={1} suffix="px" onPreview={(value) => previewAttributeDebounced('height', value)} onCommit={commitPreviewAttributes} /></div><RectAspectRatioField copy={copy} onChange={updateRectAspectRatio} /></>}
-              {selected.tag === 'line' && <div className="text-property-grid"><NumericField id="line-x1-input" label={copy.lineStartX} value={lineStartX} step={1} onPreview={(value) => previewAttributeDebounced('x1', value)} onCommit={commitPreviewAttributes} /><NumericField id="line-y1-input" label={copy.lineStartY} value={lineStartY} step={1} onPreview={(value) => previewAttributeDebounced('y1', value)} onCommit={commitPreviewAttributes} /><NumericField id="line-x2-input" label={copy.lineEndX} value={lineEndX} step={1} onPreview={(value) => previewAttributeDebounced('x2', value)} onCommit={commitPreviewAttributes} /><NumericField id="line-y2-input" label={copy.lineEndY} value={lineEndY} step={1} onPreview={(value) => previewAttributeDebounced('y2', value)} onCommit={commitPreviewAttributes} /></div>}
+              {selected.tag === 'line' && <><div className="text-property-grid"><NumericField id="line-x1-input" label={copy.lineStartX} value={lineStartX} step={1} onPreview={(value) => previewAttributeDebounced('x1', value)} onCommit={commitPreviewAttributes} /><NumericField id="line-y1-input" label={copy.lineStartY} value={lineStartY} step={1} onPreview={(value) => previewAttributeDebounced('y1', value)} onCommit={commitPreviewAttributes} /><NumericField id="line-x2-input" label={copy.lineEndX} value={lineEndX} step={1} onPreview={(value) => previewAttributeDebounced('x2', value)} onCommit={commitPreviewAttributes} /><NumericField id="line-y2-input" label={copy.lineEndY} value={lineEndY} step={1} onPreview={(value) => previewAttributeDebounced('y2', value)} onCommit={commitPreviewAttributes} /></div><div className="field-row"><label htmlFor="line-start-cap-input">{copy.lineStartPoint}</label><LineCapSelect id="line-start-cap-input" label={copy.lineStartPoint} value={lineStartCap} copy={copy} onPreview={(style) => previewLineEndpointStyle('start', style)} onCancelPreview={cancelLineEndpointPreview} onCommit={(style) => updateLineEndpointStyle('start', style)} /></div><div className="field-row"><label htmlFor="line-end-cap-input">{copy.lineEndPoint}</label><LineCapSelect id="line-end-cap-input" label={copy.lineEndPoint} value={lineEndCap} copy={copy} onPreview={(style) => previewLineEndpointStyle('end', style)} onCancelPreview={cancelLineEndpointPreview} onCommit={(style) => updateLineEndpointStyle('end', style)} /></div></>}
               {selected.tag === 'polygon' && <PolygonSidesField label={copy.polygonSides} value={String(polygonSides)} onCommit={updatePolygonSides} />}
               <ColorField label={copy.fill} value={fill} onPreview={(value) => previewAttributeDebounced('fill', value)} onCommit={commitPreviewAttributes} />
               <ColorField label={copy.stroke} value={stroke} onPreview={(value) => previewAttributeDebounced('stroke', value)} onCommit={commitPreviewAttributes} />
               <div className="field-row"><label>{copy.opacity}</label><div className="range-wrap"><input type="range" min="0" max="1" step="0.01" value={opacity} style={{ '--range-progress': `${opacity * 100}%` }} onChange={(event) => previewAttributeDebounced('opacity', event.target.value)} onPointerUp={commitPreviewAttributes} onBlur={commitPreviewAttributes} /><span>{Math.round(opacity * 100)}%</span></div></div>
-              <div className="field-row"><label>{copy.strokeWidth}</label><div className="range-wrap"><input type="range" min="0" max="24" step="1" value={strokeWidth} style={{ '--range-progress': `${strokeWidth / 24 * 100}%` }} onChange={(event) => previewAttributeDebounced('stroke-width', event.target.value)} onPointerUp={commitPreviewAttributes} onBlur={commitPreviewAttributes} /><span>{strokeWidth}px</span></div></div>
+              {selected.tag === 'line' ? <div className="field-row"><label htmlFor="line-weight-input">{copy.lineWeight}</label><NumericControl id="line-weight-input" label={copy.lineWeight} value={String(strokeWidth)} min={0} step={1} suffix="px" onPreview={(value) => previewAttributeDebounced('stroke-width', value)} onCommit={commitPreviewAttributes} /></div> : <div className="field-row"><label>{copy.strokeWidth}</label><div className="range-wrap"><input type="range" min="0" max="24" step="1" value={strokeWidth} style={{ '--range-progress': `${strokeWidth / 24 * 100}%` }} onChange={(event) => previewAttributeDebounced('stroke-width', event.target.value)} onPointerUp={commitPreviewAttributes} onBlur={commitPreviewAttributes} /><span>{strokeWidth}px</span></div></div>}
               {selected.tag === 'rect' && <div className="field-row"><label>{copy.cornerRadius}</label><div className="range-wrap"><input type="range" min="0" max={cornerRadiusMax} step="1" value={cornerRadius} style={{ '--range-progress': `${cornerRadiusMax ? cornerRadius / cornerRadiusMax * 100 : 0}%` }} onChange={(event) => previewRectRadius(event.target.value)} onPointerUp={commitPreviewAttributes} onBlur={commitPreviewAttributes} /><span>{cornerRadius}px</span></div></div>}
             </div>
             <div className="inspector-section"><div className="section-label">{copy.elementDetails}</div><div className="detail-grid"><div><span>{copy.layer}</span><strong>{String(elements.indexOf(selected) + 1).padStart(2, '0')} / {String(elements.length).padStart(2, '0')}</strong></div><div><span>{copy.visibility}</span><strong>{isSelectedHidden ? copy.hidden : copy.visible}</strong></div></div></div>

@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Icon from './Icon.jsx'
 import { ADD_LAYER_TAGS, getLayerDisplayName, getTagDisplayName } from '../app/copy.js'
 import { isElementHidden } from '../editor/svg-parser.js'
 
 export default function LayerPanel(props) {
-  const { copy, language, isLayersOpen, setIsLayersOpen, addLayerMenuOpen, setAddLayerMenuOpen, openImagePicker, openSvgCollection, visibleLayerItems, selectedId, selectedIds, selectLayerIds, layerRowRefs, draggingLayerId, dragOverLayerId, suppressLayerClickRef, handleLayerMouseDown, openContextMenu, startRename, toggleGroup, expandedGroups, renamingLayerId, renameInputRef, renameDraft, setRenameDraft, commitRename, toggleVisibility, addLayer } = props
+  const { copy, language, isLayersOpen, setIsLayersOpen, addLayerMenuOpen, setAddLayerMenuOpen, openImagePicker, openSvgCollection, visibleLayerItems, selectedId, selectedIds, canvasHoveredLayerId, selectLayerIds, layerRowRefs, draggingLayerId, dragOverLayerId, suppressLayerClickRef, handleLayerMouseDown, openContextMenu, startRename, toggleGroup, expandedGroups, renamingLayerId, renameInputRef, renameDraft, setRenameDraft, commitRename, toggleVisibility, addLayer } = props
   const [commonShapesOpen, setCommonShapesOpen] = useState(false)
   useEffect(() => { if (!addLayerMenuOpen) setCommonShapesOpen(false) }, [addLayerMenuOpen])
   // hover「+」号自动弹出添加图层菜单；离开按钮/菜单后延迟关闭。「常用形状」子菜单列表向右溢出菜单容器，需同样接管 enter/leave
@@ -12,6 +12,23 @@ export default function LayerPanel(props) {
   const cancelAddLayerClose = () => { if (addLayerCloseTimerRef.current) { window.clearTimeout(addLayerCloseTimerRef.current); addLayerCloseTimerRef.current = null } }
   const scheduleAddLayerClose = () => { cancelAddLayerClose(); addLayerCloseTimerRef.current = window.setTimeout(() => setAddLayerMenuOpen(false), 160) }
   useEffect(() => () => cancelAddLayerClose(), [])
+  // 选中分组时，其可见子孙行以更浅的主色底提示「整个子树被选中」；栈按 depth 判定行间父子关系（visibleLayerItems 为文档序）
+  const inSelectedGroupIds = useMemo(() => {
+    const selected = new Set(selectedIds)
+    const ids = new Set()
+    const openSelectedDepths = []
+    visibleLayerItems.forEach(({ item }) => {
+      while (openSelectedDepths.length && openSelectedDepths[openSelectedDepths.length - 1] >= item.depth) openSelectedDepths.pop()
+      if (openSelectedDepths.length) ids.add(item.id)
+      if (item.tag === 'g' && selected.has(item.id)) openSelectedDepths.push(item.depth)
+    })
+    return ids
+  }, [visibleLayerItems, selectedIds])
+  // 相邻的高亮行（选中或选中分组的子孙）背景需连成一块：按可见顺序判定与前后行是否同为高亮
+  const isHighlightedAt = (position) => {
+    const entry = visibleLayerItems[position]
+    return !!entry && (selectedIds.includes(entry.item.id) || inSelectedGroupIds.has(entry.item.id))
+  }
   const selectLayerRange = (targetId) => {
     const anchorIndex = visibleLayerItems.findIndex(({ item }) => item.id === selectedId)
     const targetIndex = visibleLayerItems.findIndex(({ item }) => item.id === targetId)
@@ -28,15 +45,16 @@ export default function LayerPanel(props) {
           <div className="panel-header layers-header"><div className="panel-title"><Icon name="layers" /><span>{copy.layers}</span></div><button className="mini-button layers-toggle" type="button" title={isLayersOpen ? copy.collapseLayers : copy.expandLayers} aria-label={isLayersOpen ? copy.collapseLayers : copy.expandLayers} aria-expanded={isLayersOpen} onClick={() => setIsLayersOpen((current) => !current)}><Icon name="sidebar" size={14} /></button><button className="mini-button layers-add-button" type="button" title={copy.addLayer} aria-label={copy.addLayer} aria-expanded={addLayerMenuOpen} onClick={() => setAddLayerMenuOpen(true)} onMouseEnter={() => { cancelAddLayerClose(); setAddLayerMenuOpen(true) }} onMouseLeave={scheduleAddLayerClose}><Icon name="plus" size={14} /></button></div>
           {addLayerMenuOpen && <div className="add-layer-menu" role="menu" onMouseEnter={cancelAddLayerClose} onMouseLeave={scheduleAddLayerClose}><button type="button" role="menuitem" className="add-from-collection" onClick={openImagePicker}><Icon name="image" size={14} /><span>{copy.fromImage}</span></button><button type="button" role="menuitem" className="add-from-collection" onClick={openSvgCollection}><Icon name="layers" size={14} /><span>{copy.fromSvgCollection}</span></button><div className="add-layer-submenu" role="none"><button type="button" role="menuitem" aria-haspopup="menu" aria-expanded={commonShapesOpen} className={`add-layer-submenu-trigger ${commonShapesOpen ? 'is-open' : ''}`} onClick={() => setCommonShapesOpen((current) => !current)}><Icon name="grid" size={14} /><span>{copy.commonShapes}</span><span className="submenu-chevron"><Icon name="chevron" size={13} /></span></button><div className="add-layer-submenu-list" role="menu" data-open={commonShapesOpen ? '' : undefined} onMouseEnter={cancelAddLayerClose} onMouseLeave={scheduleAddLayerClose}>{ADD_LAYER_TAGS.map((tag) => <button key={tag} type="button" role="menuitem" onClick={() => addLayer(tag)}><span className={`layer-shape shape-${tag}`} /><span>{getTagDisplayName(tag, language)}</span></button>)}</div></div></div>}
           <div className="layer-list">
-            {visibleLayerItems.map(({ item, index }) => {
+            {visibleLayerItems.map(({ item, index }, position) => {
               const hidden = isElementHidden(item.node)
               const displayName = getLayerDisplayName(item, language)
               const isGroup = item.tag === 'g'
               const isExpanded = expandedGroups[item.id] !== false
-              return <div key={item.id} data-layer-id={item.id} ref={(node) => { if (node) layerRowRefs.current.set(item.id, node); else layerRowRefs.current.delete(item.id) }} className={`layer-row ${selectedIds.includes(item.id) ? 'selected' : ''} ${hidden ? 'hidden' : ''} ${draggingLayerId === item.id ? 'dragging' : ''} ${dragOverLayerId === item.id ? 'drag-over' : ''}`} style={{ paddingLeft: `${14 + item.depth * 15}px` }} role="button" tabIndex="0" onClick={(event) => { if (suppressLayerClickRef.current) { suppressLayerClickRef.current = false; return } if (event.shiftKey) selectLayerRange(item.id); else if (event.metaKey || event.ctrlKey) { const nextIds = selectedIds.includes(item.id) ? selectedIds.filter((id) => id !== item.id) : [...selectedIds, item.id]; selectLayerIds(nextIds, item.id) } else selectLayerIds([item.id], item.id) }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') selectLayerIds([item.id], item.id) }} onMouseDown={(event) => handleLayerMouseDown(event, item)} onContextMenu={(event) => openContextMenu(event, item.id)} onDoubleClick={() => startRename(item.id)}>
+              const highlighted = isHighlightedAt(position)
+              return <div key={item.id} data-layer-id={item.id} ref={(node) => { if (node) layerRowRefs.current.set(item.id, node); else layerRowRefs.current.delete(item.id) }} className={`layer-row ${selectedIds.includes(item.id) ? 'selected' : ''} ${!selectedIds.includes(item.id) && inSelectedGroupIds.has(item.id) ? 'in-selected-group' : ''} ${highlighted && isHighlightedAt(position - 1) ? 'merge-top' : ''} ${highlighted && isHighlightedAt(position + 1) ? 'merge-bottom' : ''} ${canvasHoveredLayerId === item.id ? 'canvas-hovered' : ''} ${hidden ? 'hidden' : ''} ${draggingLayerId === item.id ? 'dragging' : ''} ${dragOverLayerId === item.id ? 'drag-over' : ''}`} style={{ paddingLeft: `${14 + item.depth * 15}px` }} role="button" tabIndex="0" onClick={(event) => { if (suppressLayerClickRef.current) { suppressLayerClickRef.current = false; return } if (event.shiftKey) selectLayerRange(item.id); else if (event.metaKey || event.ctrlKey) { const nextIds = selectedIds.includes(item.id) ? selectedIds.filter((id) => id !== item.id) : [...selectedIds, item.id]; selectLayerIds(nextIds, item.id) } else selectLayerIds([item.id], item.id) }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') selectLayerIds([item.id], item.id) }} onMouseDown={(event) => handleLayerMouseDown(event, item)} onContextMenu={(event) => openContextMenu(event, item.id)} onDoubleClick={(event) => { if (event.target?.closest?.('button')) return; startRename(item.id) }}>
                 <span className="layer-chevron">{isGroup ? <button className={`layer-collapse-toggle ${isExpanded ? 'expanded' : 'collapsed'}`} type="button" title={isExpanded ? copy.collapseGroup : copy.expandGroup} aria-label={isExpanded ? copy.collapseGroup : copy.expandGroup} aria-expanded={isExpanded} onClick={(event) => toggleGroup(item, event)}><Icon name="chevron" size={13} /></button> : ''}</span>
                 <span className={`layer-shape shape-${item.tag}`} />
-                {renamingLayerId === item.id ? <input ref={renameInputRef} className="rename-input" value={renameDraft} placeholder={copy.renamePlaceholder} onChange={(event) => setRenameDraft(event.target.value)} onBlur={commitRename} onKeyDown={(event) => { event.stopPropagation(); if (event.key === 'Enter') { event.preventDefault(); commitRename() } if (event.key === 'Escape') { event.preventDefault(); setRenamingLayerId('') } }} onClick={(event) => event.stopPropagation()} onMouseDown={(event) => event.stopPropagation()} /> : <span className="layer-name">{displayName}</span>}
+                {renamingLayerId === item.id ? <input ref={renameInputRef} className="rename-input" value={renameDraft} placeholder={copy.renamePlaceholder} onChange={(event) => setRenameDraft(event.target.value)} onBlur={commitRename} onKeyDown={(event) => { event.stopPropagation(); if (event.key === 'Enter') { event.preventDefault(); commitRename() } if (event.key === 'Escape') { event.preventDefault(); setRenamingLayerId('') } }} onClick={(event) => event.stopPropagation()} onMouseDown={(event) => event.stopPropagation()} onDoubleClick={(event) => event.stopPropagation()} /> : <span className="layer-name">{displayName}</span>}
                 <span className="layer-index">{String(index + 1).padStart(2, '0')}</span>
                 <button className={`layer-visibility ${hidden ? 'is-hidden' : ''}`} type="button" title={`${hidden ? copy.show : copy.hide} ${displayName}`} aria-label={`${hidden ? copy.show : copy.hide} ${displayName}`} aria-pressed={!hidden} onClick={(event) => toggleVisibility(item, event)}><Icon name="eye" size={14} /></button>
               </div>

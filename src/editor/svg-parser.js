@@ -42,6 +42,8 @@ export function parseSvg(markup) {
   }
   const walk = (node, depth = 0) => {
     Array.from(node.children).forEach((child, index) => {
+      // defs/marker 内的图形（如线段端点装饰）是资源定义，不是图层
+      if (child.tagName === 'defs' || child.tagName === 'marker') return
       if (!EDITABLE_TAGS.has(child.tagName)) return walk(child, depth)
       const existingId = child.getAttribute('data-editor-id')
       const editorId = existingId || nextEditorId()

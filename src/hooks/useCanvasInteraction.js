@@ -1,3 +1,4 @@
+import { getLayerDistanceGuides } from '../editor/layer-distances.js'
 import { getMarqueeIds } from '../editor/marquee.js'
 import { useEffect, useRef, useState } from 'react'
 import { clampScale, getElementPointerDelta, getNodeRect, getSvgPoint, getTopLevelSelectedIds, pointerCenter, pointerDistance, shouldCommitGesture } from '../editor/svg-geometry.js'
@@ -76,6 +77,21 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
   const [lineEndpoints, setLineEndpoints] = useState(null)
   const [canvasLayoutVersion, setCanvasLayoutVersion] = useState(0)
   const [hoveredLayerId, setHoveredLayerId] = useState('')
+  const [hoverBox, setHoverBox] = useState(null)
+  const [isMeasuring, setIsMeasuring] = useState(false)
+  const [distanceGuides, setDistanceGuides] = useState([])
+  useEffect(() => {
+    const onKey = (event) => setIsMeasuring(event.altKey)
+    const clear = () => setIsMeasuring(false)
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('keyup', onKey)
+    window.addEventListener('blur', clear)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('keyup', onKey)
+      window.removeEventListener('blur', clear)
+    }
+  }, [])
   const [transientMarkup, setTransientMarkup] = useState('')
   const canvasRef = useRef(null)
   const svgRef = useRef(null)
@@ -168,6 +184,49 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     return () => cancelAnimationFrame(frame)
   }, [activeTab, selectedId, selectedIds, svgMarkup, transientMarkup, svgPosition.x, svgPosition.y, svgScale, canvasLayoutVersion])
 
+  useEffect(() => {
+    if (activeTab !== 'preview' || canvasTool !== 'select' || !hoveredLayerId || selectedIds.includes(hoveredLayerId) || isDraggingSvg || isDraggingElement || isResizingElement || isPinchingSvg || marqueeBox) {
+      setHoverBox(null)
+      return undefined
+    }
+    const frame = requestAnimationFrame(() => {
+      const stage = canvasRef.current
+      const node = svgRef.current?.querySelector(`[data-editor-id="${hoveredLayerId}"]`)
+      const rect = node ? getNodeRect(node) : null
+      if (!stage || !rect) {
+        setHoverBox(null)
+        return
+      }
+      const stageRect = stage.getBoundingClientRect()
+      setHoverBox({ id: hoveredLayerId, left: rect.left - stageRect.left, top: rect.top - stageRect.top, width: Math.max(1, rect.width), height: Math.max(1, rect.height) })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [activeTab, canvasTool, hoveredLayerId, selectedIds, svgMarkup, svgPosition.x, svgPosition.y, svgScale, canvasLayoutVersion, isDraggingSvg, isDraggingElement, isResizingElement, isPinchingSvg, marqueeBox])
+
+  useEffect(() => {
+    if (!isMeasuring || !hoverBox || activeTab !== 'preview' || canvasTool !== 'select' || isDraggingSvg || isDraggingElement || isResizingElement || isPinchingSvg || marqueeBox) {
+      setDistanceGuides([])
+      return
+    }
+    const stage = canvasRef.current?.getBoundingClientRect()
+    const wrap = svgRef.current
+    const bounds = selectedIds.map((id) => getNodeRect(wrap?.querySelector(`[data-editor-id="${id}"]`))).filter(Boolean)
+    const target = getNodeRect(wrap?.querySelector(`[data-editor-id="${hoverBox.id}"]`))
+    if (!stage || !bounds.length || !target || selectedIds.includes(hoverBox.id)) {
+      setDistanceGuides([])
+      return
+    }
+    const selection = {
+      left: Math.min(...bounds.map((box) => box.left)), right: Math.max(...bounds.map((box) => box.right)),
+      top: Math.min(...bounds.map((box) => box.top)), bottom: Math.max(...bounds.map((box) => box.bottom)),
+    }
+    setDistanceGuides(getLayerDistanceGuides(selection, target).map(({ x1, y1, x2, y2 }) => {
+      const from = getSvgPoint(wrap, x1, y1)
+      const to = getSvgPoint(wrap, x2, y2)
+      return { x1: x1 - stage.left, y1: y1 - stage.top, x2: x2 - stage.left, y2: y2 - stage.top, distance: Math.hypot(to.x - from.x, to.y - from.y) }
+    }))
+  }, [isMeasuring, hoverBox, selectedIds, activeTab, canvasTool, svgMarkup, svgScale, svgPosition.x, svgPosition.y, canvasLayoutVersion, isDraggingSvg, isDraggingElement, isResizingElement, isPinchingSvg, marqueeBox])
+
   const zoomBy = (factor) => setSvgScale((current) => clampScale(current * factor))
 
   const fitToScreen = () => {
@@ -256,7 +315,18 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     const item = elementTarget ? elements.find((element) => element.id === elementTarget.getAttribute('data-editor-id')) : null
     if (item?.tag !== 'text') event.preventDefault()
     event.stopPropagation()
-    const targetId = canvasTool === 'pan' ? '' : selectElementAtPoint(event.clientX, event.clientY, event.target, event.metaKey || event.ctrlKey || event.shiftKey)
+    const additive = event.metaKey || event.ctrlKey || event.shiftKey
+    const stageRect = canvasRef.current?.getBoundingClientRect()
+    const boxes = [selectionBox, ...multiSelectionBoxes].filter(Boolean)
+    const x = event.clientX - (stageRect?.left || 0)
+    const y = event.clientY - (stageRect?.top || 0)
+    // Groups and multi-selections own their whole bounding box, including gaps above background layers.
+    const hasSelectionArea = selectedIds.length > 1 ? boxes.length > 1 : selected?.tag === 'g' && boxes.length === 1
+    const dragSelection = canvasTool === 'select' && !additive && hasSelectionArea &&
+      x >= Math.min(...boxes.map((box) => box.left)) && x <= Math.max(...boxes.map((box) => box.left + box.width)) &&
+      y >= Math.min(...boxes.map((box) => box.top)) && y <= Math.max(...boxes.map((box) => box.top + box.height))
+    if (dragSelection) suppressCanvasClickRef.current = true
+    const targetId = canvasTool === 'pan' ? '' : dragSelection ? selectedId : selectElementAtPoint(event.clientX, event.clientY, event.target, additive)
     activePointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
     event.currentTarget.setPointerCapture(event.pointerId)
 
@@ -280,7 +350,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
       setIsDraggingSvg(true)
       return
     }
-    if (!elementTarget && event.pointerType !== 'touch') {
+    if (!elementTarget && !dragSelection && event.pointerType !== 'touch') {
       marqueeRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, baseIds: event.shiftKey ? selectedIds : [], ids: [], moved: false }
       return
     }
@@ -288,7 +358,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
       suppressCanvasClickRef.current = true
       return
     }
-    if (elementTarget) {
+    if (elementTarget || dragSelection) {
       const selectionIds = targetId && selectedIds.includes(targetId) && !event.metaKey && !event.ctrlKey ? selectedIds : [targetId]
       elementDragRef.current = {
         pointerId: event.pointerId,
@@ -384,7 +454,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     const elementDrag = elementDragRef.current
     if (elementDrag && elementDrag.pointerId === event.pointerId) {
       if (elementDrag.moved) suppressCanvasClickRef.current = true
-      const textItem = !cancelled && !elementDrag.moved ? elements.find((item) => item.id === elementDrag.selectionIds[0] && item.tag === 'text') : null
+      const textItem = !cancelled && !elementDrag.moved && elementDrag.selectionIds.length === 1 ? elements.find((item) => item.id === elementDrag.selectionIds[0] && item.tag === 'text') : null
       if (textItem) {
         const now = performance.now()
         const isSecondTap = lastTextTapRef.current.id === textItem.id && now - lastTextTapRef.current.time < 500
@@ -456,20 +526,22 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
       updateTransientMarkup(transaction.markup)
       return
     }
+    const isLeftHandle = resize.handle.endsWith('left')
+    const isTopHandle = resize.handle.startsWith('top')
     if (resize.kind === 'background') {
       const pointer = getSvgPoint(svgRef.current, event.clientX, event.clientY)
       const { topLeft, bottomRight, minWidth, minHeight } = resize.background
       const baseWidth = bottomRight.x - topLeft.x
       const baseHeight = bottomRight.y - topLeft.y
-      let width = resize.handle === 'top-left' ? bottomRight.x - Math.min(pointer.x, bottomRight.x - minWidth) : Math.max(pointer.x, topLeft.x + minWidth) - topLeft.x
-      let height = resize.handle === 'top-left' ? bottomRight.y - Math.min(pointer.y, bottomRight.y - minHeight) : Math.max(pointer.y, topLeft.y + minHeight) - topLeft.y
+      let width = isLeftHandle ? bottomRight.x - Math.min(pointer.x, bottomRight.x - minWidth) : Math.max(pointer.x, topLeft.x + minWidth) - topLeft.x
+      let height = isTopHandle ? bottomRight.y - Math.min(pointer.y, bottomRight.y - minHeight) : Math.max(pointer.y, topLeft.y + minHeight) - topLeft.y
       if (event.shiftKey && baseWidth && baseHeight) {
         const scale = getProportionalScale(width / baseWidth, height / baseHeight)
         width = Math.max(minWidth, baseWidth * scale)
         height = Math.max(minHeight, baseHeight * scale)
       }
-      const minX = resize.handle === 'top-left' ? bottomRight.x - width : topLeft.x
-      const minY = resize.handle === 'top-left' ? bottomRight.y - height : topLeft.y
+      const minX = isLeftHandle ? bottomRight.x - width : topLeft.x
+      const minY = isTopHandle ? bottomRight.y - height : topLeft.y
       const maxX = minX + width
       const maxY = minY + height
       const nextMarkup = resizeBackgroundLayer(resize.baseMarkup, resize.targetId, { minX, minY, width: maxX - minX, height: maxY - minY })
@@ -480,9 +552,9 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     }
     const { baseBox } = resize
     const minSize = 8
-    const anchor = resize.handle === 'top-left' ? { x: baseBox.right, y: baseBox.bottom } : { x: baseBox.left, y: baseBox.top }
-    const width = resize.handle === 'top-left' ? anchor.x - Math.min(event.clientX, anchor.x - minSize) : Math.max(event.clientX, anchor.x + minSize) - anchor.x
-    const height = resize.handle === 'top-left' ? anchor.y - Math.min(event.clientY, anchor.y - minSize) : Math.max(event.clientY, anchor.y + minSize) - anchor.y
+    const anchor = { x: isLeftHandle ? baseBox.right : baseBox.left, y: isTopHandle ? baseBox.bottom : baseBox.top }
+    const width = isLeftHandle ? anchor.x - Math.min(event.clientX, anchor.x - minSize) : Math.max(event.clientX, anchor.x + minSize) - anchor.x
+    const height = isTopHandle ? anchor.y - Math.min(event.clientY, anchor.y - minSize) : Math.max(event.clientY, anchor.y + minSize) - anchor.y
     let scaleX = width / baseBox.width
     let scaleY = height / baseBox.height
     if (event.shiftKey) {
@@ -493,8 +565,8 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     if (resize.kind === 'rect' && resize.rect.width && resize.rect.height) {
       const nextWidth = resize.rect.width * scaleX
       const nextHeight = resize.rect.height * scaleY
-      const nextX = resize.handle === 'top-left' ? resize.rect.x + resize.rect.width - nextWidth : resize.rect.x
-      const nextY = resize.handle === 'top-left' ? resize.rect.y + resize.rect.height - nextHeight : resize.rect.y
+      const nextX = isLeftHandle ? resize.rect.x + resize.rect.width - nextWidth : resize.rect.x
+      const nextY = isTopHandle ? resize.rect.y + resize.rect.height - nextHeight : resize.rect.y
       const transaction = editSvgDocument(resize.baseMarkup, { type: 'set-attributes', targetId: resize.targetId, updates: {
         x: nextX.toFixed(2), y: nextY.toFixed(2), width: nextWidth.toFixed(2), height: nextHeight.toFixed(2),
       } })
@@ -551,7 +623,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     canvasTool, setCanvasTool, marqueeBox,
     canvasRef, svgRef, svgPosition, setSvgPosition, svgScale, setSvgScale,
     isDraggingSvg, isDraggingElement, isResizingElement, isPinchingSvg,
-    selectionBox, setSelectionBox, multiSelectionBoxes, lineEndpoints, hoveredLayerId, setHoveredLayerId,
+    selectionBox, setSelectionBox, multiSelectionBoxes, lineEndpoints, hoverBox, distanceGuides, hoveredLayerId, setHoveredLayerId,
     transientMarkup, updateTransientMarkup, clearTransientMarkup, zoomBy, fitToScreen, getElementSvgBounds,
     handleCanvasClick, handleSvgDoubleClick, handleCanvasPointerDown, handleCanvasPointerMove, handleCanvasPointerUp,
     handleResizePointerDown, handleResizePointerMove, handleResizePointerUp, suppressCanvasClickRef,

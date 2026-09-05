@@ -173,6 +173,77 @@ export function updateElementAttributes(rawMarkup, targetId, updates) {
   return new XMLSerializer().serializeToString(doc.documentElement)
 }
 
+// Figma 式线段端点样式。全部用 marker 承载（marker-start/marker-end 可两端独立），
+// 内容用 context-stroke 引用所在线段的描边色；markerUnits="strokeWidth" 使装饰随线宽缩放。
+// 坐标系：x 正向 = 线段行进方向（auto-start-reverse 已为起点翻转），(refX, refY) 锚定在端点上。
+// 尺寸约定（1 单位 = 1 倍线宽）：端帽与 stroke-linecap 几何一致（半径/外伸 0.5）；
+// 装饰高度统一约 3.4。线箭头两臂末端圆头；三角箭头底边贴线端、尖角朝外；
+// 反转三角为实心，尖端截面与线身等宽。所有装饰的几何向后延伸约 0.5 单位、
+// 嵌入线身内部（同色重叠不可见），避免与线端精确相切在抗锯齿下产生接缝；
+// marker 视口各边同样预留描边余量，防止拐角被视口裁切。
+const LINE_ENDPOINT_MARKER_DEFS = {
+  round: '<marker id="vecsy-cap-round" markerUnits="strokeWidth" markerWidth="2" markerHeight="3" refX="0.5" refY="1.5" orient="auto-start-reverse"><path d="M0 1 L0.5 1 A0.5 0.5 0 0 1 0.5 2 L0 2 Z" fill="context-stroke"/></marker>',
+  square: '<marker id="vecsy-cap-square" markerUnits="strokeWidth" markerWidth="1.5" markerHeight="3" refX="0.5" refY="1.5" orient="auto-start-reverse"><rect x="0" y="1" width="1" height="1" fill="context-stroke"/></marker>',
+  'line-arrow': '<marker id="vecsy-cap-line-arrow" markerUnits="strokeWidth" markerWidth="4.6" markerHeight="4.6" refX="3.5" refY="2.3" orient="auto-start-reverse"><path d="M0.5 0.6 L3.5 2.3 L0.5 4" fill="none" stroke="context-stroke" stroke-width="1" stroke-linecap="round"/></marker>',
+  'triangle-arrow': '<marker id="vecsy-cap-triangle-arrow" markerUnits="strokeWidth" markerWidth="4.2" markerHeight="4.4" refX="0.5" refY="2.2" orient="auto-start-reverse"><path d="M0 0.5 L3.5 2.2 L0 3.9 Z" fill="context-stroke"/></marker>',
+  'reversed-triangle': '<marker id="vecsy-cap-reversed-triangle" markerUnits="strokeWidth" markerWidth="4.2" markerHeight="4.4" refX="0.5" refY="2.2" orient="auto-start-reverse"><path d="M0 1.7 L0.5 1.7 L3.5 0.5 L3.5 3.9 L0.5 2.7 L0 2.7 Z" fill="context-stroke"/></marker>',
+  'circle-arrow': '<marker id="vecsy-cap-circle-arrow" markerUnits="strokeWidth" markerWidth="3.7" markerHeight="4.4" refX="0.75" refY="2.2" orient="auto-start-reverse"><circle cx="1.55" cy="2.2" r="1" fill="none" stroke="context-stroke" stroke-width="1"/></marker>',
+  'diamond-arrow': '<marker id="vecsy-cap-diamond-arrow" markerUnits="strokeWidth" markerWidth="4.6" markerHeight="4.6" refX="1" refY="2.3" orient="auto-start-reverse"><path d="M0.5 2.3 L2.2 0.6 L3.9 2.3 L2.2 4 Z" fill="none" stroke="context-stroke" stroke-width="1" stroke-linejoin="round"/></marker>',
+}
+const LINE_ENDPOINT_MARKER_ID = /^url\(#vecsy-cap-([a-z-]+)\)$/
+const SVG_NS = 'http://www.w3.org/2000/svg'
+
+export const LINE_ENDPOINT_STYLES = ['none', 'round', 'square', 'line-arrow', 'triangle-arrow', 'reversed-triangle', 'circle-arrow', 'diamond-arrow']
+
+export function getLineEndpointStyle(rawMarkup, targetId, end) {
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const match = LINE_ENDPOINT_MARKER_ID.exec(doc.querySelector(`[data-editor-id="${targetId}"]`)?.getAttribute(`marker-${end}`) || '')
+  return match && LINE_ENDPOINT_STYLES.includes(match[1]) ? match[1] : 'none'
+}
+
+export function updateLineEndpointStyle(rawMarkup, targetId, end, style) {
+  if (!LINE_ENDPOINT_STYLES.includes(style) || (end !== 'start' && end !== 'end')) return rawMarkup
+  const attribute = `marker-${end}`
+  const doc = new DOMParser().parseFromString(rawMarkup, 'image/svg+xml')
+  const root = doc.documentElement
+  const node = root.querySelector(`[data-editor-id="${targetId}"]`)
+  if (!node) return rawMarkup
+  // 端点样式由 marker 系统全权接管：清除遗留的 stroke-linecap（如旧模板的 round），
+  // 否则「无」会渲染成圆头、端帽类样式会与原生 cap 叠加
+  node.removeAttribute('stroke-linecap')
+  if (style === 'none') node.removeAttribute(attribute)
+  else {
+    const markerId = `vecsy-cap-${style}`
+    let defs = root.querySelector('defs')
+    if (!defs) {
+      defs = doc.createElementNS(SVG_NS, 'defs')
+      root.insertBefore(defs, root.firstChild)
+    }
+    const existingMarker = defs.querySelector(`#${markerId}`)
+    if (!existingMarker || style === 'reversed-triangle') {
+      const parsed = new DOMParser().parseFromString(`<svg xmlns="${SVG_NS}">${LINE_ENDPOINT_MARKER_DEFS[style]}</svg>`, 'image/svg+xml')
+      const marker = doc.importNode(parsed.documentElement.firstElementChild, true)
+      if (existingMarker) existingMarker.replaceWith(marker)
+      else defs.appendChild(marker)
+    }
+    node.setAttribute(attribute, `url(#${markerId})`)
+  }
+  pruneLineEndpointMarkers(root)
+  return new XMLSerializer().serializeToString(root)
+}
+
+// 移除文档中不再被任何线段引用的端点装饰定义；defs 因此变空则连同删除
+function pruneLineEndpointMarkers(root) {
+  const referenced = new Set(Array.from(root.querySelectorAll('[marker-start], [marker-end]')).flatMap((node) => ['marker-start', 'marker-end'].map((name) => LINE_ENDPOINT_MARKER_ID.exec(node.getAttribute(name) || '')?.[1]).filter(Boolean)))
+  Array.from(root.querySelectorAll('defs')).forEach((defs) => {
+    Array.from(defs.children).forEach((child) => {
+      const match = /^vecsy-cap-([a-z-]+)$/.exec(child.id || '')
+      if (match && !referenced.has(match[1])) child.remove()
+    })
+    if (!defs.children.length) defs.remove()
+  })
+}
+
 // 把 3/4/6 位 hex 标准化为 6 位 #RRGGBB（4 位的 alpha 丢弃——fill 编辑不支持 alpha，半透明由 fill-opacity 单独承载）。非 hex（命名色、rgb() 等）返回 ''。
 export function normalizeHexColor(value) {
   if (typeof value !== 'string') return ''
@@ -442,28 +513,32 @@ export function createLayerMarkup(rawMarkup, tag, textContent = 'New text') {
   const centerX = bounds.x + bounds.width / 2
   const centerY = bounds.y + bounds.height / 2
   const newId = `node-new-${Date.now()}`
-  const node = doc.createElementNS('http://www.w3.org/2000/svg', tag === 'heart' || tag === 'star' ? 'path' : tag)
+  const elementName = { heart: 'path', star: 'path', arrow: 'line' }[tag] || tag
+  const node = doc.createElementNS('http://www.w3.org/2000/svg', elementName)
+  const lineAttributes = { x1: centerX - 140, y1: centerY, x2: centerX + 140, y2: centerY, stroke: '#F2A93B', 'stroke-width': 12 }
   const attributes = {
     rect: { x: centerX - 100, y: centerY - 60, width: 200, height: 120, rx: 16, fill: '#F2A93B' },
     circle: { cx: centerX, cy: centerY, r: 72, fill: '#E8603F' },
     ellipse: { cx: centerX, cy: centerY, rx: 110, ry: 72, fill: '#8FA3C8' },
-    line: { x1: centerX - 140, y1: centerY, x2: centerX + 140, y2: centerY, stroke: '#F2A93B', 'stroke-width': 12, 'stroke-linecap': 'round' },
-    polyline: { points: `${centerX - 150},${centerY + 70} ${centerX - 50},${centerY - 80} ${centerX + 45},${centerY + 45} ${centerX + 150},${centerY - 65}`, fill: 'none', stroke: '#E8603F', 'stroke-width': 12, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' },
+    line: lineAttributes,
+    arrow: lineAttributes,
     polygon: { points: createRegularPolygonPoints(centerX, centerY, 110, 3), fill: '#8FA3C8' },
     heart: { d: `M ${centerX} ${centerY + 104} C ${centerX - 146} ${centerY + 16}, ${centerX - 94} ${centerY - 112}, ${centerX} ${centerY - 36} C ${centerX + 94} ${centerY - 112}, ${centerX + 146} ${centerY + 16}, ${centerX} ${centerY + 104} Z`, fill: '#E8603F' },
     star: { d: createStarPath(centerX, centerY, 112, 48), fill: '#F2A93B' },
-    path: { d: `M ${centerX - 125} ${centerY + 70} C ${centerX - 80} ${centerY - 115}, ${centerX + 80} ${centerY - 115}, ${centerX + 125} ${centerY + 70}`, fill: 'none', stroke: '#E8603F', 'stroke-width': 16, 'stroke-linecap': 'round' },
     text: { x: centerX, y: centerY, 'text-anchor': 'middle', 'font-family': 'Archivo, Arial, sans-serif', 'font-size': 48, 'font-weight': 700, fill: '#23211D' },
   }[tag] || { fill: '#F2A93B' }
   Object.entries(attributes).forEach(([attribute, value]) => node.setAttribute(attribute, String(value)))
   node.setAttribute('data-editor-id', newId)
   if (tag === 'heart') node.setAttribute('data-name', 'Heart')
   if (tag === 'star') node.setAttribute('data-name', 'Star')
+  if (tag === 'arrow') node.setAttribute('data-name', 'Arrow')
   if (tag === 'text') node.textContent = textContent
   root.appendChild(doc.createTextNode('\n  '))
   root.appendChild(node)
   root.appendChild(doc.createTextNode('\n'))
-  return { markup: new XMLSerializer().serializeToString(root), id: newId }
+  // 箭头 = 直线 + 结束点箭头装饰，复用线段端点 marker 系统，保持与检查器端点配置一致
+  const markup = tag === 'arrow' ? updateLineEndpointStyle(new XMLSerializer().serializeToString(root), newId, 'end', 'triangle-arrow') : new XMLSerializer().serializeToString(root)
+  return { markup, id: newId }
 }
 
 export function createCollectionSvgLayerMarkup(rawMarkup, { name, svgMarkup, preserveAppearance = false }) {

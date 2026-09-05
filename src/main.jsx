@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
+import SAMPLE_SVG from './app/sample.svg?raw'
 import { COPY, LANGUAGES, ADD_LAYER_TAGS, getLayerDisplayName, getTagDisplayName } from './app/copy.js'
 import { registerRuntimeIdentity } from './app/runtime-identity.js'
 import Icon from './components/Icon.jsx'
@@ -15,18 +16,9 @@ import { getAncestorGroupIds, getColor, getSvgColorTokens, getVisibleLayerItems,
 import { getSvgDimensions, getTopLevelSelectedIds } from './editor/svg-geometry.js'
 import { processSvgInput } from './editor/process-svg-input.js'
 import { editSvgDocument } from './editor/edit-svg-document.js'
-import { compactSvgTranslateTransforms, copyLayerMarkup, createCollectionSvgLayerMarkup, createImageLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, getElementPaint, getPolygonSides, getTextGradientConfig, highlightSvgSource, insertClonedLayer, minifySvg, reorderSiblingElements, replaceSvgColorToken, sanitizeForExport, syncTextLineLayout, updatePolygonSides as updatePolygonSidesMarkup, updateTextGradient, withExplicitSize } from './editor/svg-transforms.js'
+import { compactSvgTranslateTransforms, copyLayerMarkup, createCollectionSvgLayerMarkup, createImageLayerMarkup, createLayerMarkup, cropSvgToBounds, filterSvgToLayerIds, formatSvgMarkup, getEditableTextContent, getElementPaint, getLineEndpointStyle, getPolygonSides, getTextGradientConfig, highlightSvgSource, insertClonedLayer, minifySvg, reorderSiblingElements, replaceSvgColorToken, sanitizeForExport, syncTextLineLayout, updatePolygonSides as updatePolygonSidesMarkup, updateTextGradient, withExplicitSize } from './editor/svg-transforms.js'
 
-const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480">
-  <g id="background" data-name="Background">
-    <rect width="720" height="480" rx="24" fill="#F4F1EA" />
-  </g>
-  <g id="logo-mark" data-name="Logo mark">
-    <circle cx="360" cy="194" r="92" fill="#F2A93B" />
-    <path d="M300 222c30-104 180-108 182-5 1 55-44 87-101 87-54 0-88-29-81-82Z" fill="#23211D" />
-  </g>
-  <text id="wordmark" data-name="Wordmark" x="360" y="370" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="54" letter-spacing="5" fill="#1A1815">VECSY</text>
-</svg>`
+
 
 const STORAGE_KEY = 'vecsy:document'
 const LEGACY_STORAGE_KEY = 'vectsy:document'
@@ -104,6 +96,8 @@ function App() {
   const attributeCommitTimerRef = useRef(0)
   const textGradientPreviewFrameRef = useRef(0)
   const pendingTextGradientRef = useRef(null)
+  const lineEndpointPreviewFrameRef = useRef(0)
+  const pendingLineEndpointRef = useRef(null)
   const textGradientCommitTimerRef = useRef(0)
   const colorTokenPreviewFrameRef = useRef(0)
   const pendingColorTokenRef = useRef(null)
@@ -152,6 +146,7 @@ function App() {
         ['⌫', copy.shortcutDelete],
         ['⌘ \\', copy.shortcutPanels],
         ['?', copy.shortcutHelp],
+        ['Esc', copy.shortcutDeselect],
       ],
     },
     {
@@ -167,7 +162,6 @@ function App() {
         [copy.shortcutKeyScroll, copy.shortcutZoom],
         [copy.shortcutKeyDoubleClick, copy.shortcutEditText],
         ['Shift + Drag', copy.shortcutResizeProportional],
-        ['Esc', copy.shortcutDeselect],
       ],
     },
     {
@@ -188,7 +182,7 @@ function App() {
   const selectedDisplayName = selected ? getLayerDisplayName(selected, language) : ''
   const contextMenuTarget = contextMenu ? elements.find((element) => element.id === contextMenu.targetId) : null
   const canvasInteraction = useCanvasInteraction({ activeTab, selectedId, selectedIds, selected, elements, svgMarkup, currentSnapshot, commitDocument, selectLayerIds })
-  const { canvasRef, svgRef, svgPosition, setSvgPosition, svgScale, setSvgScale, isDraggingSvg, isDraggingElement, isResizingElement, isPinchingSvg, selectionBox, multiSelectionBoxes, lineEndpoints, hoveredLayerId, setHoveredLayerId, transientMarkup, updateTransientMarkup, clearTransientMarkup, zoomBy, fitToScreen, getElementSvgBounds, handleCanvasClick, handleCanvasPointerDown: handleCanvasPointerDownBase, handleCanvasPointerMove, handleCanvasPointerUp: handleCanvasPointerUpBase, handleResizePointerMove, handleResizePointerUp } = canvasInteraction
+  const { canvasRef, svgRef, svgPosition, setSvgPosition, svgScale, setSvgScale, isDraggingSvg, isDraggingElement, isResizingElement, isPinchingSvg, selectionBox, multiSelectionBoxes, lineEndpoints, hoverBox, distanceGuides, hoveredLayerId, setHoveredLayerId, transientMarkup, updateTransientMarkup, clearTransientMarkup, zoomBy, fitToScreen, getElementSvgBounds, handleCanvasClick, handleCanvasPointerDown: handleCanvasPointerDownBase, handleCanvasPointerMove, handleCanvasPointerUp: handleCanvasPointerUpBase, handleResizePointerMove, handleResizePointerUp } = canvasInteraction
   const setTextEditing = (id) => {
     textEditIdRef.current = id
     setEditingTextId(id)
@@ -199,10 +193,6 @@ function App() {
     handleCanvasPointerDownBase(event, setTextDraft, setTextEditing)
   }
   const handleCanvasPointerUp = (event, cancelled = false) => handleCanvasPointerUpBase(event, cancelled, setTextDraft, setTextEditing)
-  const startTextEditFromInspector = (id, draft) => {
-    setTextDraft(draft)
-    setTextEditing(id)
-  }
   const handleResizePointerDown = (event, handle) => canvasInteraction.handleResizePointerDown(event, handle)
   const renderedMarkup = transientMarkup || svgMarkup
   const getSelectedPaint = (attribute) => {
@@ -499,6 +489,32 @@ function App() {
     if (!selected || selected.tag !== 'polygon') return
     const nextMarkup = updatePolygonSidesMarkup(svgMarkup, selected.id, value)
     if (nextMarkup !== svgMarkup) commitDocument(nextMarkup, { nextSelectedId: selected.id })
+  }
+
+  const cancelLineEndpointPreview = () => {
+    if (lineEndpointPreviewFrameRef.current) cancelAnimationFrame(lineEndpointPreviewFrameRef.current)
+    lineEndpointPreviewFrameRef.current = 0
+    pendingLineEndpointRef.current = null
+    clearTransientMarkup()
+  }
+
+  // 下拉选项 hover 预览：仅写入 transient markup，不进历史；关闭菜单/提交选择时取消
+  const previewLineEndpointStyle = (end, style) => {
+    if (selected?.tag !== 'line') return
+    pendingLineEndpointRef.current = { targetId: selected.id, end, style }
+    if (lineEndpointPreviewFrameRef.current) return
+    lineEndpointPreviewFrameRef.current = requestAnimationFrame(() => {
+      lineEndpointPreviewFrameRef.current = 0
+      const pending = pendingLineEndpointRef.current
+      if (pending) updateTransientMarkup(editSvgDocument(svgMarkup, { type: 'set-line-endpoint-style', targetId: pending.targetId, end: pending.end, style: pending.style }).markup)
+    })
+  }
+
+  const updateLineEndpointStyle = (end, style) => {
+    if (!selected || selected.tag !== 'line') return
+    cancelLineEndpointPreview()
+    const { markup: nextMarkup, changed } = editSvgDocument(svgMarkup, { type: 'set-line-endpoint-style', targetId: selected.id, end, style })
+    if (changed) commitDocument(nextMarkup, { nextSelectedId: selected.id })
   }
 
   const commitTextEdit = (nextText = textDraft) => {
@@ -1175,6 +1191,8 @@ function App() {
   const lineStartY = getDraftedAttribute('y1', selectedAttrs?.getAttribute('y1') || '0')
   const lineEndX = getDraftedAttribute('x2', selectedAttrs?.getAttribute('x2') || '0')
   const lineEndY = getDraftedAttribute('y2', selectedAttrs?.getAttribute('y2') || '0')
+  const lineStartCap = selected ? getLineEndpointStyle(svgMarkup, selected.id, 'start') : 'none'
+  const lineEndCap = selected ? getLineEndpointStyle(svgMarkup, selected.id, 'end') : 'none'
   const rectWidth = Number(rectWidthValue) || 200
   const rectHeight = Number(rectHeightValue) || 200
   const cornerRadiusMax = Math.max(1, Math.floor(Math.min(rectWidth, rectHeight) / 2))
@@ -1222,6 +1240,7 @@ function App() {
           visibleLayerItems={visibleLayerItems}
           selectedId={selectedId}
           selectedIds={selectedIds}
+          canvasHoveredLayerId={activeTab === 'preview' && canvasInteraction.canvasTool === 'select' ? hoveredLayerId : ''}
           selectLayerIds={selectLayerIds}
           layerRowRefs={layerRowRefs}
           draggingLayerId={draggingLayerId}
@@ -1268,6 +1287,8 @@ function App() {
           handleCanvasPointerDown={handleCanvasPointerDown}
           handleCanvasPointerMove={handleCanvasPointerMove}
           handleCanvasPointerUp={handleCanvasPointerUp}
+          distanceGuides={distanceGuides}
+          hoverBox={hoverBox}
           hoveredLayerId={hoveredLayerId}
           setHoveredLayerId={setHoveredLayerId}
           elements={elements}
@@ -1317,7 +1338,6 @@ function App() {
           textFieldDraft={textFieldDraft}
           setTextFieldDraft={setTextFieldDraft}
           commitTextField={commitTextField}
-          startTextEdit={startTextEditFromInspector}
           textFontSize={textFontSize}
           textLetterSpacing={textLetterSpacing}
           textFontFamily={textFontFamily}
@@ -1334,6 +1354,11 @@ function App() {
           lineStartY={lineStartY}
           lineEndX={lineEndX}
           lineEndY={lineEndY}
+          lineStartCap={lineStartCap}
+          lineEndCap={lineEndCap}
+          updateLineEndpointStyle={updateLineEndpointStyle}
+          previewLineEndpointStyle={previewLineEndpointStyle}
+          cancelLineEndpointPreview={cancelLineEndpointPreview}
           updateRectAspectRatio={updateRectAspectRatio}
           polygonSides={polygonSides}
           updatePolygonSides={updatePolygonSides}
