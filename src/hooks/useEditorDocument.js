@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { LANGUAGES } from '../app/copy.js'
-import { parseSvg } from '../editor/svg-parser.js'
+import { parseSvg, displaySourceDraft } from '../editor/svg-parser.js'
 import { processSvgInput } from '../editor/process-svg-input.js'
 import { deleteDocument, listRecentDocuments, openDocumentDatabase, readDocument, readMeta, saveCurrentDocument, saveRecentDocuments } from '../storage/document-db.js'
 
@@ -29,7 +29,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     return LANGUAGES.some((item) => item.code === stored) ? stored : 'en'
   })
   const [svgMarkup, setSvgMarkup] = useState(persistedDocument.markup)
-  const [sourceDraft, setSourceDraft] = useState(persistedDocument.markup)
+  const [sourceDraft, setSourceDraft] = useState(displaySourceDraft(persistedDocument))
   const [elements, setElements] = useState(persistedDocument.elements)
   const [selectedId, setSelectedId] = useState(persisted?.selectedId || persistedDocument.elements[0]?.id || '')
   const [selectedIds, setSelectedIds] = useState(() => {
@@ -95,7 +95,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
         if (restored.status === 'rejected') throw new Error('Stored document is invalid')
         const parsed = parseSvg(restored.markup)
         setSvgMarkup(parsed.markup)
-        setSourceDraft(parsed.markup)
+        setSourceDraft(displaySourceDraft(parsed))
         setElements(parsed.elements)
         setSelectedId(storedDocument.selectedId || parsed.elements[0]?.id || '')
         setSelectedIds(Array.isArray(storedDocument.selectedIds) ? storedDocument.selectedIds : [])
@@ -196,14 +196,14 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
   const commitDocument = (rawMarkup, { nextSelectedId = selectedId, nextSelectedIds, nextFileName = fileName, nextDirty = true, historySnapshot = currentSnapshot(), forceHistory = false } = {}) => {
     const parsed = parseSvg(rawMarkup)
     if (!forceHistory && parsed.markup === svgMarkup && nextFileName === fileName && nextDirty === dirty) {
-      setSourceDraft(parsed.markup)
+      setSourceDraft(displaySourceDraft(parsed))
       return
     }
     const validSelectedId = parsed.elements.some((item) => item.id === nextSelectedId) ? nextSelectedId : parsed.elements[0]?.id || ''
     const validSelectedIds = (nextSelectedIds || [validSelectedId]).filter((id) => parsed.elements.some((item) => item.id === id))
     setHistory((current) => ({ past: [...current.past, historySnapshot].slice(-historyLimit), future: [] }))
     setSvgMarkup(parsed.markup)
-    setSourceDraft(parsed.markup)
+    setSourceDraft(displaySourceDraft(parsed))
     setElements(parsed.elements)
     setSelectedId(validSelectedId)
     setSelectedIds(validSelectedIds.length ? validSelectedIds : (validSelectedId ? [validSelectedId] : []))
@@ -216,7 +216,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     const parsed = parseSvg(snapshot.svgMarkup)
     const validSelectedId = parsed.elements.some((item) => item.id === snapshot.selectedId) ? snapshot.selectedId : parsed.elements[0]?.id || ''
     setSvgMarkup(parsed.markup)
-    setSourceDraft(parsed.markup)
+    setSourceDraft(displaySourceDraft(parsed))
     setElements(parsed.elements)
     setSelectedId(validSelectedId)
     setSelectedIds((snapshot.selectedIds || (validSelectedId ? [validSelectedId] : [])).filter((id) => parsed.elements.some((item) => item.id === id)))
@@ -242,7 +242,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
   const loadDocument = (rawMarkup, nextFileName = 'untitled.svg') => {
     const parsed = parseSvg(rawMarkup)
     setSvgMarkup(parsed.markup)
-    setSourceDraft(parsed.markup)
+    setSourceDraft(displaySourceDraft(parsed))
     setElements(parsed.elements)
     setSelectedId(parsed.elements[0]?.id || '')
     setSelectedIds(parsed.elements[0]?.id ? [parsed.elements[0].id] : [])

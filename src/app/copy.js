@@ -771,6 +771,12 @@ const SECTIONS = {
       'zh-TW': '此檔案不包含有效的 SVG。',
       'ja': 'このファイルには有効な SVG が含まれていません。',
     },
+    emptySource: {
+      'en': 'The document is empty — add a layer, paste SVG source, or load the demo.',
+      'zh-CN': '文档为空：可添加图层、粘贴 SVG 源码或载入示例。',
+      'zh-TW': '文件為空：可添加圖層、貼上 SVG 原始碼或載入範例。',
+      'ja': 'ドキュメントが空です。レイヤーを追加、SVG ソースを貼り付け、またはデモを読み込めます。',
+    },
   },
   actions: {
     svgSafetySanitized: {

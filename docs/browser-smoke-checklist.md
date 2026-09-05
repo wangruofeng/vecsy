@@ -25,7 +25,7 @@
 - [ ] Esc / pointercancel 取消框选并保留原选择；空白点击清空选择。
 - [ ] 框选不新增撤销记录；框选后整体移动一次，Undo 一次恢复位置与多选集合。
 
-自动鼠标验收：启动本地开发服务后运行 `node tests/e2e/canvas-selection.mjs http://127.0.0.1:5173`。同目录另有 `canvas-shortcuts.mjs`、`canvas-hover.mjs`、`canvas-distances.mjs`、`canvas-group-drag.mjs`、`canvas-multi-drag.mjs`，覆盖对应交互场景。
+自动鼠标验收：启动本地开发服务后运行 `node tests/e2e/canvas-selection.mjs http://127.0.0.1:5173`。同目录另有 `canvas-shortcuts.mjs`、`canvas-hover.mjs`、`canvas-distances.mjs`、`canvas-group-drag.mjs`、`canvas-multi-drag.mjs`、`source-empty.mjs`（全选删除后源码页为空），覆盖对应交互场景。
 
 ## 线段端点与测距
 

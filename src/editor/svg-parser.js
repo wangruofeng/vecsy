@@ -56,6 +56,12 @@ export function parseSvg(markup) {
   return { markup: new XMLSerializer().serializeToString(doc.documentElement), elements, hasContent }
 }
 
+// 源码视图的显示草稿：图层删空后源码页显示为空，不展示 <svg> 根骨架。
+// 文档本身（svgMarkup）仍保留空 svg 根，解析、画布渲染与导出不受影响。
+export function displaySourceDraft(parsed) {
+  return parsed.elements.length ? parsed.markup : ''
+}
+
 export function getColor(value) {
   if (!value || value === 'none' || value.startsWith('url(')) return ''
   return value.startsWith('#') ? value.toUpperCase() : value

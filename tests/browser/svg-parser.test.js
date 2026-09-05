@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseSvg } from '../../src/editor/svg-parser.js'
+import { parseSvg, displaySourceDraft } from '../../src/editor/svg-parser.js'
 
 describe('SVG parser', () => {
   it('normalizes the viewBox and assigns stable editor ids', () => {
@@ -12,5 +12,17 @@ describe('SVG parser', () => {
 
   it('rejects malformed SVG input', () => {
     expect(() => parseSvg('<svg><rect></svg>')).toThrow('valid SVG')
+  })
+})
+
+describe('displaySourceDraft', () => {
+  it('shows nothing in the source view once every layer is deleted', () => {
+    const parsed = parseSvg('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 680"></svg>')
+    expect(displaySourceDraft(parsed)).toBe('')
+  })
+
+  it('keeps showing the markup while any layer exists', () => {
+    const parsed = parseSvg('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 680"><rect id="card"/></svg>')
+    expect(displaySourceDraft(parsed)).toBe(parsed.markup)
   })
 })
