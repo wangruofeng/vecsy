@@ -1,5 +1,7 @@
 export default function Icon({ name, size = 16 }) {
   const paths = {
+    cursor: <path d="m4 3 7 18 2-8 8-2L4 3Z" />,
+    hand: <path d="M8 13V6a2 2 0 0 1 4 0v6-8a2 2 0 0 1 4 0v8-6a2 2 0 0 1 4 0v10c0 4-3 6-6 6h-1c-3 0-4-2-6-4l-3-4a2 2 0 0 1 3-2l1 1Z" />,
     upload: <><path d="M12 3v12" /><path d="m7 8 5-5 5 5" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" /></>,
     download: <><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" /></>,
     undo: <><path d="M9 14 4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 6 6v2" /></>,

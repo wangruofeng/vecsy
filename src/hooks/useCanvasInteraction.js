@@ -1,3 +1,4 @@
+import { getMarqueeIds } from '../editor/marquee.js'
 import { useEffect, useRef, useState } from 'react'
 import { clampScale, getElementPointerDelta, getNodeRect, getSvgPoint, getTopLevelSelectedIds, pointerCenter, pointerDistance, shouldCommitGesture } from '../editor/svg-geometry.js'
 import { bakeRectTranslateScaleTransform, getEditableTextContent, resizeBackgroundLayer } from '../editor/svg-transforms.js'
@@ -8,6 +9,62 @@ function getProportionalScale(scaleX, scaleY) {
 }
 
 export default function useCanvasInteraction({ activeTab, selectedId, selectedIds, selected, elements, svgMarkup, currentSnapshot, commitDocument, selectLayerIds }) {
+  const [canvasTool, setCanvasTool] = useState('select')
+  const [marqueeBox, setMarqueeBox] = useState(null)
+  const marqueeRef = useRef(null)
+  const temporaryCanvasToolRef = useRef(null)
+  useEffect(() => {
+    const cancel = (event) => {
+      if (event.key !== 'Escape' || !marqueeRef.current) return
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      marqueeRef.current = null
+      setMarqueeBox(null)
+      suppressCanvasClickRef.current = true
+    }
+    window.addEventListener('keydown', cancel, true)
+    return () => window.removeEventListener('keydown', cancel, true)
+  }, [])
+  useEffect(() => {
+    const isTextInput = (target) => target?.closest?.('input, textarea, select, [contenteditable="true"]')
+    const restoreTemporaryTool = () => {
+      if (temporaryCanvasToolRef.current == null) return
+      setCanvasTool(temporaryCanvasToolRef.current)
+      temporaryCanvasToolRef.current = null
+    }
+    const handleShortcutKeyDown = (event) => {
+      if (event.metaKey || event.ctrlKey || event.altKey || isTextInput(event.target)) return
+      const key = event.key.toLowerCase()
+      if (key === 'v') {
+        event.preventDefault()
+        setCanvasTool('select')
+        return
+      }
+      if (key === 'h') {
+        event.preventDefault()
+        setCanvasTool('pan')
+        return
+      }
+      if (event.code === 'Space' && !event.repeat) {
+        event.preventDefault()
+        temporaryCanvasToolRef.current = canvasTool
+        setCanvasTool('pan')
+      }
+    }
+    const handleShortcutKeyUp = (event) => {
+      if (event.code !== 'Space' || temporaryCanvasToolRef.current == null) return
+      event.preventDefault()
+      restoreTemporaryTool()
+    }
+    window.addEventListener('keydown', handleShortcutKeyDown)
+    window.addEventListener('keyup', handleShortcutKeyUp)
+    window.addEventListener('blur', restoreTemporaryTool)
+    return () => {
+      window.removeEventListener('keydown', handleShortcutKeyDown)
+      window.removeEventListener('keyup', handleShortcutKeyUp)
+      window.removeEventListener('blur', restoreTemporaryTool)
+    }
+  }, [canvasTool])
   const [svgPosition, setSvgPosition] = useState({ x: 0, y: 0 })
   const [svgScale, setSvgScale] = useState(1)
   const [isDraggingSvg, setIsDraggingSvg] = useState(false)
@@ -163,10 +220,11 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
       suppressCanvasClickRef.current = false
       return
     }
+    if (canvasTool === 'pan') return
     const elementTarget = getEventElementTarget(event)
     if (elementTarget) return
-    const targetId = selectElementAtPoint(event.clientX, event.clientY, event.target, event.metaKey || event.ctrlKey)
-    if (!targetId && !event.metaKey && !event.ctrlKey) selectLayerIds([])
+    const targetId = selectElementAtPoint(event.clientX, event.clientY, event.target, event.metaKey || event.ctrlKey || event.shiftKey)
+    if (!targetId && !event.metaKey && !event.ctrlKey && !event.shiftKey) selectLayerIds([])
   }
 
   function startTextEdit(target, item, setTextDraft, setEditingTextId) {
@@ -179,6 +237,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
   }
 
   const handleSvgDoubleClick = (event, setTextDraft, setEditingTextId) => {
+    if (canvasTool === 'pan') return
     const eventTarget = getEventElementTarget(event)
     const eventItem = eventTarget ? elements.find((element) => element.id === eventTarget.getAttribute('data-editor-id')) : null
     // After the first click, the selection overlay can become the event target.
@@ -197,11 +256,13 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
     const item = elementTarget ? elements.find((element) => element.id === elementTarget.getAttribute('data-editor-id')) : null
     if (item?.tag !== 'text') event.preventDefault()
     event.stopPropagation()
-    const targetId = selectElementAtPoint(event.clientX, event.clientY, event.target, event.metaKey || event.ctrlKey)
+    const targetId = canvasTool === 'pan' ? '' : selectElementAtPoint(event.clientX, event.clientY, event.target, event.metaKey || event.ctrlKey || event.shiftKey)
     activePointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
     event.currentTarget.setPointerCapture(event.pointerId)
 
     if (activePointersRef.current.size === 2) {
+      marqueeRef.current = null
+      setMarqueeBox(null)
       const [first, second] = [...activePointersRef.current.values()]
       pinchRef.current = { distance: pointerDistance(first, second), scale: svgScale, center: pointerCenter(first, second), origin: svgPosition }
       svgDragRef.current = null
@@ -212,6 +273,21 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
       return
     }
 
+    if (canvasTool === 'pan') {
+      suppressCanvasClickRef.current = true
+      svgDragRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, origin: svgPosition, moved: false }
+      elementDragRef.current = null
+      setIsDraggingSvg(true)
+      return
+    }
+    if (!elementTarget && event.pointerType !== 'touch') {
+      marqueeRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, baseIds: event.shiftKey ? selectedIds : [], ids: [], moved: false }
+      return
+    }
+    if (elementTarget && (event.shiftKey || event.metaKey || event.ctrlKey)) {
+      suppressCanvasClickRef.current = true
+      return
+    }
     if (elementTarget) {
       const selectionIds = targetId && selectedIds.includes(targetId) && !event.metaKey && !event.ctrlKey ? selectedIds : [targetId]
       elementDragRef.current = {
@@ -253,6 +329,16 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
       return
     }
 
+    const marquee = marqueeRef.current
+    if (marquee && marquee.pointerId === event.pointerId) {
+      if (Math.hypot(event.clientX - marquee.x, event.clientY - marquee.y) <= 4 && !marquee.moved) return
+      marquee.moved = true
+      const box = { left: Math.min(marquee.x, event.clientX), top: Math.min(marquee.y, event.clientY), right: Math.max(marquee.x, event.clientX), bottom: Math.max(marquee.y, event.clientY) }
+      marquee.ids = getMarqueeIds(svgRef.current, box)
+      const stage = canvasRef.current.getBoundingClientRect()
+      setMarqueeBox({ left: box.left - stage.left, top: box.top - stage.top, width: box.right - box.left, height: box.bottom - box.top })
+      return
+    }
     const elementDrag = elementDragRef.current
     if (elementDrag && elementDrag.pointerId === event.pointerId) {
       const screenDistance = Math.hypot(event.clientX - elementDrag.startX, event.clientY - elementDrag.startY)
@@ -280,6 +366,13 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
   }
 
   const handleCanvasPointerUp = (event, cancelled = false, setTextDraft, setEditingTextId) => {
+    const marquee = marqueeRef.current
+    if (marquee && marquee.pointerId === event.pointerId) {
+      if (!cancelled && marquee.moved) selectLayerIds([...marquee.baseIds, ...marquee.ids])
+      if (marquee.moved || cancelled) suppressCanvasClickRef.current = true
+      marqueeRef.current = null
+      setMarqueeBox(null)
+    }
     activePointersRef.current.delete(event.pointerId)
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
     if (activePointersRef.current.size < 2) {
@@ -455,6 +548,7 @@ export default function useCanvasInteraction({ activeTab, selectedId, selectedId
   }, [activeTab])
 
   return {
+    canvasTool, setCanvasTool, marqueeBox,
     canvasRef, svgRef, svgPosition, setSvgPosition, svgScale, setSvgScale,
     isDraggingSvg, isDraggingElement, isResizingElement, isPinchingSvg,
     selectionBox, setSelectionBox, multiSelectionBoxes, lineEndpoints, hoveredLayerId, setHoveredLayerId,

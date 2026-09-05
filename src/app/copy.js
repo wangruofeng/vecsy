@@ -854,6 +854,8 @@ const SECTIONS = {
     },
   },
   zoom: {
+    canvasSelect: { en: 'Select', 'zh-CN': '选择', 'zh-TW': '選取', ja: '選択' },
+    canvasPan: { en: 'Pan', 'zh-CN': '平移', 'zh-TW': '平移', ja: '手のひら' },
     zoomIn: {
       'en': 'Zoom in',
       'zh-CN': '放大',
@@ -1056,6 +1058,24 @@ const SECTIONS = {
       'zh-TW': '平移畫布',
       'ja': 'キャンバスをパン',
     },
+    shortcutSelectTool: {
+      'en': 'Switch to Select tool',
+      'zh-CN': '切换至选择工具',
+      'zh-TW': '切換至選取工具',
+      'ja': '選択ツールに切り替え',
+    },
+    shortcutPanTool: {
+      'en': 'Switch to Pan tool',
+      'zh-CN': '切换至平移工具',
+      'zh-TW': '切換至平移工具',
+      'ja': '手のひらツールに切り替え',
+    },
+    shortcutTemporaryPan: {
+      'en': 'Temporarily pan canvas',
+      'zh-CN': '临时平移画布',
+      'zh-TW': '暫時平移畫布',
+      'ja': '一時的にキャンバスをパン',
+    },
     shortcutZoom: {
       'en': 'Zoom in / out',
       'zh-CN': '放大 / 缩小',
@@ -1104,6 +1124,8 @@ const SECTIONS = {
       'zh-TW': '適應螢幕',
       'ja': '画面に合わせる',
     },
+    shortcutKeyPanDrag: { en: 'Pan tool + Drag', 'zh-CN': '平移工具 + 拖拽', 'zh-TW': '平移工具 + 拖曳', ja: '手のひらツール + ドラッグ' },
+    shortcutKeySpaceHold: { en: 'Hold Space', 'zh-CN': '按住空格', 'zh-TW': '按住空白鍵', ja: 'Space を長押し' },
     shortcutKeyDrag: {
       'en': 'Drag',
       'zh-CN': '拖拽',

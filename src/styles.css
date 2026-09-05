@@ -280,3 +280,11 @@ h1 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: clamp(25px, 
 .context-menu button.menu-danger:hover { color: #ff9b7a; background: rgba(232,96,63,.12); }
 .context-menu .menu-divider { display: block; height: 1px; margin: 5px 4px; background: var(--border); }
 .rename-input { flex: 1; min-width: 0; padding: 4px 6px; border: 1px solid var(--amber); border-radius: 4px; outline: 0; color: #f2efe9; background: #0e0e11; font: 11px 'Archivo', sans-serif; }
+
+.canvas-mode-tools { display: inline-flex; gap: 2px; }
+.canvas-mode-tools [aria-pressed="true"] { background: var(--accent, #ff8a3d); color: #161616; }
+.canvas-mode-tools .tool-button { min-height: 28px; padding: 0 8px; border-radius: 4px; }
+.canvas-select, .canvas-select:active, .canvas-select .svg-wrap { cursor: default; }
+.canvas-pan, .canvas-pan .svg-wrap * { cursor: grab !important; }
+.canvas-pan:active, .canvas-pan:active .svg-wrap * { cursor: grabbing !important; }
+.canvas-marquee { position: absolute; pointer-events: none; z-index: 20; border: 1px solid #498bff; background: rgba(73, 139, 255, .12); }

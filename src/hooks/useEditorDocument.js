@@ -191,7 +191,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     setSelectedId(validIds.includes(primaryId) ? primaryId : validIds[validIds.length - 1] || '')
   }
 
-  const currentSnapshot = () => ({ svgMarkup, fileName, selectedId, dirty })
+  const currentSnapshot = () => ({ svgMarkup, fileName, selectedId, selectedIds, dirty })
 
   const commitDocument = (rawMarkup, { nextSelectedId = selectedId, nextSelectedIds, nextFileName = fileName, nextDirty = true, historySnapshot = currentSnapshot(), forceHistory = false } = {}) => {
     const parsed = parseSvg(rawMarkup)
@@ -219,7 +219,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
     setSourceDraft(parsed.markup)
     setElements(parsed.elements)
     setSelectedId(validSelectedId)
-    setSelectedIds(validSelectedId ? [validSelectedId] : [])
+    setSelectedIds((snapshot.selectedIds || (validSelectedId ? [validSelectedId] : [])).filter((id) => parsed.elements.some((item) => item.id === id)))
     setFileName(snapshot.fileName)
     setDirty(snapshot.dirty)
     recordRecentDocument(parsed, snapshot.fileName)

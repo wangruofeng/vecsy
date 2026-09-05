@@ -160,7 +160,10 @@ function App() {
         ['⌘ =', copy.shortcutZoomIn],
         ['⌘ -', copy.shortcutZoomOut],
         ['⌘ 0', copy.shortcutZoomFit],
-        [copy.shortcutKeyDrag, copy.shortcutPan],
+        ['V', copy.shortcutSelectTool],
+        ['H', copy.shortcutPanTool],
+        [copy.shortcutKeySpaceHold, copy.shortcutTemporaryPan],
+        [copy.shortcutKeyPanDrag, copy.shortcutPan],
         [copy.shortcutKeyScroll, copy.shortcutZoom],
         [copy.shortcutKeyDoubleClick, copy.shortcutEditText],
         ['Shift + Drag', copy.shortcutResizeProportional],
@@ -1238,6 +1241,9 @@ function App() {
           addLayer={addLayer}
         />
         <CanvasPanel
+          canvasTool={canvasInteraction.canvasTool}
+          setCanvasTool={canvasInteraction.setCanvasTool}
+          marqueeBox={canvasInteraction.marqueeBox}
           copy={copy}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
