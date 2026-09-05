@@ -42,3 +42,37 @@ describe('createLayerMarkup arrow', () => {
     expect(line.getAttribute('stroke')).toBe('#F2A93B')
   })
 })
+
+describe('removeLayers orphaned defs cleanup', () => {
+  const markerMarkup = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><marker id="vecsy-cap-triangle-arrow"><path d="M0 0"/></marker><pattern width="1" height="1"/></defs><line data-editor-id="l" marker-end="url(#vecsy-cap-triangle-arrow)"/><rect data-editor-id="r"/></svg>'
+
+  it('removes defs resources orphaned by deleting every layer', () => {
+    const { markup } = removeLayers(markerMarkup, ['l', 'r'])
+    const doc = new DOMParser().parseFromString(markup, 'image/svg+xml')
+    expect(doc.querySelector('defs')).toBeNull()
+    expect(doc.querySelector('marker')).toBeNull()
+    expect(doc.querySelector('pattern')).toBeNull()
+  })
+
+  it('keeps defs resources still referenced by a surviving layer', () => {
+    const { markup } = removeLayers(markerMarkup, ['r'])
+    expect(new DOMParser().parseFromString(markup, 'image/svg+xml').querySelector('defs > marker#vecsy-cap-triangle-arrow')).not.toBeNull()
+  })
+
+  it('removes orphaned text gradients but keeps style and css-referenced resources', () => {
+    const gradientMarkup = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="vecsy-text-gradient-node-0"><stop stop-color="#fff"/></linearGradient><linearGradient id="css-kept"><stop stop-color="#eee"/></linearGradient><style>.themed { fill: url(#css-kept) }</style></defs><text data-editor-id="t" fill="url(#vecsy-text-gradient-node-0)">Hi</text></svg>'
+    const { markup } = removeLayers(gradientMarkup, ['t'])
+    const doc = new DOMParser().parseFromString(markup, 'image/svg+xml')
+    expect(doc.querySelector('#vecsy-text-gradient-node-0')).toBeNull()
+    expect(doc.querySelector('#css-kept')).not.toBeNull()
+    expect(doc.querySelector('style')).not.toBeNull()
+  })
+
+  it('keeps gradient-to-gradient chains while the layer lives and drops them with it', () => {
+    const chainMarkup = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="outer"><stop stop-color="url(#inner)"/></linearGradient><linearGradient id="inner"><stop stop-color="#eee"/></linearGradient></defs><rect data-editor-id="a" fill="url(#outer)"/><circle data-editor-id="b"/></svg>'
+    const kept = new DOMParser().parseFromString(removeLayers(chainMarkup, ['b']).markup, 'image/svg+xml')
+    expect(kept.querySelector('#inner')).not.toBeNull()
+    const removed = new DOMParser().parseFromString(removeLayers(chainMarkup, ['a', 'b']).markup, 'image/svg+xml')
+    expect(removed.querySelector('defs')).toBeNull()
+  })
+})

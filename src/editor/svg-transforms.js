@@ -228,18 +228,68 @@ export function updateLineEndpointStyle(rawMarkup, targetId, end, style) {
     }
     node.setAttribute(attribute, `url(#${markerId})`)
   }
-  pruneLineEndpointMarkers(root)
+  pruneOrphanedDefsResources(root)
   return new XMLSerializer().serializeToString(root)
 }
 
-// 移除文档中不再被任何线段引用的端点装饰定义；defs 因此变空则连同删除
-function pruneLineEndpointMarkers(root) {
-  const referenced = new Set(Array.from(root.querySelectorAll('[marker-start], [marker-end]')).flatMap((node) => ['marker-start', 'marker-end'].map((name) => LINE_ENDPOINT_MARKER_ID.exec(node.getAttribute(name) || '')?.[1]).filter(Boolean)))
-  Array.from(root.querySelectorAll('defs')).forEach((defs) => {
-    Array.from(defs.children).forEach((child) => {
-      const match = /^vecsy-cap-([a-z-]+)$/.exec(child.id || '')
-      if (match && !referenced.has(match[1])) child.remove()
+// 清理 defs 中失去引用的资源定义（端点 marker、渐变、clipPath 等只被 url()/use 引用的元素）。
+// 图层删除后其专属资源会变成孤儿残留在源码里。引用按可达性判定：从资源之外的文档内容
+// 出发（含 <style> 文本里的 CSS url() 引用），沿引用链扩散到存活资源引用的下一环
+// （如渐变 stop 再引用另一渐变）；无 id 的资源无处可引，必为孤儿。
+// defs 内其余内容（style、title 等非资源定义）不动；defs 因此清空则连同删除。
+const DEFS_RESOURCE_TAGS = new Set(['marker', 'linearGradient', 'radialGradient', 'pattern', 'filter', 'clipPath', 'mask', 'symbol'])
+
+function collectResourceReferences(node, referenced) {
+  Array.from(node.attributes).forEach(({ value }) => {
+    for (const match of String(value).matchAll(/url\(\s*#([^)\s]+)\s*\)/g)) referenced.add(match[1])
+  })
+  const useTarget = /^#(.+)$/.exec((node.getAttribute('href') || node.getAttribute('xlink:href') || '').trim())
+  if (node.tagName === 'use' && useTarget) referenced.add(useTarget[1])
+  if (node.tagName === 'style') {
+    for (const match of String(node.textContent).matchAll(/url\(\s*#([^)\s]+)\s*\)/g)) referenced.add(match[1])
+  }
+}
+
+function pruneOrphanedDefsResources(root) {
+  const resources = new Map()
+  const idlessResources = new Set()
+  Array.from(root.querySelectorAll('defs')).forEach((defs) => Array.from(defs.children).forEach((child) => {
+    if (!DEFS_RESOURCE_TAGS.has(child.tagName)) return
+    const id = child.getAttribute('id') || ''
+    if (id) resources.set(id, child)
+    else idlessResources.add(child)
+  }))
+  if (!resources.size && !idlessResources.size) return
+
+  const isInsideResource = (node) => {
+    for (let current = node; current; current = current.parentElement) {
+      if (resources.get(current.getAttribute('id') || '') === current || idlessResources.has(current)) return true
+    }
+    return false
+  }
+  const referenced = new Set()
+  collectResourceReferences(root, referenced)
+  root.querySelectorAll('*').forEach((node) => {
+    if (!isInsideResource(node)) collectResourceReferences(node, referenced)
+  })
+  const expanded = new Set()
+  let growing = true
+  while (growing) {
+    growing = false
+    resources.forEach((element, id) => {
+      if (!referenced.has(id) || expanded.has(id)) return
+      expanded.add(id)
+      collectResourceReferences(element, referenced)
+      element.querySelectorAll('*').forEach((descendant) => collectResourceReferences(descendant, referenced))
+      growing = true
     })
+  }
+
+  resources.forEach((element, id) => {
+    if (!referenced.has(id)) element.remove()
+  })
+  idlessResources.forEach((element) => element.remove())
+  Array.from(root.querySelectorAll('defs')).forEach((defs) => {
     if (!defs.children.length) defs.remove()
   })
 }
@@ -714,6 +764,8 @@ export function removeLayers(rawMarkup, targetIds) {
   })
   if (!topLevelNodes.length) return { markup: rawMarkup, nextSelectedId: '' }
   topLevelNodes.forEach((node) => node.remove())
+  // 图层删掉后其专属 defs 资源（端点 marker、文字渐变等）成了孤儿，一并清走
+  pruneOrphanedDefsResources(doc.documentElement)
   const nextSelectedId = doc.querySelector('[data-editor-id]')?.getAttribute('data-editor-id') || ''
   return { markup: new XMLSerializer().serializeToString(doc.documentElement), nextSelectedId }
 }
