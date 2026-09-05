@@ -26,26 +26,29 @@
 - 图层显示 / 隐藏
 
 ### 图层编辑
-- 添加图层：矩形、圆形、椭圆、直线、折线、多边形、路径、文字
+- 添加图层：矩形、圆形、椭圆、直线、箭头、多边形、心形、五角星、文字
 - 从内置 SVG 素材库添加：公司 Logo、动画示例、加载动画、创意动画等预设素材，点击即导入画布
-- 复制 / 粘贴 / 删除图层
+- 复制 / 粘贴 / 删除图层，多选可一键编组
 - 拖拽图层调整上下顺序
+- 图层面板与画布元素均支持右键菜单（重命名 / 复制 / 删除 / 显隐）
 - 选中文字图层可在画布上直接编辑文字内容
 
 ### 画布操作
-- 拖拽 SVG 图片调整画布位置
-- 双指捏合、触控板或鼠标滚轮缩放
-- 矢量元素支持缩放手柄调整尺寸，矩形可修改圆角半径
-- 支持 Cmd/Ctrl 多选图层，并在 2D 预览中显示每个图层和组合边界
+- 选择（V）/ 平移（H）工具切换，平移工具拖拽画布，双指捏合、触控板或鼠标滚轮缩放
+- 空白处拖动框选多选，分组与多选包围盒内按下即可整体拖拽
+- 四角缩放手柄调整尺寸（Shift 等比），矩形可修改圆角半径
+- 多选时提供对齐与等间距分布工具
+- 按住 Alt 查看 hover 图层与当前选区的间距参考线
 
 ### 属性面板
 - 实时编辑填充色、描边色、透明度、描边宽度
+- 文字图层支持渐变填充；直线图层支持两端独立的端点样式（端帽与箭头装饰）
 - 可折叠的属性检查器面板
 
 ### 源码与历史
 - Preview / Source 视图，源码带语法高亮并可一键格式化为可折叠的层级树，点击源码元素可同步选中图层
 - 修改历史记录，支持撤销 / 前进
-- 导出编辑后的 SVG
+- 导出面板支持 SVG / PNG / WebP 格式、倍率选择与体积优化
 
 ### 其他
 - 简体中文 / 繁體中文 / English / 日本語 四语界面
@@ -57,7 +60,13 @@
 | <kbd>⌘</kbd> + <kbd>Z</kbd> | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | 撤销 |
 | <kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>Z</kbd> | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | 重做 |
 | <kbd>⌘</kbd> + <kbd>C</kbd> / <kbd>⌘</kbd> + <kbd>V</kbd> | <kbd>Ctrl</kbd> + <kbd>C</kbd> / <kbd>Ctrl</kbd> + <kbd>V</kbd> | 复制 / 粘贴图层 |
+| <kbd>⌘</kbd> + <kbd>A</kbd> | <kbd>Ctrl</kbd> + <kbd>A</kbd> | 全选图层 |
+| <kbd>⌘</kbd> + <kbd>G</kbd> | <kbd>Ctrl</kbd> + <kbd>G</kbd> | 图层编组 |
 | <kbd>Delete</kbd> / <kbd>⌫</kbd> | <kbd>Delete</kbd> / <kbd>Backspace</kbd> | 删除选中图层 |
+| <kbd>方向键</kbd> | <kbd>方向键</kbd> | 移动选中图层（按住 Shift 大步进） |
+| <kbd>Esc</kbd> | <kbd>Esc</kbd> | 取消选择 |
+
+应用内按 <kbd>?</kbd> 可查看完整快捷键列表。
 
 ## 技术栈
 
@@ -84,7 +93,9 @@ npm run preview
 
 ## 部署到 Cloudflare Pages
 
-项目当前使用 Cloudflare Pages Direct Upload，将 Vite 构建产物上传到 Pages：
+项目已接入 Cloudflare Pages Git 集成：推送 `main` 分支后自动构建部署（CI 会先运行测试），[vecsy.top](https://vecsy.top) 始终与 `main` 保持一致。
+
+也可手动 Direct Upload 将 Vite 构建产物上传到 Pages：
 
 ```bash
 npm run build

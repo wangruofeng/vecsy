@@ -25,7 +25,13 @@
 - [ ] Esc / pointercancel 取消框选并保留原选择；空白点击清空选择。
 - [ ] 框选不新增撤销记录；框选后整体移动一次，Undo 一次恢复位置与多选集合。
 
-自动鼠标验收：启动本地开发服务后运行 `node tests/e2e/canvas-selection.mjs http://127.0.0.1:5173`。
+自动鼠标验收：启动本地开发服务后运行 `node tests/e2e/canvas-selection.mjs http://127.0.0.1:5173`。同目录另有 `canvas-shortcuts.mjs`、`canvas-hover.mjs`、`canvas-distances.mjs`、`canvas-group-drag.mjs`、`canvas-multi-drag.mjs`，覆盖对应交互场景。
+
+## 线段端点与测距
+
+- [ ] 选中直线图层后，Inspector 出现开始/结束点样式下拉，hover 选项即时预览、关闭菜单不产生撤销记录，提交后可撤销。
+- [ ] 「添加图层 → 箭头」生成带三角端点的直线；删除该图层后源码视图不残留 `<defs>` marker 定义。
+- [ ] 选中任意图层后按住 Alt，hover 其他图层显示间距参考线与数值。
 
 ## 编辑与导出
 

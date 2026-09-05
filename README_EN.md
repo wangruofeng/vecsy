@@ -26,26 +26,29 @@
 - Show/hide layers
 
 ### Layer Editing
-- Add layers: rectangle, circle, ellipse, line, polyline, polygon, path, text
+- Add layers: rectangle, circle, ellipse, line, arrow, polygon, heart, star, text
 - Insert from the built-in SVG asset library: company logos, animation examples, loaders, creative animations, and other presets — click to import onto the canvas
-- Copy / paste / delete layers
+- Copy / paste / delete layers; multi-select can be grouped in one step
 - Drag layers to reorder
+- Right-click menu on layer rows and canvas elements (rename / copy / delete / show-hide)
 - Select a text layer and edit its content directly on the canvas
 
 ### Canvas
-- Drag the SVG image to pan
-- Pinch, trackpad, or mouse wheel zoom
-- Vector elements support resize handles; rectangles can adjust corner radius
-- Cmd/Ctrl multi-select layers with 2D preview showing each layer and combined bounding box
+- Select (V) / Pan (H) tool switching; pan by dragging with the Pan tool; pinch, trackpad, or mouse wheel zoom
+- Drag on empty space to marquee-select; press inside a group or multi-selection box to drag it as a whole
+- Four-corner resize handles (Shift for proportional); rectangles can adjust corner radius
+- Align and distribute tools when multiple layers are selected
+- Hold Alt to show distance guides between the hovered layer and the current selection
 
 ### Inspector Panel
 - Live edit fill color, stroke color, opacity, stroke width
+- Gradient fill for text layers; independent start/end endpoint styles for lines (caps and arrow ornaments)
 - Collapsible property inspector
 
 ### Source & History
 - Preview / Source view with syntax highlighting and one-click format to a collapsible hierarchical tree — click a source element to select the corresponding layer
 - Edit history with undo / redo
-- Export the edited SVG
+- Export panel with SVG / PNG / WebP formats, scale options, and size optimization
 
 ### Misc
 - Simplified Chinese / Traditional Chinese / English / Japanese UI
@@ -57,7 +60,13 @@
 | <kbd>⌘</kbd> + <kbd>Z</kbd> | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | Undo |
 | <kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>Z</kbd> | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | Redo |
 | <kbd>⌘</kbd> + <kbd>C</kbd> / <kbd>⌘</kbd> + <kbd>V</kbd> | <kbd>Ctrl</kbd> + <kbd>C</kbd> / <kbd>Ctrl</kbd> + <kbd>V</kbd> | Copy / Paste layer |
+| <kbd>⌘</kbd> + <kbd>A</kbd> | <kbd>Ctrl</kbd> + <kbd>A</kbd> | Select all layers |
+| <kbd>⌘</kbd> + <kbd>G</kbd> | <kbd>Ctrl</kbd> + <kbd>G</kbd> | Group layers |
 | <kbd>Delete</kbd> / <kbd>⌫</kbd> | <kbd>Delete</kbd> / <kbd>Backspace</kbd> | Delete selected layer |
+| <kbd>Arrow keys</kbd> | <kbd>Arrow keys</kbd> | Move selected layers (Shift for bigger steps) |
+| <kbd>Esc</kbd> | <kbd>Esc</kbd> | Deselect |
+
+Press <kbd>?</kbd> in the app for the full shortcut list.
 
 ## Tech Stack
 
@@ -84,7 +93,9 @@ npm run preview
 
 ## Deploy to Cloudflare Pages
 
-The project uses Cloudflare Pages Direct Upload to ship the Vite build output:
+The project is connected to Cloudflare Pages via Git integration: pushes to `main` build and deploy automatically (CI runs tests first), and [vecsy.top](https://vecsy.top) always matches `main`.
+
+You can also ship the Vite build output manually via Direct Upload:
 
 ```bash
 npm run build

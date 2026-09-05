@@ -21,7 +21,7 @@ npm test         # 运行单元测试 + 浏览器集成测试
 
 ## 部署
 
-Cloudflare Pages Direct Upload（Git 集成自动部署 main 分支，也可手动）：
+Cloudflare Pages 已接入 Git 集成：推送 `main` 即自动构建部署（CI 先跑测试），vecsy.top 与 `main` 保持一致。也可手动 Direct Upload：
 
 ```bash
 npm run build
@@ -37,5 +37,7 @@ npx wrangler pages deploy dist --project-name vecsy --branch main
 ## 项目状态
 
 - 版本 `0.5.0`（Foundation），已完成：统一 SVG 安全输入 Pipeline、CI/CD 自动化测试、IndexedDB 持久化与自动保存、Drag 统一坐标契约、Editor Transaction 最小契约。
-- 下一阶段 v0.6 — SVG Surgery：SVG Audit Panel、Global Palette、`currentColor` 转换、Clean SVG 与 Developer Export。
-- 在线 demo：<https://vecsy.top/>
+- v0.5 后已在 `main` 追加：PNG/WebP 导出与体积优化、对齐/分布、右键菜单与图层重命名、框选多选与选择/平移工具、线段端点样式（marker 承载）与箭头图层、Alt 测距参考线、分组/多选整体拖拽、defs 孤儿资源随图层删除清理。
+- 下一阶段 v0.6 — SVG Surgery：SVG Audit Panel、Global Palette、`currentColor` 转换、Clean SVG 与 Developer Export（见 `docs/v0.5/roadmap.md` §15）。
+- 在线 demo（自动部署 main）：<https://vecsy.top/>
+- 注意：远程存在未合并分支 `codex/v06-ai-action-runtime`（AI 能力线，含独立 v0.6 文档），与上述 v0.6 方向并存，合并前需先裁决方向。
