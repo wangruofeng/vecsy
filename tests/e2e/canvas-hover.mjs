@@ -22,6 +22,23 @@ try {
   await settle()
   const selectedRows = await page.locator('.layer-row.selected').allTextContents()
   const selectedBox = await selection.boundingBox()
+  const outlineCenter = await selection.evaluate(node => {
+    const style = getComputedStyle(node)
+    return parseFloat(style.outlineOffset) + parseFloat(style.outlineWidth) / 2
+  })
+  const handleCenters = await Promise.all(['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(async corner => {
+    const box = await selection.locator(`.resize-handle-${corner}`).boundingBox()
+    return [box.x + box.width / 2, box.y + box.height / 2]
+  }))
+  const expectedHandleCenters = [
+    [selectedBox.x - outlineCenter, selectedBox.y - outlineCenter],
+    [selectedBox.x + selectedBox.width + outlineCenter, selectedBox.y - outlineCenter],
+    [selectedBox.x - outlineCenter, selectedBox.y + selectedBox.height + outlineCenter],
+    [selectedBox.x + selectedBox.width + outlineCenter, selectedBox.y + selectedBox.height + outlineCenter],
+  ]
+  handleCenters.forEach(([x, y], index) => {
+    assert.ok(Math.abs(x - expectedHandleCenters[index][0]) < 0.51 && Math.abs(y - expectedHandleCenters[index][1]) < 0.51, 'resize handle centers sit on the visible selection outline')
+  })
   const markup = await page.locator('.svg-wrap').innerHTML()
   await second.hover()
   await hover.waitFor()

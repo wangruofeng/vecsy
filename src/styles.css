@@ -125,12 +125,12 @@ h1 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: clamp(25px, 
 .svg-wrap [data-editor-id] { cursor: move; }
 .svg-wrap.is-dragging-element [data-editor-id] { cursor: grabbing; }
 /* Outline draws outside the layer bounds so the selection ring never covers the layer's own edge pixels. */
-.selection-overlay { position: absolute; z-index: 3; pointer-events: none; outline: 1px solid #f2a93b; outline-offset: 1px; box-shadow: 0 0 0 1px rgba(242,169,59,.25); transition: outline-width .12s ease, outline-color .12s ease, box-shadow .12s ease; }
+.selection-overlay { --selection-outline-center: 1.5px; position: absolute; z-index: 3; pointer-events: none; outline: 1px solid #f2a93b; outline-offset: 1px; box-shadow: 0 0 0 1px rgba(242,169,59,.25); transition: outline-width .12s ease, outline-color .12s ease, box-shadow .12s ease; }
 /* Individual layers in a multi-selection use dashed boxes; the union box is solid. */
 .selection-overlay-group { z-index: 4; outline-width: 2px; outline-color: rgba(242,169,59,.9); box-shadow: 0 0 0 1px rgba(242,169,59,.22); }
 .selection-overlay-multi { z-index: 3; outline-width: 1px; outline-style: dashed; outline-color: rgba(242,169,59,.95); box-shadow: 0 0 0 1px rgba(242,169,59,.18); }
 .layer-hover-overlay { position: absolute; z-index: 2; pointer-events: none; outline: 1px solid var(--amber); outline-offset: 1px; }
-.selection-overlay.is-hovered { outline-width: 2px; box-shadow: 0 0 0 1px rgba(242,169,59,.45); }
+.selection-overlay.is-hovered { --selection-outline-center: 2px; outline-width: 2px; box-shadow: 0 0 0 1px rgba(242,169,59,.45); }
 .selection-overlay.is-resizing { outline-color: #fff; }
 .selection-overlay-line { outline: 0; box-shadow: none; }
 .line-selection-stroke { position: absolute; height: 6px; margin-top: -3px; border-radius: 999px; background: rgba(242,169,59,.9); box-shadow: 0 0 0 2px rgba(242,169,59,.2); transform-origin: 0 50%; pointer-events: none; }
@@ -142,10 +142,10 @@ h1 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: clamp(25px, 
 .text-inline-editor { position: absolute; z-index: 4; display: block; box-sizing: border-box; min-width: 2ch; overflow: visible; padding: 0 1px; border: 1px dashed rgba(242,169,59,.72); border-radius: 2px; outline: 0; appearance: none; background: transparent; box-shadow: none; caret-color: currentColor; cursor: text; white-space: pre; }
 .text-inline-editor:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(242,169,59,.1); }
 .resize-handle { position: absolute; width: 10px; height: 10px; padding: 0; pointer-events: auto; border: 2px solid #fff; border-radius: 2px; background: #f2a93b; box-shadow: 0 0 0 1px #f2a93b; }
-.resize-handle-top-left { top: 0; left: 0; transform: translate(-50%, -50%); cursor: nwse-resize; }
-.resize-handle-top-right { top: 0; right: 0; transform: translate(50%, -50%); cursor: nesw-resize; }
-.resize-handle-bottom-left { bottom: 0; left: 0; transform: translate(-50%, 50%); cursor: nesw-resize; }
-.resize-handle-bottom-right { right: 0; bottom: 0; transform: translate(50%, 50%); cursor: nwse-resize; }
+.resize-handle-top-left { top: calc(0px - var(--selection-outline-center)); left: calc(0px - var(--selection-outline-center)); transform: translate(-50%, -50%); cursor: nwse-resize; }
+.resize-handle-top-right { top: calc(0px - var(--selection-outline-center)); right: calc(0px - var(--selection-outline-center)); transform: translate(50%, -50%); cursor: nesw-resize; }
+.resize-handle-bottom-left { bottom: calc(0px - var(--selection-outline-center)); left: calc(0px - var(--selection-outline-center)); transform: translate(-50%, 50%); cursor: nesw-resize; }
+.resize-handle-bottom-right { right: calc(0px - var(--selection-outline-center)); bottom: calc(0px - var(--selection-outline-center)); transform: translate(50%, 50%); cursor: nwse-resize; }
 .resize-handle-line-start, .resize-handle-line-end { transform: translate(-50%, -50%); cursor: crosshair; }
 .drop-hint { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; color: #8e8b84; font: 10px 'DM Mono', monospace; opacity: .86; white-space: nowrap; pointer-events: none; }
 .drop-icon { width: 26px; height: 26px; display: grid; place-items: center; border: 1px dashed #6e6b64; border-radius: 5px; }

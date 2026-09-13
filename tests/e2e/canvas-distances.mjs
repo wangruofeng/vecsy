@@ -11,7 +11,7 @@ try {
   await page.goto(process.argv[2] || 'http://127.0.0.1:5186')
   await page.locator('.canvas-stage').waitFor()
   await page.waitForTimeout(1000)
-  await page.locator('input[type=file][accept="image/svg+xml,.svg"]').setInputFiles({name:'distances.svg', mimeType:'image/svg+xml', buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect id="background" width="400" height="300" fill="#ddd"/><g id="group"><rect id="a" x="40" y="40" width="60" height="40" fill="red"/><rect id="b" x="140" y="40" width="60" height="40" fill="blue"/></g><rect id="c" x="40" y="160" width="60" height="40" fill="green"/><rect id="d" x="250" y="160" width="60" height="40" fill="purple"/></svg>')})
+  await page.locator('input[type=file][accept="image/svg+xml,.svg"]').setInputFiles({name:'distances.svg', mimeType:'image/svg+xml', buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect id="background" width="400" height="300" fill="#ddd"/><g id="group"><rect id="a" x="40" y="40" width="60" height="40" fill="red"/><rect id="b" x="140" y="40" width="60" height="40" fill="blue"/></g><rect id="c" x="40" y="160" width="60" height="40" fill="green"/><rect id="d" x="250" y="160" width="60" height="40" fill="purple"/><rect id="e" x="40" y="240" width="60" height="30" fill="orange"/><rect id="f" x="80" y="240" width="60" height="30" fill="teal"/></svg>')})
   const node = id => page.locator(`.svg-wrap #${id}`)
   const settle = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(resolve)))))
   const labels = async expected => {
@@ -36,6 +36,20 @@ try {
   await labels([150,80])
   await page.keyboard.up('Alt')
   await labels([])
+  await select('e')
+  await page.keyboard.down('Alt')
+  await node('f').hover()
+  await labels([40,40])
+  const stageRect = await page.locator('.canvas-stage').boundingBox()
+  const [eRect, fRect] = await Promise.all([node('e').boundingBox(), node('f').boundingBox()])
+  const guideEdges = await page.locator('.layer-distances svg > g > line:first-child').evaluateAll(lines => lines.map(line => [Number(line.getAttribute('x1')), Number(line.getAttribute('x2'))]))
+  assert.deepEqual(guideEdges.map(([x1, x2]) => [Math.round(x1 + stageRect.x), Math.round(x2 + stageRect.x)]), [
+    [Math.round(eRect.x + 4), Math.round(fRect.x - 4)],
+    [Math.round(eRect.x + eRect.width + 4), Math.round(fRect.x + fRect.width - 4)],
+  ])
+  await page.keyboard.up('Alt')
+  await labels([])
+  await select('a')
   await page.getByRole('button',{name:/Zoom in|放大/}).first().click()
   await page.keyboard.down('Alt')
   await node('b').hover()
@@ -71,5 +85,5 @@ try {
   await page.keyboard.up('Alt')
   assert.equal(await page.locator('.svg-wrap').innerHTML(),before,'measurement never edits markup')
   assert.deepEqual(errors,[])
-  console.log('Distance E2E passed: Option, horizontal/vertical/diagonal, containment, zoom, group, multi-selection, leave, release, pan, blur; no page errors')
+  console.log('Distance E2E passed: Option, edge anchors, horizontal/vertical/diagonal, containment, zoom, group, multi-selection, leave, release, pan, blur; no page errors')
 } finally { await browser.close() }

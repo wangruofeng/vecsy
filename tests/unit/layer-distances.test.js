@@ -14,3 +14,14 @@ it('measures four containment insets and overlapping edge offsets', () => {
   expect(distances({ left: 20, top: 20, right: 40, bottom: 40 })).toEqual([10, 10, 10, 10])
   expect(distances(a)).toEqual([])
 })
+it('anchors interleaved offset guides directly to both box edges', () => {
+  const b = { left: 20, top: 10, right: 40, bottom: 30 }
+  expect(getLayerDistanceGuides(a, b)).toEqual([
+    { x1: 10, y1: 20, x2: 20, y2: 20 },
+    { x1: 30, y1: 20, x2: 40, y2: 20 },
+  ])
+  expect(getLayerDistanceGuides(b, a)).toEqual([
+    { x1: 20, y1: 20, x2: 10, y2: 20 },
+    { x1: 40, y1: 20, x2: 30, y2: 20 },
+  ])
+})
