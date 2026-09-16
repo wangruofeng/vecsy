@@ -3,19 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#10192b" />
+    <meta name="theme-color" content="#0a0a0c" />
     <meta name="robots" content="noindex" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=9f832763" />
     <title>404 — Page Not Found | Vecsy</title>
     <meta name="description" content="This page does not exist on Vecsy. Return to the SVG editor." />
-    <link rel="canonical" href="https://vecsy.top/404.html" />
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html, body { height: 100%; }
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-        background: radial-gradient(ellipse at top, #1a2742 0%, #10192b 60%);
-        color: #e6ecf5;
+        background: radial-gradient(ellipse 120% 70% at 50% -20%, rgba(242, 169, 59, .09), transparent 55%), #0a0a0c;
+        color: #f2efe9;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -24,43 +23,42 @@
         text-align: center;
       }
       .card { max-width: 540px; width: 100%; }
-      .mark {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 96px; height: 96px; border-radius: 22px;
-        background: #0b1220; border: 1px solid rgba(200, 255, 79, 0.25);
-        margin-bottom: 32px; position: relative;
-      }
-      .mark::before, .mark::after {
-        content: ''; position: absolute; transform: rotate(45deg);
-      }
-      .mark::before {
-        width: 52px; height: 52px; border: 6px solid #C8FF4F; border-radius: 8px;
-      }
-      .mark::after {
-        width: 16px; height: 16px; background: #C8FF4F; border-radius: 3px;
-      }
+      .mark { width: 96px; height: 96px; display: block; margin: 0 auto 32px; }
       .code {
-        font-size: 72px; font-weight: 800; color: #C8FF4F;
-        letter-spacing: -2px; line-height: 1; margin-bottom: 16px;
+        font-size: 72px; font-weight: 800; line-height: 1; margin-bottom: 16px;
+        letter-spacing: -2px;
+        background: linear-gradient(135deg, #FBA13A 0%, #F59836 52%, #F39230 100%);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent; color: #f2a93b;
       }
       h1 { font-size: 24px; font-weight: 600; margin-bottom: 12px; }
-      p { font-size: 16px; line-height: 1.6; color: #a8b3c7; margin-bottom: 32px; }
+      p { font-size: 16px; line-height: 1.6; color: #b4b0a7; margin-bottom: 32px; }
       .cta {
         display: inline-block; padding: 14px 28px;
-        background: #C8FF4F; color: #10192b;
+        background: #f2a93b; color: #0a0a0c;
         font-weight: 600; font-size: 15px; text-decoration: none;
         border-radius: 10px; transition: transform 0.15s ease, box-shadow 0.15s ease;
       }
-      .cta:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(200, 255, 79, 0.3); }
+      .cta:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(242, 169, 59, .3); }
       .url {
-        margin-top: 24px; font-size: 13px; color: #5e6a82;
+        margin-top: 24px; font-size: 13px; color: #8e8b84;
         font-family: ui-monospace, 'SF Mono', Menlo, monospace; word-break: break-all;
       }
     </style>
   </head>
   <body>
     <main class="card">
-      <div class="mark" aria-hidden="true"></div>
+      <svg class="mark" viewBox="37 34 960 960" role="img" aria-label="Vecsy logo" shape-rendering="geometricPrecision">
+        <defs>
+          <linearGradient id="vecsy404Orange" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FBA13A" />
+            <stop offset="52%" stop-color="#F59836" />
+            <stop offset="100%" stop-color="#F39230" />
+          </linearGradient>
+        </defs>
+        <rect x="37" y="34" width="960" height="960" rx="160" fill="url(#vecsy404Orange)" />
+        <path d="M210 254 H325 C333 254 340 258 344 266 L512 600 L681 266 C685 258 692 254 701 254 H816 C827 254 834 266 829 276 L541 838 C535 849 524 854 513 854 C501 854 490 849 484 838 L196 276 C191 266 199 254 210 254 Z" fill="#FFFFFF" />
+      </svg>
       <div class="code">404</div>
       <h1>Page not found</h1>
       <p>The page you're looking for doesn't exist on Vecsy. The SVG editor is still here, though.</p>

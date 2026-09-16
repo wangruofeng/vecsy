@@ -61,6 +61,12 @@ const SECTIONS = {
       'zh-TW': 'Vecsy — SVG 編輯器',
       'ja': 'Vecsy — SVG エディター',
     },
+    brandTagline: {
+      'en': 'Free online SVG editor',
+      'zh-CN': '免费在线 SVG 编辑器',
+      'zh-TW': '免費線上 SVG 編輯器',
+      'ja': '無料オンライン SVG エディター',
+    },
   },
   layers: {
     layers: {
