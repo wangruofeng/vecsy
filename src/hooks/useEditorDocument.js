@@ -101,6 +101,9 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
         setSelectedIds(Array.isArray(storedDocument.selectedIds) ? storedDocument.selectedIds : [])
         setFileName(storedDocument.fileName || 'untitled.svg')
         setDirty(Boolean(storedDocument.dirty))
+        // IndexedDB 不存历史快照；state 里的 history 来自 localStorage 旧会话残留，与恢复出的
+        // 文档不同源（可能含删空图层的空 svg 快照），不清空会让撤销跳回旧会话的空文档
+        setHistory({ past: [], future: [] })
         if (LANGUAGES.some((item) => item.code === storedLanguage?.value)) setLanguage(storedLanguage.value)
       }
       if (!closed && storedRecents.length) setRecentDocuments(storedRecents.map(({ fileName, svgMarkup, updatedAt }) => ({ fileName, svgMarkup, updatedAt })))
