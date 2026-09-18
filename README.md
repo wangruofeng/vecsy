@@ -129,9 +129,10 @@ npx wrangler login
 ├── src/
 │   ├── main.jsx     # 应用入口与业务编排
 │   ├── app/copy.js  # 四语文案（en/zh-CN/zh-TW/ja）和显示名称
-│   ├── components/  # LayerPanel、CanvasPanel、InspectorPanel、Icon
+│   ├── components/  # LayerPanel、CanvasPanel、InspectorPanel、Icon、RecentSvgModal、SvgCollectionModal 等
 │   ├── editor/      # SVG parser、geometry、transforms、security
 │   ├── hooks/       # 文档状态和画布交互 Hook
+│   ├── storage/     # 本地 SVG 收藏与最近打开的持久化
 │   └── styles.css   # 全局样式
 ├── tests/
 │   ├── unit/        # 纯函数单元测试（安全、矩阵、存储）

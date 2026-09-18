@@ -129,9 +129,10 @@ The app entry point handles orchestration. SVG parsing/geometry/transforms, shar
 ├── src/
 │   ├── main.jsx     # App entry & business orchestration
 │   ├── app/copy.js  # Quad-lingual copy (en/zh-CN/zh-TW/ja) and display names
-│   ├── components/  # LayerPanel, CanvasPanel, InspectorPanel, Icon
+│   ├── components/  # LayerPanel, CanvasPanel, InspectorPanel, Icon, RecentSvgModal, SvgCollectionModal, etc.
 │   ├── editor/      # SVG parser, geometry, transforms, security
 │   ├── hooks/       # Document state and canvas interaction hooks
+│   ├── storage/     # Local SVG collection & recent-files persistence
 │   └── styles.css   # Global styles
 ├── tests/
 │   ├── unit/        # Pure function unit tests (security, matrix, storage)
