@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
-import SAMPLE_SVG from './app/sample.svg?raw'
+import { getSampleSvg } from './app/sample-svg.js'
 import { COPY, LANGUAGES, ADD_LAYER_TAGS, getLayerDisplayName, getTagDisplayName } from './app/copy.js'
 import { registerRuntimeIdentity } from './app/runtime-identity.js'
 import Icon from './components/Icon.jsx'
@@ -12,7 +12,7 @@ import SvgCollectionModal from './components/SvgCollectionModal.jsx'
 import RecentSvgModal from './components/RecentSvgModal.jsx'
 import useEditorDocument from './hooks/useEditorDocument.js'
 import useCanvasInteraction from './hooks/useCanvasInteraction.js'
-import { getAncestorGroupIds, getColor, getSvgColorTokens, getVisibleLayerItems, isElementHidden, setElementVisibility } from './editor/svg-parser.js'
+import { parseSvg, getAncestorGroupIds, getColor, getSvgColorTokens, getVisibleLayerItems, isElementHidden, setElementVisibility } from './editor/svg-parser.js'
 import { getSvgDimensions, getTopLevelSelectedIds } from './editor/svg-geometry.js'
 import { processSvgInput } from './editor/process-svg-input.js'
 import { editSvgDocument } from './editor/edit-svg-document.js'
@@ -52,7 +52,7 @@ function renderRasterExport(markup, width, height, format) {
 }
 
 function App() {
-  const { language, setLanguage, svgMarkup, sourceDraft, setSourceDraft, elements, selectedId, setSelectedId, selectedIds, setSelectedIds, fileName, dirty, setDirty, history, storageError, setStorageError, selectLayerIds, currentSnapshot, commitDocument, undo, redo, loadDocument, recentDocuments, removeRecentDocument } = useEditorDocument({ initialMarkup: SAMPLE_SVG, storageKey: STORAGE_KEY, legacyStorageKey: LEGACY_STORAGE_KEY, historyLimit: HISTORY_LIMIT })
+  const { language, setLanguage, svgMarkup, sourceDraft, setSourceDraft, elements, selectedId, setSelectedId, selectedIds, setSelectedIds, fileName, dirty, setDirty, history, storageError, setStorageError, selectLayerIds, currentSnapshot, commitDocument, undo, redo, loadDocument, recentDocuments, removeRecentDocument } = useEditorDocument({ initialMarkup: getSampleSvg(), storageKey: STORAGE_KEY, legacyStorageKey: LEGACY_STORAGE_KEY, historyLimit: HISTORY_LIMIT })
   const [activeTab, setActiveTab] = useState('preview')
   const [isLayersOpen, setIsLayersOpen] = useState(true)
   const [isInspectorOpen, setIsInspectorOpen] = useState(true)
@@ -923,7 +923,7 @@ function App() {
     }
   }
 
-  const loadDemo = () => loadSvg(SAMPLE_SVG, 'demo.svg', { source: 'app-owned' })
+  const loadDemo = () => loadSvg(getSampleSvg(language), 'demo.svg', { source: 'app-owned' })
 
   const hasDraggedFiles = (event) => Array.from(event.dataTransfer?.types || []).includes('Files')
 
@@ -1218,7 +1218,13 @@ function App() {
           <span className="divider" />
           <div className="language-menu-wrap">
             <button className="language-toggle" type="button" onClick={() => setLangMenuOpen((current) => !current)} aria-label={copy.languageSwitch} aria-haspopup="menu" aria-expanded={langMenuOpen} title={copy.languageSwitch}><Icon name="globe" size={13} /></button>
-            {langMenuOpen && <div className="language-menu" role="menu" aria-label={copy.languageSwitch}>{LANGUAGES.map((item) => <button key={item.code} type="button" role="menuitemradio" aria-checked={language === item.code} className={language === item.code ? 'is-active' : ''} onClick={() => { setLanguage(item.code); setLangMenuOpen(false) }}><span className="language-menu-check">{language === item.code && <Icon name="check" size={12} />}</span><span>{item.label}</span></button>)}</div>}
+            {langMenuOpen && <div className="language-menu" role="menu" aria-label={copy.languageSwitch}>{LANGUAGES.map((item) => <button key={item.code} type="button" role="menuitemradio" aria-checked={language === item.code} className={language === item.code ? 'is-active' : ''} onClick={() => {
+              if (item.code !== language && (fileName === 'untitled.svg' || fileName === 'demo.svg') && LANGUAGES.some(({ code }) => parseSvg(getSampleSvg(code)).markup === svgMarkup)) {
+                commitDocument(getSampleSvg(item.code), { nextDirty: dirty })
+              }
+              setLanguage(item.code)
+              setLangMenuOpen(false)
+            }}><span className="language-menu-check">{language === item.code && <Icon name="check" size={12} />}</span><span>{item.label}</span></button>)}</div>}
           </div>
           <button className="button button-quiet" onClick={() => fileInput.current?.click()}><Icon name="download" /> {copy.open}</button>
           <button className="button button-accent" onClick={openExport}><Icon name="upload" /> {copy.export}</button>
