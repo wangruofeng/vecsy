@@ -56,10 +56,22 @@ const SECTIONS = {
       'ja': 'エクスポート',
     },
     documentTitle: {
-      'en': 'Vecsy — SVG editor',
-      'zh-CN': 'Vecsy — SVG 编辑器',
-      'zh-TW': 'Vecsy — SVG 編輯器',
-      'ja': 'Vecsy — SVG エディター',
+      'en': 'Vecsy — Free Online SVG Editor in Your Browser',
+      'zh-CN': 'Vecsy — 免费在线 SVG 编辑器',
+      'zh-TW': 'Vecsy — 免費線上 SVG 編輯器',
+      'ja': 'Vecsy — 無料オンライン SVG エディター',
+    },
+    metaDescription: {
+      'en': 'Free online SVG editor. Edit layers, colors, text and shapes in your browser, then export SVG, PNG or WebP. No install or account; your files stay on your device.',
+      'zh-CN': '免费在线 SVG 编辑器：在浏览器中编辑图层、颜色、文字和形状，支持对齐、分布、撤销与重做，导出 SVG、PNG 或 WebP。无需安装或注册，文件在本地处理。',
+      'zh-TW': '免費線上 SVG 編輯器：在瀏覽器中編輯圖層、色彩、文字和形狀，支援對齊、分佈、復原與重做，匯出 SVG、PNG 或 WebP。無需安裝或註冊，檔案在本機處理。',
+      'ja': '無料オンライン SVG エディター。ブラウザーでレイヤー、色、テキスト、図形を編集し、整列や取り消しも利用できます。SVG、PNG、WebP に書き出し可能。インストールや登録は不要で、ファイルは端末内で処理されます。',
+    },
+    socialImageAlt: {
+      'en': 'Vecsy — browser SVG editor with layers, live preview and export',
+      'zh-CN': 'Vecsy — 支持图层编辑、实时预览和导出的浏览器 SVG 编辑器',
+      'zh-TW': 'Vecsy — 支援圖層編輯、即時預覽和匯出的瀏覽器 SVG 編輯器',
+      'ja': 'Vecsy — レイヤー編集、ライブプレビュー、書き出しに対応するブラウザー SVG エディター',
     },
     brandTagline: {
       'en': 'Free online SVG editor',

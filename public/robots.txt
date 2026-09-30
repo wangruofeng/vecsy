@@ -54,8 +54,7 @@ Disallow: /
 User-agent: FacebookBot
 Disallow: /
 
-User-agent: FacebookExternalHit
-Disallow: /
+# FacebookExternalHit 分享预览爬虫遵循通配规则，允许读取 Open Graph。
 
 # --- 站点地图 ---
 Sitemap: https://vecsy.top/sitemap.xml

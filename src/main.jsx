@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './styles.css'
 import { getSampleSvg } from './app/sample-svg.js'
 import { COPY, LANGUAGES, ADD_LAYER_TAGS, getLayerDisplayName, getTagDisplayName } from './app/copy.js'
+import { updatePageMetadata } from './app/seo.js'
 import { registerRuntimeIdentity } from './app/runtime-identity.js'
 import Icon from './components/Icon.jsx'
 import LayerPanel from './components/LayerPanel.jsx'
@@ -219,8 +220,7 @@ function App() {
   const highlightedSource = useMemo(() => highlightSvgSource(sourceDraft), [sourceDraft])
 
   useEffect(() => {
-    document.documentElement.lang = language
-    document.title = copy.documentTitle
+    updatePageMetadata(document, language, copy)
   }, [language])
 
   useEffect(() => {
