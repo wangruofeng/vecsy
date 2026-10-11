@@ -43,7 +43,7 @@
     <meta name="twitter:image:alt" content="Vecsy — browser SVG editor with layers, live preview and export" />
 
     <!-- Structured data -->
-    <script type="application/ld+json">
+    <script id="vecsy-structured-data" type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@graph": [
@@ -52,7 +52,7 @@
             "@id": "https://vecsy.top/#app",
             "name": "Vecsy",
             "url": "https://vecsy.top/",
-            "description": "Free browser-based SVG editor. Import any SVG, inspect and rearrange layers, edit fills, strokes and transforms live, and export optimized markup.",
+            "description": "Free online SVG editor. Edit layers, colors, text and shapes in your browser, then export SVG, PNG or WebP. No install or account; your files stay on your device.",
             "applicationCategory": "DesignApplication",
             "operatingSystem": "Web",
             "browserRequirements": "Requires a modern web browser with JavaScript enabled",
@@ -105,9 +105,10 @@
         静态 SEO 兜底文案：爬虫与禁用 JS 的客户端首屏可见。
         React createRoot 渲染时会清空 #root 并替换为完整应用，不会出现 hydration mismatch（未用 hydrateRoot）。
       -->
+      <main>
       <h1>Vecsy — Free Online SVG Editor in Your Browser</h1>
       <p>
-        Vecsy is a free, browser-based SVG editor. Drop in any SVG to inspect its layers,
+        Vecsy is a free, browser-based SVG editor. Drop in an SVG to inspect its layers,
         fine-tune fills, strokes and transforms in real time, and export clean, optimized markup.
         No install, no account — everything runs locally in your browser.
       </p>
@@ -125,6 +126,8 @@
         <li>Export optimized SVG, PNG or WebP images</li>
       </ul>
       <p>Available in English, 简体中文, 繁體中文 and 日本語.</p>
+      <nav aria-label="SVG editor guides"><a href="/guide/en/">SVG editor guide</a> · <a href="/guide/zh-CN/">SVG 编辑器使用指南</a> · <a href="/guide/zh-TW/">SVG 編輯器使用指南</a> · <a href="/guide/ja/">SVG エディターガイド</a></nav>
+      </main>
     </div>
     <noscript><style>#root[data-booting] > * { visibility: visible; }</style></noscript>
     <script type="module" src="/src/main.jsx"></script>

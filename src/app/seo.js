@@ -17,6 +17,16 @@ export function updatePageMetadata(document, language, copy) {
   for (const [selector, value] of Object.entries(values)) {
     document.querySelector(selector)?.setAttribute('content', value)
   }
+  // 只更新本站应用实体的描述，保留稳定 ID、功能清单和支持语言。
+  const structuredData = document.getElementById('vecsy-structured-data')
+  if (structuredData) {
+    const schema = JSON.parse(structuredData.textContent)
+    const app = schema['@graph']?.find((entity) => entity['@id'] === 'https://vecsy.top/#app')
+    if (app) {
+      app.description = copy.metaDescription
+      structuredData.textContent = JSON.stringify(schema).replace(/</g, '\\u003c')
+    }
+  }
   document.querySelectorAll('meta[property="og:locale:alternate"]').forEach((node) => node.remove())
   for (const locale of Object.values(SOCIAL_LOCALES)) {
     if (locale === SOCIAL_LOCALES[language]) continue

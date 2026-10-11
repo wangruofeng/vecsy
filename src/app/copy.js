@@ -12,6 +12,177 @@ export const LANGUAGES = [
 const LANGS = ['en', 'zh-CN', 'zh-TW', 'ja']
 
 const SECTIONS = {
+  guide: {
+    guideTitle: {
+      "en": "Vecsy SVG editor guide",
+      "zh-CN": "Vecsy SVG 编辑器使用指南",
+      "zh-TW": "Vecsy SVG 編輯器使用指南",
+      "ja": "Vecsy SVG エディターガイド"
+    },
+    guideSummary: {
+      "en": "Vecsy is a free browser SVG editor for editing existing vector files, layers, colors and text, with SVG, PNG and WebP export. No installation or account is required.",
+      "zh-CN": "Vecsy 是免费的浏览器 SVG 编辑器，可编辑已有矢量文件、图层、颜色和文字，并导出 SVG、PNG 或 WebP，无需安装或注册账号。",
+      "zh-TW": "Vecsy 是免費的瀏覽器 SVG 編輯器，可編輯現有向量檔案、圖層、顏色和文字，並匯出 SVG、PNG 或 WebP，無需安裝或註冊帳號。",
+      "ja": "Vecsy は無料のブラウザー SVG エディターです。ベクターファイル、レイヤー、色、テキストを編集し、SVG、PNG、WebP で書き出せます。インストールやアカウントは不要です。"
+    },
+    guideStart: {
+      "en": "Open SVG editor",
+      "zh-CN": "打开 SVG 编辑器",
+      "zh-TW": "開啟 SVG 編輯器",
+      "ja": "SVG エディターを開く"
+    },
+    guideStepsTitle: {
+      "en": "How to edit an SVG",
+      "zh-CN": "如何编辑 SVG",
+      "zh-TW": "如何編輯 SVG",
+      "ja": "SVG の編集手順"
+    },
+    guideSteps: {
+      "en": [
+        "Import an SVG with the Import button or drag a file onto the editor.",
+        "Select an element on the canvas or in the layer tree.",
+        "Change its fill, stroke, text or transform in the property panel; undo if needed.",
+        "Choose Export and select SVG, PNG or WebP."
+      ],
+      "zh-CN": [
+        "点击导入按钮选择 SVG 文件，或将文件拖入编辑器。",
+        "在画布或图层树中选择需要编辑的元素。",
+        "在属性面板修改填充、描边、文字或变换；需要时可撤销。",
+        "点击导出，选择 SVG、PNG 或 WebP 格式。"
+      ],
+      "zh-TW": [
+        "點擊匯入按鈕選擇 SVG 檔案，或將檔案拖入編輯器。",
+        "在畫布或圖層樹中選擇需要編輯的元素。",
+        "在屬性面板修改填色、描邊、文字或變換；需要時可復原。",
+        "點擊匯出，選擇 SVG、PNG 或 WebP 格式。"
+      ],
+      "ja": [
+        "インポートボタンまたはドラッグで SVG を読み込みます。",
+        "キャンバスまたはレイヤーツリーで要素を選択します。",
+        "プロパティで塗り、線、テキスト、変形を変更します。必要なら元に戻せます。",
+        "エクスポートで SVG、PNG、WebP を選択します。"
+      ]
+    },
+    guideFaqTitle: {
+      "en": "Frequently asked questions",
+      "zh-CN": "常见问题",
+      "zh-TW": "常見問題",
+      "ja": "よくある質問"
+    },
+    guideFaq: {
+      "en": [
+        [
+          "Is Vecsy free?",
+          "Yes. The SVG editor is free and does not require an account."
+        ],
+        [
+          "Are SVG files uploaded?",
+          "Imported documents are edited and saved in this browser. Export a backup: clearing browser storage can remove locally saved documents. External image URLs and active content are filtered during SVG import; use embedded images for a self-contained file."
+        ],
+        [
+          "Can I edit colors and text?",
+          "Select a layer to change its fill, stroke and text. You can also rename, reorder, group, align and distribute layers."
+        ],
+        [
+          "Can I convert PNG to editable SVG paths?",
+          "Vecsy edits SVG vectors and exports PNG or WebP. Importing a raster image does not trace it into editable vector paths."
+        ],
+        [
+          "Which format should I export?",
+          "SVG preserves vector markup for further editing. PNG and WebP are raster images; their resolution depends on export settings."
+        ],
+        [
+          "Does every SVG render identically?",
+          "Fonts, external resources and browser support can affect rendering. Active or unsafe SVG content is filtered on import. Check the preview and exported file for complex SVGs."
+        ]
+      ],
+      "zh-CN": [
+        [
+          "Vecsy 免费吗？",
+          "是，SVG 编辑器免费使用，无需注册账号。"
+        ],
+        [
+          "SVG 文件会上传吗？",
+          "导入文档在当前浏览器中编辑和保存。建议导出备份，清除浏览器存储可能删除本地文档。导入 SVG 时会过滤外部图片链接与活跃内容；建议使用嵌入图片，让文件不依赖外部资源。"
+        ],
+        [
+          "可以修改颜色和文字吗？",
+          "选择图层后可修改填充、描边和文字，也可重命名、排序、分组、对齐及分布图层。"
+        ],
+        [
+          "能把 PNG 转为可编辑的 SVG 路径吗？",
+          "Vecsy 编辑 SVG 矢量并导出 PNG 或 WebP。导入位图不会自动描摹为可编辑的矢量路径。"
+        ],
+        [
+          "应该导出哪种格式？",
+          "SVG 保留矢量标记，便于继续编辑。PNG 和 WebP 是位图，分辨率取决于导出设置。"
+        ],
+        [
+          "所有 SVG 都能原样显示吗？",
+          "字体、外部资源和浏览器支持可能影响显示。导入时会过滤活跃或不安全的 SVG 内容，复杂文件请检查预览和导出结果。"
+        ]
+      ],
+      "zh-TW": [
+        [
+          "Vecsy 免費嗎？",
+          "是，SVG 編輯器免費使用，無需註冊帳號。"
+        ],
+        [
+          "SVG 檔案會上傳嗎？",
+          "匯入文件在目前瀏覽器中編輯和儲存。建議匯出備份，清除瀏覽器儲存空間可能刪除本地文件。匯入 SVG 時會過濾外部圖片連結與活躍內容；建議使用嵌入圖片，讓檔案不依賴外部資源。"
+        ],
+        [
+          "可以修改顏色和文字嗎？",
+          "選擇圖層後可修改填色、描邊和文字，也可重新命名、排序、群組、對齊及分佈圖層。"
+        ],
+        [
+          "能把 PNG 轉為可編輯的 SVG 路徑嗎？",
+          "Vecsy 編輯 SVG 向量並匯出 PNG 或 WebP。匯入點陣圖不會自動描摹為可編輯的向量路徑。"
+        ],
+        [
+          "應該匯出哪種格式？",
+          "SVG 保留向量標記，便於繼續編輯。PNG 和 WebP 是點陣圖，解析度取決於匯出設定。"
+        ],
+        [
+          "所有 SVG 都能原樣顯示嗎？",
+          "字型、外部資源和瀏覽器支援可能影響顯示。匯入時會過濾活躍或不安全的 SVG 內容，複雜檔案請檢查預覽和匯出結果。"
+        ]
+      ],
+      "ja": [
+        [
+          "Vecsy は無料ですか？",
+          "はい。SVG エディターは無料で、アカウント登録は不要です。"
+        ],
+        [
+          "SVG はアップロードされますか？",
+          "読み込んだ文書は現在のブラウザーで編集・保存されます。ストレージの削除で文書が失われる場合があるため、書き出してバックアップしてください。SVG の読み込み時に外部画像 URL とアクティブなコンテンツは除去されます。外部リソースに依存しない埋め込み画像を使用してください。"
+        ],
+        [
+          "色やテキストを編集できますか？",
+          "レイヤーの塗り、線、テキストを変更できます。名前変更、並べ替え、グループ化、整列、均等配置もできます。"
+        ],
+        [
+          "PNG を編集可能な SVG パスに変換できますか？",
+          "Vecsy は SVG の編集と PNG・WebP の書き出しに対応します。画像の読み込みはベクターパスへの自動トレースではありません。"
+        ],
+        [
+          "どの形式で書き出すべきですか？",
+          "SVG は再編集用のベクターマークアップを保持します。PNG と WebP はラスター画像で、解像度は書き出し設定によります。"
+        ],
+        [
+          "すべての SVG が同じように表示されますか？",
+          "フォント、外部リソース、ブラウザーの対応状況により表示が変わる場合があります。読み込み時には危険な SVG 内容が除去されます。複雑なファイルはプレビューと書き出し結果を確認してください。"
+        ]
+      ]
+    },
+    guideSource: {
+      "en": "Product source",
+      "zh-CN": "产品源码",
+      "zh-TW": "產品原始碼",
+      "ja": "製品ソース"
+    },
+  },
+
   chrome: {
     languageSwitch: {
       'en': 'Language',
@@ -1401,7 +1572,7 @@ function buildCopy(sections) {
   const byLang = { en: {}, "zh-CN": {}, "zh-TW": {}, ja: {} }
   for (const section of Object.values(sections)) {
     for (const [key, texts] of Object.entries(section)) {
-      if (import.meta.env.DEV) {
+      if (import.meta.env?.DEV) {
         const missing = LANGS.filter((l) => texts[l] == null)
         if (missing.length) console.warn(`[copy] "${key}" 缺少语言: ${missing.join(", ")}`)
       }
