@@ -1,30 +1,24 @@
 <!doctype html>
-<html lang="en">
+<!-- 由 scripts/generate-site.mjs 生成；编辑模板、COPY 或 src/app/seo.js。 -->
+<html lang="en" data-view="landing">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0a0c" />
-    <style>
-      html, body { min-height: 100%; margin: 0; background: #0a0a0c; }
-      #root[data-booting] { min-height: 100vh; background: #0a0a0c; }
-      #root[data-booting] > * { visibility: hidden; }
-    </style>
+    <meta name="theme-color" content="#f7f6f2" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <title>Vecsy — A Simple, Free Online SVG Editor</title>
+    <meta name="description" content="Meet Vecsy, a free SVG editor in your browser. Explore layer, color and text editing, SVG, PNG and WebP export, and local file storage. No account or install." />
+    <link rel="canonical" href="https://vecsy.top/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=9f832763" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
-
-    <title>Vecsy — Free Online SVG Editor in Your Browser</title>
-    <meta name="description" content="Free online SVG editor. Edit layers, colors, text and shapes in your browser, then export SVG, PNG or WebP. No install or account; your files stay on your device." />
-    <link rel="canonical" href="https://vecsy.top/" />
-
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Vecsy" />
-    <meta property="og:title" content="Vecsy — Free Online SVG Editor in Your Browser" />
-    <meta property="og:description" content="Free online SVG editor. Edit layers, colors, text and shapes in your browser, then export SVG, PNG or WebP. No install or account; your files stay on your device." />
     <meta property="og:url" content="https://vecsy.top/" />
+    <meta property="og:title" content="Vecsy — A Simple, Free Online SVG Editor" />
+    <meta property="og:description" content="Meet Vecsy, a free SVG editor in your browser. Explore layer, color and text editing, SVG, PNG and WebP export, and local file storage. No account or install." />
     <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="zh_CN" />
     <meta property="og:locale:alternate" content="zh_TW" />
@@ -33,103 +27,25 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Vecsy — browser SVG editor with layers, live preview and export" />
-
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Vecsy — Free Online SVG Editor in Your Browser" />
-    <meta name="twitter:description" content="Free online SVG editor. Edit layers, colors, text and shapes in your browser, then export SVG, PNG or WebP. No install or account; your files stay on your device." />
+    <meta name="twitter:title" content="Vecsy — A Simple, Free Online SVG Editor" />
+    <meta name="twitter:description" content="Meet Vecsy, a free SVG editor in your browser. Explore layer, color and text editing, SVG, PNG and WebP export, and local file storage. No account or install." />
     <meta name="twitter:image" content="https://vecsy.top/og-image.png" />
-
     <meta name="twitter:image:alt" content="Vecsy — browser SVG editor with layers, live preview and export" />
-
-    <!-- Structured data -->
-    <script id="vecsy-structured-data" type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@graph": [
-          {
-            "@type": "WebApplication",
-            "@id": "https://vecsy.top/#app",
-            "name": "Vecsy",
-            "url": "https://vecsy.top/",
-            "description": "Free online SVG editor. Edit layers, colors, text and shapes in your browser, then export SVG, PNG or WebP. No install or account; your files stay on your device.",
-            "applicationCategory": "DesignApplication",
-            "operatingSystem": "Web",
-            "browserRequirements": "Requires a modern web browser with JavaScript enabled",
-            "inLanguage": ["en", "zh-Hans", "zh-Hant", "ja"],
-            "isAccessibleForFree": true,
-            "featureList": [
-              "Import SVG files by drag-and-drop or file picker",
-              "Layer tree to inspect, select, rename, reorder, show/hide SVG elements",
-              "Add shapes: rect, circle, ellipse, line, polyline, polygon, path, text",
-              "Edit fills, strokes, opacity and stroke width live",
-              "Inline text editing directly on the canvas",
-              "Pan and zoom canvas (trackpad pinch, scroll, buttons)",
-              "Multi-select layers with bounding-box preview",
-              "Source view with syntax highlighting and one-click format",
-              "Undo / redo history",
-              "Export optimized and minified SVG",
-              "Export PNG and WebP images",
-              "Align and distribute selected layers"
-            ],
-            "offers": {
-              "@type": "Offer",
-              "price": "0",
-              "priceCurrency": "USD"
-            },
-            "publisher": { "@id": "https://vecsy.top/#org" },
-            "isPartOf": { "@id": "https://vecsy.top/#website" }
-          },
-          {
-            "@type": "WebSite",
-            "@id": "https://vecsy.top/#website",
-            "url": "https://vecsy.top/",
-            "name": "Vecsy",
-            "inLanguage": ["en", "zh-Hans", "zh-Hant", "ja"],
-            "publisher": { "@id": "https://vecsy.top/#org" }
-          },
-          {
-            "@type": "Organization",
-            "@id": "https://vecsy.top/#org",
-            "name": "Vecsy",
-            "url": "https://vecsy.top/",
-            "logo": "https://vecsy.top/icon-512.png"
-          }
-        ]
-      }
-    </script>
+    <script id="vecsy-structured-data" type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://vecsy.top/#webpage","url":"https://vecsy.top/","name":"Vecsy — A Simple, Free Online SVG Editor","description":"Meet Vecsy, a free SVG editor in your browser. Explore layer, color and text editing, SVG, PNG and WebP export, and local file storage. No account or install.","inLanguage":"en","isPartOf":{"@id":"https://vecsy.top/#website"},"about":{"@id":"https://vecsy.top/#app"},"mainEntity":{"@id":"https://vecsy.top/#app"},"primaryImageOfPage":{"@type":"ImageObject","url":"https://vecsy.top/og-image.png","width":1200,"height":630}},{"@type":"WebApplication","@id":"https://vecsy.top/#app","name":"Vecsy","url":"https://vecsy.top/editor/","description":"Free online SVG editor. Edit layers, colors, text and shapes in your browser, then export SVG, PNG or WebP. No install or account; your files stay on your device.","applicationCategory":"DesignApplication","operatingSystem":"Web","inLanguage":["en","zh-Hans","zh-Hant","ja"],"isAccessibleForFree":true,"featureList":["Select, rename, reorder and group. Align several shapes or hide one for a moment. Everything has its place.","Fine-tune fills, strokes and opacity with a live preview. Make small adjustments and see the difference as you go.","Switch between the canvas and SVG source. Read highlighted markup, edit directly, or format it with a click.","Keep your work as SVG, or export PNG and WebP. Choose the scale, export selected layers and optimize SVG size."],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://vecsy.top/#org"},"isPartOf":{"@id":"https://vecsy.top/#website"}},{"@type":"WebSite","@id":"https://vecsy.top/#website","url":"https://vecsy.top/","name":"Vecsy","inLanguage":["en","zh-Hans","zh-Hant","ja"],"publisher":{"@id":"https://vecsy.top/#org"}},{"@type":"Organization","@id":"https://vecsy.top/#org","name":"Vecsy","url":"https://vecsy.top/","logo":"https://vecsy.top/icon-512.png"}]}</script>
+    <style>
+      html, body { min-height: 100%; margin: 0; background: #f7f6f2; }
+      #root[data-booting] { min-height: 100vh; }
+      #root[data-booting] > * { visibility: hidden; }
+      .seo-fallback { max-width: 850px; margin: auto; padding: 32px 24px; color: #393e38; font: 16px/1.75 system-ui, sans-serif; }
+      .seo-fallback a { color: inherit; }
+      .seo-fallback nav { display: flex; flex-wrap: wrap; gap: 16px; }
+      html[data-view="editor"] .seo-fallback { color: #f2efe9; }
+    </style>
   </head>
   <body>
-    <div id="root" data-booting>
-      <!--
-        静态 SEO 兜底文案：爬虫与禁用 JS 的客户端首屏可见。
-        React createRoot 渲染时会清空 #root 并替换为完整应用，不会出现 hydration mismatch（未用 hydrateRoot）。
-      -->
-      <main>
-      <h1>Vecsy — Free Online SVG Editor in Your Browser</h1>
-      <p>
-        Vecsy is a free, browser-based SVG editor. Drop in an SVG to inspect its layers,
-        fine-tune fills, strokes and transforms in real time, and export clean, optimized markup.
-        No install, no account — everything runs locally in your browser.
-      </p>
-      <ul>
-        <li>Import SVG by drag-and-drop or file picker</li>
-        <li>Layer tree: select, rename, reorder, show or hide elements</li>
-        <li>Add shapes — rect, circle, ellipse, line, polyline, polygon, path and text</li>
-        <li>Live property panel: fill, stroke, opacity, stroke width, corner radius</li>
-        <li>Inline text editing directly on the canvas</li>
-        <li>Pan and zoom with trackpad pinch, mouse scroll or on-screen buttons</li>
-        <li>Multi-select with per-layer and combined bounding boxes</li>
-        <li>Source view with syntax highlighting and one-click format</li>
-        <li>Full undo / redo history</li>
-        <li>Align and distribute selected layers</li>
-        <li>Export optimized SVG, PNG or WebP images</li>
-      </ul>
-      <p>Available in English, 简体中文, 繁體中文 and 日本語.</p>
-      <nav aria-label="SVG editor guides"><a href="/guide/en/">SVG editor guide</a> · <a href="/guide/zh-CN/">SVG 编辑器使用指南</a> · <a href="/guide/zh-TW/">SVG 編輯器使用指南</a> · <a href="/guide/ja/">SVG エディターガイド</a></nav>
-      </main>
-    </div>
+    <div id="root" data-booting><main class="seo-fallback"><h1>Vecsy — A Simple, Free Online SVG Editor</h1><p>Meet Vecsy, a free SVG editor in your browser. Explore layer, color and text editing, SVG, PNG and WebP export, and local file storage. No account or install.</p><p><a href="/editor/">Open SVG editor</a></p><section id="features"><h2>A light tool, for the details that matter.</h2><section><h3>See every layer</h3><p>Select, rename, reorder and group. Align several shapes or hide one for a moment. Everything has its place.</p></section><section><h3>Find your colors</h3><p>Fine-tune fills, strokes and opacity with a live preview. Make small adjustments and see the difference as you go.</p></section><section><h3>Stay close to the source</h3><p>Switch between the canvas and SVG source. Read highlighted markup, edit directly, or format it with a click.</p></section><section><h3>Export, your way</h3><p>Keep your work as SVG, or export PNG and WebP. Choose the scale, export selected layers and optimize SVG size.</p></section></section><section id="how-it-works"><h2>From a file to a finished thought.</h2><ol><li><h3>Bring it in</h3><p>Drop an SVG into the editor, open a file, or start with the built-in example.</p></li><li><h3>Make it yours</h3><p>Select a layer. Change a color, edit some text, or move a shape. Undo any time.</p></li><li><h3>Take it with you</h3><p>Export SVG, PNG or WebP. Ready for your site, a presentation, or the next idea.</p></li></ol></section><section><h2>Your files feel at home. On your device.</h2><p>Editing happens in your browser. Your documents are saved locally, with no account to create. Export a backup before clearing browser data.</p></section><section id="faq"><h2>A few things you might wonder.</h2><section><h3>Is Vecsy free?</h3><p>Yes. The SVG editor is free and does not require an account.</p></section><section><h3>Are SVG files uploaded?</h3><p>Imported documents are edited and saved in this browser. Export a backup: clearing browser storage can remove locally saved documents. External image URLs and active content are filtered during SVG import; use embedded images for a self-contained file.</p></section><section><h3>Can I edit colors and text?</h3><p>Select a layer to change its fill, stroke and text. You can also rename, reorder, group, align and distribute layers.</p></section><section><h3>Can I convert PNG to editable SVG paths?</h3><p>Vecsy edits SVG vectors and exports PNG or WebP. Importing a raster image does not trace it into editable vector paths.</p></section><section><h3>Which format should I export?</h3><p>SVG preserves vector markup for further editing. PNG and WebP are raster images; their resolution depends on export settings.</p></section><section><h3>Does every SVG render identically?</h3><p>Fonts, external resources and browser support can affect rendering. Active or unsafe SVG content is filtered on import. Check the preview and exported file for complex SVGs.</p></section></section><nav aria-label="Guide"><a href="/guide/zh-CN/" lang="zh-CN">Vecsy SVG 编辑器使用指南</a><a href="/guide/zh-TW/" lang="zh-TW">Vecsy SVG 編輯器使用指南</a><a href="/guide/en/" lang="en">Vecsy SVG editor guide</a><a href="/guide/ja/" lang="ja">Vecsy SVG エディターガイド</a></nav></main></div>
     <noscript><style>#root[data-booting] > * { visibility: visible; }</style></noscript>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/entry.jsx"></script>
   </body>
 </html>

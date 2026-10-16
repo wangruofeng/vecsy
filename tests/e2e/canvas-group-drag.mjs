@@ -9,7 +9,7 @@ try {
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
   await page.route('https://**/*', route => route.abort())
-  await page.goto(process.argv[2] || 'http://127.0.0.1:5186')
+  await page.goto(process.argv[2] || 'http://127.0.0.1:5186/editor/')
   await page.locator('.canvas-stage').waitFor()
   await page.waitForTimeout(1000)
   await page.locator('input[type=file][accept="image/svg+xml,.svg"]').setInputFiles({ name: 'group-drag.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect id="background" y="100" width="400" height="180" fill="#aaa"/><g id="foreground" transform="translate(10 5)"><rect id="first" x="50" y="80" width="50" height="80" fill="red"/><rect id="second" x="220" y="80" width="50" height="80" fill="blue"/></g></svg>') })

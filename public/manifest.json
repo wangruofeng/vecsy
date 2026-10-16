@@ -1,15 +1,20 @@
 {
   "name": "Vecsy — SVG Editor",
   "short_name": "Vecsy",
-  "description": "Vecsy is a free browser-based SVG editor. Import any SVG, inspect and rearrange layers, edit fills and strokes live, and export optimized markup.",
-  "start_url": "/",
+  "description": "Free online SVG editor. Edit layers, colors, text and shapes in your browser, then export SVG, PNG or WebP. No install or account; your files stay on your device.",
+  "start_url": "/editor/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0a0a0c",
   "theme_color": "#0a0a0c",
   "lang": "en",
-  "categories": ["graphics", "design", "productivity", "utilities"],
+  "categories": [
+    "graphics",
+    "design",
+    "productivity",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "/favicon.svg?v=9f832763",

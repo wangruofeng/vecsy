@@ -8,7 +8,7 @@ try {
   const errors = []
   page.on('pageerror', e => errors.push(e.message))
   await page.route('https://**/*', r => r.abort())
-  await page.goto(process.argv[2] || 'http://127.0.0.1:5186')
+  await page.goto(process.argv[2] || 'http://127.0.0.1:5186/editor/')
   await page.locator('.canvas-stage').waitFor()
   await page.waitForTimeout(1000)
   await page.locator('input[type=file][accept="image/svg+xml,.svg"]').setInputFiles({name:'distances.svg', mimeType:'image/svg+xml', buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect id="background" width="400" height="300" fill="#ddd"/><g id="group"><rect id="a" x="40" y="40" width="60" height="40" fill="red"/><rect id="b" x="140" y="40" width="60" height="40" fill="blue"/></g><rect id="c" x="40" y="160" width="60" height="40" fill="green"/><rect id="d" x="250" y="160" width="60" height="40" fill="purple"/><rect id="e" x="40" y="240" width="60" height="30" fill="orange"/><rect id="f" x="80" y="240" width="60" height="30" fill="teal"/></svg>')})

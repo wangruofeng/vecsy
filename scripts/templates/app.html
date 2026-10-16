@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- 由 scripts/generate-site.mjs 生成；编辑模板、COPY 或 src/app/seo.js。 -->
+<html lang="en" data-view="{{page}}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="{{themeColor}}" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <title>{{title}}</title>
+    <meta name="description" content="{{description}}" />
+    <link rel="canonical" href="{{url}}" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=9f832763" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Vecsy" />
+    <meta property="og:url" content="{{url}}" />
+    <meta property="og:title" content="{{title}}" />
+    <meta property="og:description" content="{{description}}" />
+    <meta property="og:locale" content="{{locale}}" />
+    {{alternateLocales}}
+    <meta property="og:image" content="{{image}}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="{{imageAlt}}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{title}}" />
+    <meta name="twitter:description" content="{{description}}" />
+    <meta name="twitter:image" content="{{image}}" />
+    <meta name="twitter:image:alt" content="{{imageAlt}}" />
+    <script id="vecsy-structured-data" type="application/ld+json">{{schema}}</script>
+    <style>
+      html, body { min-height: 100%; margin: 0; background: {{themeColor}}; }
+      #root[data-booting] { min-height: 100vh; }
+      #root[data-booting] > * { visibility: hidden; }
+      .seo-fallback { max-width: 850px; margin: auto; padding: 32px 24px; color: #393e38; font: 16px/1.75 system-ui, sans-serif; }
+      .seo-fallback a { color: inherit; }
+      .seo-fallback nav { display: flex; flex-wrap: wrap; gap: 16px; }
+      html[data-view="editor"] .seo-fallback { color: #f2efe9; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-booting>{{content}}</div>
+    <noscript><style>#root[data-booting] > * { visibility: visible; }</style></noscript>
+    <script type="module" src="/src/entry.jsx"></script>
+  </body>
+</html>

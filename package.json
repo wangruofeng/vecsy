@@ -13,10 +13,11 @@
     "test:browser": "vitest run --project browser --browser.headless",
     "test:webkit": "vitest run --config vitest.webkit.config.js --browser.headless",
     "generate:guides": "node scripts/generate-guides.mjs",
-    "prebuild": "npm run generate:guides",
-    "predev": "npm run generate:guides",
-    "pretest:browser": "npm run generate:guides",
-    "pretest:webkit": "npm run generate:guides"
+    "generate:site": "node scripts/generate-site.mjs",
+    "prebuild": "npm run generate:site",
+    "predev": "npm run generate:site",
+    "pretest:browser": "npm run generate:site",
+    "pretest:webkit": "npm run generate:site"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

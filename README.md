@@ -19,6 +19,12 @@
 
 ## 功能
 
+### 产品介绍页
+- 首页 `/`：产品概览、可切换的交互示意、功能介绍、使用步骤和常见问题
+- 编辑器 `/editor/`：直接进入工作台；已安装的网页应用也从这里打开
+- 介绍页与编辑器支持简体中文、繁体中文、英文和日文，语言选择在两者之间保持一致
+- 介绍页采用独立组件与样式，编辑器代码按需加载，不新增运行时依赖
+
 ### 导入与浏览
 - 拖拽或选择 SVG 文件导入
 - 左侧图层树查看 SVG 内部元素，分组可展开 / 折叠
@@ -110,7 +116,9 @@ npx wrangler login
 
 ## 项目结构
 
-应用入口负责编排，SVG 解析/几何/变换、共享文案、面板组件和状态 Hook 分别按职责拆分；样式仍集中在 `src/styles.css`。
+首页与编辑器拥有独立 HTML 入口，由 `src/entry.jsx` 选择页面；SVG 解析/几何/变换、共享文案、面板组件和状态 Hook 分别按职责拆分。编辑器样式位于 `src/styles.css`，介绍页样式位于 `src/components/landing/landing.css`。
+
+SEO 文件通过 `npm run generate:site` 统一生成，开发、测试与构建前自动执行。请修改 `src/app/seo.js`、`src/app/copy.js` 或 `scripts/templates/app.html`，不要直接修改生成的首页、编辑器 HTML 与四语言指南。页面地址、抓取策略与验证方式见 [产品介绍页说明](docs/landing-page.md)。
 
 ```text
 .
@@ -127,6 +135,7 @@ npx wrangler login
 │   ├── _headers                 # Cloudflare Pages 安全与缓存策略
 │   └── 404.html                 # 静态 404 页（解决 SPA 软 404）
 ├── src/
+│   ├── entry.jsx    # 首页 / 编辑器入口选择
 │   ├── main.jsx     # 应用入口与业务编排
 │   ├── app/copy.js  # 四语文案（en/zh-CN/zh-TW/ja）和显示名称
 │   ├── components/  # LayerPanel、CanvasPanel、InspectorPanel、Icon、RecentSvgModal、SvgCollectionModal 等
@@ -143,7 +152,10 @@ npx wrangler login
 │   ├── product-roadmap.md       # 产品迭代计划
 │   ├── browser-smoke-checklist.md  # 浏览器手动验收清单
 │   └── web-storage-options.md   # Web 数据持久化方案选型
-├── index.html
+├── scripts/        # 静态页面、四语言指南与站点地图生成
+├── index.html      # 产品介绍页 HTML（生成）
+├── editor/index.html # 编辑器 HTML（生成）
+├── vite.config.js  # 双 HTML 入口构建
 └── package.json
 ```
 

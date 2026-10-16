@@ -1,10 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { createRoot } from 'react-dom/client'
 import './styles.css'
 import { getSampleSvg } from './app/sample-svg.js'
 import { COPY, LANGUAGES, ADD_LAYER_TAGS, getLayerDisplayName, getTagDisplayName } from './app/copy.js'
 import { updatePageMetadata } from './app/seo.js'
-import { registerRuntimeIdentity } from './app/runtime-identity.js'
+import { rememberLanguage } from './app/language.js'
 import Icon from './components/Icon.jsx'
 import LayerPanel from './components/LayerPanel.jsx'
 import CanvasPanel from './components/CanvasPanel.jsx'
@@ -52,7 +51,7 @@ function renderRasterExport(markup, width, height, format) {
   })
 }
 
-function App() {
+export default function App() {
   const { language, setLanguage, svgMarkup, sourceDraft, setSourceDraft, elements, selectedId, setSelectedId, selectedIds, setSelectedIds, fileName, dirty, setDirty, history, storageError, setStorageError, selectLayerIds, currentSnapshot, commitDocument, undo, redo, loadDocument, recentDocuments, removeRecentDocument } = useEditorDocument({ initialMarkup: getSampleSvg(), storageKey: STORAGE_KEY, legacyStorageKey: LEGACY_STORAGE_KEY, historyLimit: HISTORY_LIMIT })
   const [activeTab, setActiveTab] = useState('preview')
   const [isLayersOpen, setIsLayersOpen] = useState(true)
@@ -220,7 +219,7 @@ function App() {
   const highlightedSource = useMemo(() => highlightSvgSource(sourceDraft), [sourceDraft])
 
   useEffect(() => {
-    updatePageMetadata(document, language, copy)
+    updatePageMetadata(document, language, copy, 'editor')
   }, [language])
 
   useEffect(() => {
@@ -1210,6 +1209,7 @@ function App() {
       <header className="topbar">
         <div className="brand"><svg className="brand-mark" viewBox="0 0 1024 1024" aria-hidden="true"><defs><linearGradient id="vecsy-brand-orange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FBA13A" /><stop offset="52%" stopColor="#F59836" /><stop offset="100%" stopColor="#F39230" /></linearGradient></defs><rect x="37" y="34" width="949" height="954" rx="160" fill="url(#vecsy-brand-orange)" /><path d="M210 254 H325 C333 254 340 258 344 266 L512 600 L681 266 C685 258 692 254 701 254 H816 C827 254 834 266 829 276 L541 838 C535 849 524 854 513 854 C501 854 490 849 484 838 L196 276 C191 266 199 254 210 254 Z" fill="#FFFFFF" /></svg><h1 className="brand-title">VECSY<span className="sr-only"> — {copy.brandTagline}</span></h1><a className="brand-github-link" href="https://github.com/wangruofeng/vecsy" target="_blank" rel="noreferrer" title={copy.githubRepository} aria-label={copy.githubRepository}><Icon name="github" size={17} /></a></div>
         <div className="topbar-actions">
+          <a className="brand-github-link" href={`/?lang=${language}`} title={copy.landingHome} aria-label={copy.landingHome}>←</a>
           <a className="brand-github-link" href={`/guide/${language}/`} target="_blank" rel="noreferrer" title={copy.guideTitle} aria-label={copy.guideTitle}><Icon name="help" size={17} /></a>
           <span className="save-state"><span className={`status-dot ${dirty ? 'dirty' : ''}`} />{dirty ? copy.unsaved : copy.saved}</span>
           <button className="icon-button" title={`${copy.undo} (⌘Z)`} aria-keyshortcuts="Meta+Z" onClick={undo} disabled={!history.past.length}><Icon name="undo" /></button>
@@ -1223,6 +1223,10 @@ function App() {
               if (item.code !== language && (fileName === 'untitled.svg' || fileName === 'demo.svg') && LANGUAGES.some(({ code }) => parseSvg(getSampleSvg(code)).markup === svgMarkup)) {
                 commitDocument(getSampleSvg(item.code), { nextDirty: dirty })
               }
+              rememberLanguage(item.code)
+              const languageUrl = new URL(window.location.href)
+              languageUrl.searchParams.set('lang', item.code)
+              window.history.replaceState(null, '', languageUrl)
               setLanguage(item.code)
               setLangMenuOpen(false)
             }}><span className="language-menu-check">{language === item.code && <Icon name="check" size={12} />}</span><span>{item.label}</span></button>)}</div>}
@@ -1441,6 +1445,3 @@ function App() {
     </main>
   )
 }
-
-registerRuntimeIdentity()
-createRoot(document.getElementById('root')).render(<App />)

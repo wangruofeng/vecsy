@@ -12,7 +12,10 @@ describe('public GEO guides', () => {
     expect(page.querySelector('#root main h1')).not.toBeNull()
     const schema = JSON.parse(page.querySelector('#vecsy-structured-data').textContent)
     const app = schema['@graph'].find((entity) => entity['@id'] === 'https://vecsy.top/#app')
-    expect(app.description).toBe(page.querySelector('meta[name="description"]').content)
+    const webpage = schema['@graph'].find((entity) => entity['@type'] === 'WebPage')
+    expect(webpage.description).toBe(page.querySelector('meta[name="description"]').content)
+    expect(app.url).toBe('https://vecsy.top/editor/')
+    expect([...page.querySelectorAll('#root #faq h3')].map((node) => node.textContent)).toEqual(COPY.en.guideFaq.map(([question]) => question))
     for (const { code } of LANGUAGES) {
       expect(page.querySelector(`#root main a[href="/guide/${code}/"]`)).not.toBeNull()
     }
@@ -44,12 +47,23 @@ describe('public GEO guides', () => {
         expect(page.querySelector(`link[hreflang="${alternate}"]`).getAttribute('href')).toBe(`https://vecsy.top/guide/${alternate}/`)
         expect(page.querySelector(`nav a[lang="${alternate}"]`).getAttribute('href')).toBe(`/guide/${alternate}/`)
       }
-      expect(page.querySelector('main a').getAttribute('href')).toBe('/')
+      expect(page.querySelector('main a').getAttribute('href')).toBe(`/editor/?lang=${code}`)
       const schema = JSON.parse(page.querySelector('script[type="application/ld+json"]').textContent)
       expect(schema.name).toBe(copy.guideTitle)
       expect(schema.description).toBe(copy.guideSummary)
       expect(schema.url).toBe(canonical)
       expect(schema.inLanguage).toBe(code)
+      expect(schema.about.url).toBe('https://vecsy.top/editor/')
+      expect(schema.breadcrumb.itemListElement[0].item).toBe('https://vecsy.top/')
+      expect(page.querySelector('meta[property="og:locale"]').content).not.toBe('')
+      expect(page.querySelector('meta[name="twitter:title"]').content).toBe(copy.guideTitle)
+      expect(page.querySelector('meta[name="twitter:description"]').content).toBe(copy.guideSummary)
+      const sitemapEntry = [...sitemap.querySelectorAll('url')].find((node) => node.querySelector('loc').textContent === canonical)
+      const sitemapAlternates = [...sitemapEntry.getElementsByTagNameNS('http://www.w3.org/1999/xhtml', 'link')]
+      expect(sitemapAlternates.map((link) => link.getAttribute('hreflang')).sort()).toEqual([...LANGUAGES.map(({ code }) => code), 'x-default'].sort())
+      for (const link of sitemapAlternates) {
+        expect(link.getAttribute('href')).toBe(page.querySelector(`link[hreflang="${link.getAttribute('hreflang')}"]`).getAttribute('href'))
+      }
       expect(page.querySelector('script[src]')).toBeNull()
     }
   })

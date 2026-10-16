@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { LANGUAGES } from '../app/copy.js'
+import { getLanguagePreference } from '../app/language.js'
 import { parseSvg, displaySourceDraft } from '../editor/svg-parser.js'
 import { processSvgInput } from '../editor/process-svg-input.js'
 import { deleteDocument, listRecentDocuments, openDocumentDatabase, readDocument, readMeta, saveCurrentDocument, saveRecentDocuments } from '../storage/document-db.js'
@@ -26,7 +27,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
   }, [initial, persisted])
   const [language, setLanguage] = useState(() => {
     const stored = persisted?.language === 'zh' ? 'zh-CN' : persisted?.language
-    return LANGUAGES.some((item) => item.code === stored) ? stored : 'en'
+    return getLanguagePreference() || (LANGUAGES.some((item) => item.code === stored) ? stored : 'en')
   })
   const [svgMarkup, setSvgMarkup] = useState(persistedDocument.markup)
   const [sourceDraft, setSourceDraft] = useState(displaySourceDraft(persistedDocument))
@@ -104,7 +105,7 @@ export default function useEditorDocument({ initialMarkup, storageKey, legacySto
         // IndexedDB 不存历史快照；state 里的 history 来自 localStorage 旧会话残留，与恢复出的
         // 文档不同源（可能含删空图层的空 svg 快照），不清空会让撤销跳回旧会话的空文档
         setHistory({ past: [], future: [] })
-        if (LANGUAGES.some((item) => item.code === storedLanguage?.value)) setLanguage(storedLanguage.value)
+        if (LANGUAGES.some((item) => item.code === storedLanguage?.value)) setLanguage(getLanguagePreference() || storedLanguage.value)
       }
       if (!closed && storedRecents.length) setRecentDocuments(storedRecents.map(({ fileName, svgMarkup, updatedAt }) => ({ fileName, svgMarkup, updatedAt })))
       setDatabaseReady(true)

@@ -4,6 +4,8 @@
 
 ## 架构要点
 
+- **页面与 SEO 入口**：`/` 为产品介绍页，`/editor/` 为编辑器；`src/entry.jsx` 负责页面选择，Vite 构建两个独立 HTML 入口。`npm run generate:site` 统一生成首页、编辑器 HTML、四语言指南和站点地图（开发、构建、浏览器测试前自动执行）。修改 `src/app/seo.js`、`src/app/copy.js` 或 `scripts/templates/app.html`，不要直接编辑生成的 HTML；页面地址与语言关系详见 `docs/landing-page.md`。
+
 - **模块化单页架构**：`src/main.jsx` 负责应用编排和跨模块行为组合；纯 SVG 逻辑位于 `src/editor/`，文案位于 `src/app/copy.js`，面板位于 `src/components/`，文档与画布状态分别位于 `src/hooks/`。保持模块边界清晰，避免把新的业务逻辑重新堆回入口文件。
 - **不可变字符串驱动的 SVG 编辑**：SVG 内容始终以原始 markup 字符串形式存在 state（`svgMarkup`），所有编辑操作（改属性、增删图层、排序、变换）都是「解析字符串 → 用 DOM API 修改 → 序列化回字符串 → `commitDocument`」。不要引入直接操作 DOM 节点的副作用。
 - **历史记录**：`commitDocument` 是唯一的变更入口，自动 push 快照到 `history.past`。撤销/重做在快照间移动。新增任何会改变 SVG 的操作，必须走 `commitDocument`，否则历史会断。

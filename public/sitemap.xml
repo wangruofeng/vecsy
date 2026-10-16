@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url><loc>https://vecsy.top/</loc></url>
-  <url><loc>https://vecsy.top/guide/en/</loc></url>
-  <url><loc>https://vecsy.top/guide/zh-CN/</loc></url>
-  <url><loc>https://vecsy.top/guide/zh-TW/</loc></url>
-  <url><loc>https://vecsy.top/guide/ja/</loc></url>
+  <url><loc>https://vecsy.top/editor/</loc></url>
+  <url><loc>https://vecsy.top/guide/zh-CN/</loc><xhtml:link rel="alternate" hreflang="zh-CN" href="https://vecsy.top/guide/zh-CN/"/><xhtml:link rel="alternate" hreflang="zh-TW" href="https://vecsy.top/guide/zh-TW/"/><xhtml:link rel="alternate" hreflang="en" href="https://vecsy.top/guide/en/"/><xhtml:link rel="alternate" hreflang="ja" href="https://vecsy.top/guide/ja/"/><xhtml:link rel="alternate" hreflang="x-default" href="https://vecsy.top/guide/en/"/></url>
+  <url><loc>https://vecsy.top/guide/zh-TW/</loc><xhtml:link rel="alternate" hreflang="zh-CN" href="https://vecsy.top/guide/zh-CN/"/><xhtml:link rel="alternate" hreflang="zh-TW" href="https://vecsy.top/guide/zh-TW/"/><xhtml:link rel="alternate" hreflang="en" href="https://vecsy.top/guide/en/"/><xhtml:link rel="alternate" hreflang="ja" href="https://vecsy.top/guide/ja/"/><xhtml:link rel="alternate" hreflang="x-default" href="https://vecsy.top/guide/en/"/></url>
+  <url><loc>https://vecsy.top/guide/en/</loc><xhtml:link rel="alternate" hreflang="zh-CN" href="https://vecsy.top/guide/zh-CN/"/><xhtml:link rel="alternate" hreflang="zh-TW" href="https://vecsy.top/guide/zh-TW/"/><xhtml:link rel="alternate" hreflang="en" href="https://vecsy.top/guide/en/"/><xhtml:link rel="alternate" hreflang="ja" href="https://vecsy.top/guide/ja/"/><xhtml:link rel="alternate" hreflang="x-default" href="https://vecsy.top/guide/en/"/></url>
+  <url><loc>https://vecsy.top/guide/ja/</loc><xhtml:link rel="alternate" hreflang="zh-CN" href="https://vecsy.top/guide/zh-CN/"/><xhtml:link rel="alternate" hreflang="zh-TW" href="https://vecsy.top/guide/zh-TW/"/><xhtml:link rel="alternate" hreflang="en" href="https://vecsy.top/guide/en/"/><xhtml:link rel="alternate" hreflang="ja" href="https://vecsy.top/guide/ja/"/><xhtml:link rel="alternate" hreflang="x-default" href="https://vecsy.top/guide/en/"/></url>
 </urlset>

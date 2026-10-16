@@ -7,7 +7,7 @@ try {
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
   await page.route('https://**/*', route => route.abort())
-  await page.goto(process.argv[2] || 'http://127.0.0.1:5178')
+  await page.goto(process.argv[2] || 'http://127.0.0.1:5178/editor/')
   await page.locator('.canvas-stage').waitFor()
   await page.waitForTimeout(1000)
   await page.locator('input[type=file][accept="image/svg+xml,.svg"]').setInputFiles({ name: 'marquee.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect id="first" x="50" y="50" width="40" height="40" fill="red"/><rect id="second" x="150" y="50" width="40" height="40" fill="blue"/><rect id="third" x="280" y="180" width="40" height="40" fill="green"/></svg>') })

@@ -9,7 +9,7 @@ try {
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
   await page.route('https://**/*', route => route.abort())
-  await page.goto(process.argv[2] || 'http://127.0.0.1:5186')
+  await page.goto(process.argv[2] || 'http://127.0.0.1:5186/editor/')
   await page.locator('.canvas-stage').waitFor()
   await page.waitForTimeout(1000)
   await page.locator('input[type=file][accept="image/svg+xml,.svg"]').setInputFiles({ name: 'hover.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect id="first" x="50" y="50" width="60" height="60" fill="red"/><g transform="translate(150 50)"><rect id="second" width="60" height="60" fill="blue"/></g><line id="line" x1="80" y1="200" x2="250" y2="200" stroke="green" stroke-width="6"/></svg>') })

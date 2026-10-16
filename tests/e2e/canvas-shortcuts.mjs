@@ -9,7 +9,7 @@ try {
   const errors = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.route('https://**/*', (route) => route.abort())
-  await page.goto(process.argv[2] || 'http://127.0.0.1:5178')
+  await page.goto(process.argv[2] || 'http://127.0.0.1:5178/editor/')
 
   const tools = page.locator('.canvas-mode-tools button')
   const isSelected = async (index) => tools.nth(index).getAttribute('aria-pressed')

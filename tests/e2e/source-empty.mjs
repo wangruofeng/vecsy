@@ -9,7 +9,7 @@ try {
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
   await page.route('https://**/*', route => route.abort())
-  await page.goto(process.argv[2] || 'http://127.0.0.1:5199')
+  await page.goto(process.argv[2] || 'http://127.0.0.1:5199/editor/')
   await page.locator('.canvas-stage').waitFor()
   await page.waitForTimeout(1000)
 
