@@ -36,6 +36,9 @@ button { border: 0; cursor: pointer; color: inherit; }
 .button-quiet:hover { background: #2c2c31; }
 .button-accent { background: var(--amber); color: #5a4a2e; }
 .button-accent:hover { background: #ffbe55; }
+.topbar .button-accent { background: #f5a044; color: #24170b; }
+.topbar .button-accent:hover { background: #ffb35c; }
+.topbar .button-accent:active { background: #e58b30; }
 .workspace-heading { max-width: 1500px; margin: 0 auto; padding: 40px 20px 28px; display: flex; justify-content: space-between; align-items: end; }
 h1 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: clamp(25px, 3vw, 37px); line-height: 1.1; letter-spacing: -.02em; font-weight: 600; color: #f5f2eb; }
 .workspace-heading p { margin: 9px 0 0; color: var(--muted); font-size: 13px; }
