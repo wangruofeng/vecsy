@@ -70,7 +70,6 @@ export default function LandingPage() {
         <span className="lp-platform">SVG<span className="lp-platform-dot" /></span>
         <div className={`lp-nav-links ${menuOpen ? 'is-open' : ''}`} id="lp-nav-links">
           {links.map(([href, label]) => <a href={href} key={href} onClick={() => setMenuOpen(false)}>{label}</a>)}
-          <a href={`/guide/${language}/`}>{copy.landingGuideNav}</a>
         </div>
         <div className="lp-nav-actions">
           <LanguageSwitcher language={language} label={copy.languageSwitch} onOpen={() => setMenuOpen(false)} onChange={(next) => {
@@ -96,12 +95,12 @@ export default function LandingPage() {
       </section>
 
       <section className="lp-section lp-overview" id="overview">
-        <SectionHeading number="00" label={copy.landingDemoNav} title={copy.landingDemoTitle} description={copy.landingDemoDescription} />
+        <SectionHeading number="01" label={copy.landingDemoNav} title={copy.landingDemoTitle} description={copy.landingDemoDescription} />
         <ProductDemo copy={copy} editorHref={editorHref} />
       </section>
 
       <section className="lp-section" id="features">
-        <SectionHeading number="01" label={copy.landingFeaturesNav} title={copy.landingFeaturesTitle} description={copy.landingFeaturesDescription} />
+        <SectionHeading number="02" label={copy.landingFeaturesNav} title={copy.landingFeaturesTitle} description={copy.landingFeaturesDescription} />
         <div className="lp-feature-grid">{copy.landingFeatureTitles.map((title, index) => <article className="lp-feature lp-reveal" key={index}>
           <FeatureArt index={index} /><div className="lp-feature-text"><h3><Icon name={FEATURE_ICONS[index]} size={17} />{title}</h3><p>{copy.landingFeatureBodies[index]}</p></div>
         </article>)}</div>
@@ -109,19 +108,29 @@ export default function LandingPage() {
       </section>
 
       <section className="lp-section" id="how-it-works">
-        <SectionHeading number="02" label={copy.landingStepsNav} title={copy.landingStepsTitle} />
+        <SectionHeading number="03" label={copy.landingStepsNav} title={copy.landingStepsTitle} />
         <ol className="lp-steps">{copy.landingStepTitles.map((title, index) => <li className="lp-reveal" key={index}><span className="lp-step-number">0{index + 1}</span><h3>{title}</h3><p>{copy.landingStepBodies[index]}</p></li>)}</ol>
-        <a className="lp-text-link" href={`/guide/${language}/`}>{copy.landingGuideNav}</a>
       </section>
 
       <section className="lp-section lp-faq" id="faq">
-        <SectionHeading number="03" label={copy.landingFaqNav} title={copy.landingFaqTitle} />
+        <SectionHeading number="04" label={copy.landingFaqNav} title={copy.landingFaqTitle} />
         <div className="lp-faq-list">{copy.guideFaq.map(([question, answer], index) => <details key={index}><summary><h3>{question}</h3><span aria-hidden="true">+</span></summary><div className="lp-faq-answer"><p>{answer}</p></div></details>)}</div>
       </section>
 
       <section className="lp-closing lp-reveal"><span className="lp-closing-star" aria-hidden="true">✳</span><h2>{copy.landingClosing}</h2><p>{copy.landingClosingNote}</p><a className="lp-button lp-button-primary" href={editorHref}>{copy.landingStart}</a></section>
     </main>
 
-    <footer className="lp-footer"><div className="lp-footer-top"><div><a className="lp-brand" href="#top"><img src="/favicon.svg" width="26" height="26" alt="" /><span>Vecsy</span></a><p>{copy.landingFooter}</p></div><div className="lp-footer-links"><a href={`/guide/${language}/`}>{copy.landingGuideNav}</a><a href="https://github.com/wangruofeng/vecsy" target="_blank" rel="noreferrer"><Icon name="github" size={15} />{copy.landingOpenSource}</a><a href="#top">{copy.landingTop}</a></div></div><div className="lp-footer-bottom"><span>© {new Date().getFullYear()} Vecsy</span><span>{copy.landingPromises[0]}<span aria-hidden="true"> · </span>{copy.landingPromises[3]}</span></div></footer>
+    <footer className="lp-footer">
+      <div className="lp-footer-brand">
+        <a className="lp-brand" href="#top"><img src="/favicon.svg" width="26" height="26" alt="" /><span>Vecsy</span></a>
+        <p>{copy.landingFooter}</p>
+      </div>
+      <div className="lp-footer-links">
+        <a href="https://github.com/wangruofeng/vecsy" target="_blank" rel="noreferrer"><Icon name="github" size={15} />{copy.landingOpenSource}</a>
+        <a href="#top">{copy.landingTop}</a>
+      </div>
+      <small className="lp-footer-copyright">© {new Date().getFullYear()} Vecsy</small>
+      <small className="lp-footer-promises">{copy.landingPromises[0]}<span aria-hidden="true"> · </span>{copy.landingPromises[3]}</small>
+    </footer>
   </div>
 }

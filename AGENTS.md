@@ -38,7 +38,7 @@ npx wrangler pages deploy dist --project-name vecsy --branch main
 
 ## 项目状态
 
-- 版本 `0.5.0`（Foundation），已完成：统一 SVG 安全输入 Pipeline、CI/CD 自动化测试、IndexedDB 持久化与自动保存、Drag 统一坐标契约、Editor Transaction 最小契约。
+- 版本 `0.5.1`（Foundation），已完成：统一 SVG 安全输入 Pipeline、CI/CD 自动化测试、IndexedDB 持久化与自动保存、Drag 统一坐标契约、Editor Transaction 最小契约。
 - v0.5 后已在 `main` 追加：PNG/WebP 导出与体积优化、对齐/分布、右键菜单与图层重命名、框选多选与选择/平移工具、线段端点样式（marker 承载）与箭头图层、Alt 测距参考线、分组/多选整体拖拽、defs 孤儿资源随图层删除清理。
 - 下一阶段 v0.6 — SVG Surgery：SVG Audit Panel、Global Palette、`currentColor` 转换、Clean SVG 与 Developer Export（见 `docs/v0.5/roadmap.md` §15）。
 - 在线 demo（自动部署 main）：<https://vecsy.top/>
